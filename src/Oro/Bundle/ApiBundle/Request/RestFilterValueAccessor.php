@@ -15,19 +15,21 @@ use Symfony\Component\HttpFoundation\Request;
  * the filter from the query string will override the filter from the request body.
  *
  * Filter syntax for the query string:
- * * key=value, where "=" is an operator; see $this->operators to find a list of supported operators
+ * * key=value
  * * key[operator name]=value, where "operator name" can be "eq", "neq", etc.; see $this->operatorNameMap
  *                             to find a map between operators and their names
+ * * group[key]=value
+ * * group[key][operator name]=value
+ *
  * Examples:
- * * /api/users?filter[name]!=John
- * * /api/users?filter[name][neq]=John
+ * * /api/users?filter[firstName]=John&filter[lastName][neq]=Doe
  * * /api/users?page[number]=10&sort=name
  *
  * Filter syntax for the request body:
  *  * [key => value, ...]
- *  * [key => [operator => value], ...]
- *  * [key => [operator name => value], ...]
+ *  * [key => [operator name => value, ...], ...]
  *  * [group => [key => value, ...], ...]
+ *  * [group => [key => [operator name => value, ...], ...], ...]
  * Example:
  * <code>
  *  [
@@ -38,49 +40,59 @@ use Symfony\Component\HttpFoundation\Request;
  *  ]
  * </code>
  *
+ * Also the filter syntax similar to the filter syntax for the query string is allowed for the request body.
+ * Example:
+ * <code>
+ *  [
+ *      'filter[name][neq]' => 'John',
+ *      'sort' => 'name'
+ *  ]
+ * </code>
+ *
  * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
  */
 class RestFilterValueAccessor extends FilterValueAccessor
 {
     private Request $request;
-    private string $operatorPattern;
-    /** @var string[] [operator short name, ...] */
-    private array $operators;
     /** @var array [operator name => operator short name or NULL, ...] */
     private array $operatorNameMap;
     /** @var array [operator short name => operator name, ...] */
     private array $operatorShortNameMap;
+    private bool $enableRequestBodyParsing = false;
 
-    public function __construct(Request $request, string $operatorPattern, array $operatorNameMap)
+    public function __construct(Request $request, array $operatorNameMap)
     {
         $this->request = $request;
-        $this->operatorPattern = $operatorPattern;
         $this->operatorNameMap = $operatorNameMap;
-        $this->operators = [];
         $this->operatorShortNameMap = [];
         foreach ($operatorNameMap as $name => $shortName) {
             if ($shortName && !\array_key_exists($shortName, $this->operatorShortNameMap)) {
-                $this->operators[] = $shortName;
                 $this->operatorShortNameMap[$shortName] = $name;
             }
         }
-        // "<>" is an alias for "!="
-        $this->operators[] = '<>';
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    public function enableRequestBodyParsing(): void
+    {
+        $this->enableRequestBodyParsing = true;
+    }
+
+    public function disableRequestBodyParsing(): void
+    {
+        $this->enableRequestBodyParsing = false;
+    }
+
+    #[\Override]
     protected function initialize(): void
     {
         parent::initialize();
-        $this->parseRequestBody();
+        if ($this->enableRequestBodyParsing) {
+            $this->parseRequestBody();
+        }
         $this->parseQueryString();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     protected function normalizeOperator(?string $operator): string
     {
         $operator = parent::normalizeOperator($operator);
@@ -127,18 +139,16 @@ class RestFilterValueAccessor extends FilterValueAccessor
 
     private function parseQueryString(): void
     {
-        $queryString = $this->request->server->get('QUERY_STRING');
-        $queryString = RequestQueryStringNormalizer::normalizeQueryString($queryString);
-
-        $queryString = '' === $queryString ? null : $queryString;
-
-        if (empty($queryString)) {
+        $queryString = RequestQueryStringNormalizer::normalizeQueryString(
+            $this->request->server->get('QUERY_STRING')
+        );
+        if (!$queryString) {
             return;
         }
 
         $matchResult = preg_match_all(
             '/(?P<key>((?P<group>[\w\d\-\.]+)(?P<path>((\[[\w\d\-\.]*\])|(%5B[\w\d\-\.]*%5D))*)))'
-            . '(?P<operator>' . $this->operatorPattern . ')'
+            . '(?P<operator>=)'
             . '(?P<value>[^&]*)/',
             $queryString,
             $matches,
@@ -151,6 +161,7 @@ class RestFilterValueAccessor extends FilterValueAccessor
                 $group = rawurldecode($match['group']);
                 $path = rawurldecode($match['path']);
                 $operator = rawurldecode($match['operator']);
+                $sourceKey = $key;
 
                 // check if a filter is provided as "key[operator name]=value"
                 if (str_ends_with($path, ']')) {
@@ -173,34 +184,34 @@ class RestFilterValueAccessor extends FilterValueAccessor
                     $normalizedKey = $group . '[' . $path . ']';
                 }
 
-                $this->addParsed($key, $group, $normalizedKey, $path, rawurldecode($match['value']), $operator);
+                $this->addParsed($sourceKey, $group, $normalizedKey, $path, rawurldecode($match['value']), $operator);
             }
         }
     }
 
+    /**
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     */
     private function parseRequestBody(): void
     {
         if (null === $this->request->request) {
             return;
         }
 
-        $requestBody = $this->request->request->all();
+        $requestBody = $this->normalizeRequestBody($this->request->request->all());
         foreach ($requestBody as $group => $val) {
             if (\is_array($val)) {
                 if ($this->isValueWithOperator($val)) {
-                    $this->addParsed($group, $group, $group, $group, current($val), key($val));
+                    foreach ($val as $k => $v) {
+                        $this->addParsed($group . sprintf('[%s]', $k), $group, $group, $group, $v, $k);
+                    }
                 } elseif (ArrayUtil::isAssoc($val)) {
                     foreach ($val as $subKey => $subValue) {
                         $paramKey = $group . '[' . $subKey . ']';
                         if (\is_array($subValue) && $this->isValueWithOperator($subValue)) {
-                            $this->addParsed(
-                                $paramKey,
-                                $group,
-                                $paramKey,
-                                $subKey,
-                                current($subValue),
-                                key($subValue)
-                            );
+                            foreach ($subValue as $k => $v) {
+                                $this->addParsed($paramKey . sprintf('[%s]', $k), $group, $paramKey, $subKey, $v, $k);
+                            }
                         } else {
                             $this->addParsed($paramKey, $group, $paramKey, $subKey, $subValue);
                         }
@@ -214,19 +225,76 @@ class RestFilterValueAccessor extends FilterValueAccessor
         }
     }
 
+    private function normalizeRequestBody(array $requestBody): array
+    {
+        $result = [];
+        foreach ($requestBody as $name => $val) {
+            $parts = $this->splitRequestBodyParamName($name);
+            if (\count($parts) > 1) {
+                $name1 = array_shift($parts);
+                if (!isset($result[$name1])) {
+                    $result[$name1] = [];
+                } elseif (!\is_array($result[$name1]) || !ArrayUtil::isAssoc($result[$name1])) {
+                    $result[$name1] = [self::DEFAULT_OPERATOR => $result[$name1]];
+                }
+                $item = &$result[$name1];
+                $lastPart = array_pop($parts);
+                foreach ($parts as $part) {
+                    if (!isset($item[$part])) {
+                        $item[$part] = [];
+                    }
+                    $item = &$item[$part];
+                }
+                if (\array_key_exists($lastPart, $this->operatorNameMap)) {
+                    $item[$lastPart] = $val;
+                } else {
+                    $item[$lastPart] = [self::DEFAULT_OPERATOR => $val];
+                }
+            } else {
+                $result[$name] = $val;
+            }
+        }
+
+        return $result;
+    }
+
+    private function splitRequestBodyParamName(string $name): array
+    {
+        $startPos = strpos($name, '[');
+        if (false === $startPos || !str_ends_with($name, ']')) {
+            return [$name];
+        }
+
+        $name1 = substr($name, 0, $startPos);
+        $parts = explode('][', substr($name, $startPos + 1, -1));
+        foreach ($parts as $part) {
+            if (str_contains($part, '[') || str_contains($part, ']')) {
+                return [$name];
+            }
+        }
+
+        return array_merge([$name1], $parts);
+    }
+
     private function isValueWithOperator(array $value): bool
     {
-        if (1 !== \count($value)) {
+        if (!$value) {
             return false;
         }
 
-        $key = key($value);
+        $result = true;
+        foreach ($value as $key => $val) {
+            if (!$this->isOperator($key)) {
+                $result = false;
+                break;
+            }
+        }
 
-        return
-            \is_string($key)
-            && (
-                \in_array($key, $this->operators, true)
-                || \array_key_exists($key, $this->operatorNameMap)
-            );
+        return $result;
+    }
+
+    private function isOperator(mixed $value): bool
+    {
+        return \is_string($value) && \array_key_exists($value, $this->operatorNameMap);
     }
 }

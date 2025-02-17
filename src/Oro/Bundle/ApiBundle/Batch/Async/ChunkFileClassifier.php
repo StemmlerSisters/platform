@@ -12,23 +12,19 @@ class ChunkFileClassifier implements ChunkFileClassifierInterface
     private string $primaryDataSectionName;
     private ?string $includedDataSectionName;
 
-    public function __construct(string $primaryDataSectionName, string $includedDataSectionName = null)
+    public function __construct(string $primaryDataSectionName, ?string $includedDataSectionName = null)
     {
         $this->primaryDataSectionName = $primaryDataSectionName;
         $this->includedDataSectionName = $includedDataSectionName;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function isPrimaryData(ChunkFile $file): bool
     {
         return $file->getSectionName() === $this->primaryDataSectionName;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function isIncludedData(ChunkFile $file): bool
     {
         return $this->includedDataSectionName && $file->getSectionName() === $this->includedDataSectionName;

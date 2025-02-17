@@ -2,6 +2,7 @@
 
 namespace Oro\Bundle\WorkflowBundle\Configuration;
 
+use Oro\Bundle\WorkflowBundle\Configuration\Import\ImportFilterInterface;
 use Oro\Bundle\WorkflowBundle\Configuration\Import\ImportProcessorFactoryInterface;
 use Oro\Bundle\WorkflowBundle\Exception\WorkflowConfigurationImportException;
 use Oro\Component\PhpUtils\ArrayUtil;
@@ -32,7 +33,10 @@ class WorkflowConfigurationImportsProcessor implements ConfigImportProcessorInte
     /** @var array */
     protected $processedContent = [];
 
-    /** {@inheritdoc} */
+    /** @var array|ImportFilterInterface  */
+    protected $importFilters = [];
+
+    #[\Override]
     public function process(array $content, \SplFileInfo $contentSource): array
     {
         if (empty($content['imports']) || !is_array($content['imports'])) {
@@ -45,7 +49,12 @@ class WorkflowConfigurationImportsProcessor implements ConfigImportProcessorInte
             return $this->processedContent[$filePath];
         }
 
-        $importProcessors = $this->getImportProcessors($content['imports']);
+        $imports = $this->filterImports($content['imports']);
+        if (!$imports) {
+            return $content;
+        }
+
+        $importProcessors = $this->getImportProcessors($imports);
         unset($content['imports']);
         $importedContent = [];
 
@@ -59,6 +68,15 @@ class WorkflowConfigurationImportsProcessor implements ConfigImportProcessorInte
         }
 
         return $this->processedContent[$filePath] = ArrayUtil::arrayMergeRecursiveDistinct($importedContent, $content);
+    }
+
+    private function filterImports(array $imports): array
+    {
+        foreach ($this->importFilters as $importFilter) {
+            $imports = $importFilter->filter($imports);
+        }
+
+        return $imports;
     }
 
     /**
@@ -98,11 +116,16 @@ class WorkflowConfigurationImportsProcessor implements ConfigImportProcessorInte
         $this->importProcessorFactories[] = $importProcessorGenerator;
     }
 
+    public function addImportFilter(ImportFilterInterface $filter): void
+    {
+        $this->importFilters[] = $filter;
+    }
+
     /**
-     * {@inheritdoc}
      *
      * @throws \LogicException
      */
+    #[\Override]
     public function setParent(ConfigImportProcessorInterface $parentProcessor)
     {
         throw new \LogicException('Main processor can not have parent.');

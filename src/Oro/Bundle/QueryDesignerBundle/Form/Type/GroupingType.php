@@ -8,6 +8,9 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
+/**
+ * Grouping field choice form type.
+ */
 class GroupingType extends AbstractType
 {
     const NAME = 'oro_query_designer_grouping';
@@ -20,14 +23,15 @@ class GroupingType extends AbstractType
         $this->manager = $manager;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $options = [
             'required'            => true,
             'page_component_name' => 'grouping-field-choice',
+            'page_component_options' => [
+                'view'         => 'oroquerydesigner/js/app/views/grouping-field-choice-view'
+            ],
         ];
 
         $metadata = $this->manager->getMetadataForGrouping();
@@ -42,9 +46,7 @@ class GroupingType extends AbstractType
             ->add('columnNames', FieldChoiceType::class, $options);
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setDefaults(
@@ -57,17 +59,12 @@ class GroupingType extends AbstractType
         );
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getName()
     {
         return $this->getBlockPrefix();
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getBlockPrefix(): string
     {
         return self::NAME;

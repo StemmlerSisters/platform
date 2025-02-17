@@ -28,7 +28,7 @@ class DynamicTranslationKeySource implements TranslationKeySourceInterface
      * @return $this
      * @throws \InvalidArgumentException
      */
-    public function configure(TranslationKeyTemplateInterface $keyTemplate, array $data = null)
+    public function configure(TranslationKeyTemplateInterface $keyTemplate, ?array $data = null)
     {
         $this->keyTemplate = $keyTemplate;
 
@@ -70,6 +70,7 @@ class DynamicTranslationKeySource implements TranslationKeySourceInterface
      * @return string
      * @throws \LogicException
      */
+    #[\Override]
     public function getTemplate()
     {
         return $this->getKeyTemplate()->getTemplate();
@@ -78,6 +79,7 @@ class DynamicTranslationKeySource implements TranslationKeySourceInterface
     /**
      * @return array
      */
+    #[\Override]
     public function getData()
     {
         return $this->data;

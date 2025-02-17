@@ -5,6 +5,7 @@ namespace Oro\Bundle\ApiBundle\Tests\Unit\Batch\Processor\Update;
 use Oro\Bundle\ApiBundle\Batch\Handler\BatchFlushDataHandlerInterface;
 use Oro\Bundle\ApiBundle\Batch\Handler\BatchUpdateItem;
 use Oro\Bundle\ApiBundle\Batch\Handler\BatchUpdateItemStatus;
+use Oro\Bundle\ApiBundle\Batch\Model\BatchAffectedEntities;
 use Oro\Bundle\ApiBundle\Batch\Model\BatchSummary;
 use Oro\Bundle\ApiBundle\Batch\Model\ChunkFile;
 use Oro\Bundle\ApiBundle\Batch\Model\IncludedData;
@@ -20,6 +21,7 @@ class BatchUpdateContextTest extends \PHPUnit\Framework\TestCase
 {
     private BatchUpdateContext $context;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->context = new BatchUpdateContext();
@@ -28,6 +30,11 @@ class BatchUpdateContextTest extends \PHPUnit\Framework\TestCase
     public function testShouldSummaryBeInitialized()
     {
         self::assertInstanceOf(BatchSummary::class, $this->context->getSummary());
+    }
+
+    public function testShouldAffectedEntitiesBeInitialized()
+    {
+        self::assertInstanceOf(BatchAffectedEntities::class, $this->context->getAffectedEntities());
     }
 
     public function testGetOperationIdWhenItIsNotSet()

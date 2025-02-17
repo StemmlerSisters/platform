@@ -5,6 +5,7 @@ namespace Oro\Bundle\TestFrameworkBundle\Tests\Unit\Behat\ServiceContainer;
 use Behat\Behat\Context\Initializer\ContextInitializer;
 use Behat\Behat\Context\ServiceContainer\ContextExtension;
 use Oro\Bundle\EntityBundle\ORM\EntityAliasResolver;
+use Oro\Bundle\MultiHostBundle\Operation\OperationExecutor;
 use Oro\Bundle\SecurityBundle\Owner\Metadata\OwnershipMetadataProviderInterface;
 use Oro\Bundle\TestFrameworkBundle\Behat\Context\Initializer\AppKernelInitializer;
 use Oro\Bundle\TestFrameworkBundle\Behat\Context\Initializer\ScreenshotInitializer;
@@ -13,6 +14,7 @@ use Oro\Bundle\TestFrameworkBundle\Behat\ServiceContainer\OroTestFrameworkExtens
 use Oro\Bundle\TestFrameworkBundle\Behat\Suite\OroSuiteGenerator;
 use Oro\Bundle\TestFrameworkBundle\Tests\Behat\Context\OroMainContext;
 use Oro\Bundle\TestFrameworkBundle\Tests\Unit\Stub\KernelStub;
+use Oro\Component\AmqpMessageQueue\Provider\TransportConnectionConfigProvider;
 use Oro\Component\Testing\TempDirExtension;
 use Psr\Log\NullLogger;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
@@ -32,6 +34,7 @@ class OroTestFrameworkExtensionTest extends \PHPUnit\Framework\TestCase
 
     private array $sharedContexts = [OroMainContext::class];
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->tempDir = $this->getTempDir('behat');
@@ -276,8 +279,7 @@ class OroTestFrameworkExtensionTest extends \PHPUnit\Framework\TestCase
 
         $extension->process($containerBuilder);
 
-        $elementFactoryDefinition = $containerBuilder->getDefinition('oro_element_factory');
-        $elements = $elementFactoryDefinition->getArgument(2);
+        $elements = $containerBuilder->getParameter('oro_test.elements');
 
         self::assertCount(2, $elements);
         self::assertArrayHasKey('MyElement1', $elements);
@@ -301,13 +303,27 @@ class OroTestFrameworkExtensionTest extends \PHPUnit\Framework\TestCase
                 ->disableOriginalConstructor()
                 ->getMock()
         );
+        $kernel->getContainer()->set(
+            'oro_multi_host.operation_executor',
+            $this->getMockBuilder(OperationExecutor::class)
+                ->disableOriginalConstructor()
+                ->getMock()
+        );
+        $kernel->getContainer()->set(
+            'oro_message_queue.transport.amqp.connection.config_provider',
+            $this->getMockBuilder(TransportConnectionConfigProvider::class)
+                ->disableOriginalConstructor()
+                ->getMock()
+        );
         $kernel->getContainer()->set('logger', new NullLogger());
         $kernel->getContainer()->setParameter('kernel.secret', 'secret');
+        $kernel->getContainer()->setParameter('oro_multi_host.enabled', false);
 
         $containerBuilder->set('fob_symfony.kernel', $kernel);
         $containerBuilder->set('oro_behat_extension.suite.oro_suite_generator', new OroSuiteGenerator($kernel));
         $containerBuilder->setDefinition('mink.listener.sessions', new Definition());
         $containerBuilder->setDefinition('fob_symfony.kernel_orchestrator', new Definition());
+        $containerBuilder->setDefinition('mink', new Definition());
 
         return $containerBuilder;
     }

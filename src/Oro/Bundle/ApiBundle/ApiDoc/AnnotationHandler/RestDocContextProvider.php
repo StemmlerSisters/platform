@@ -37,8 +37,8 @@ class RestDocContextProvider
     public function getContext(
         string $action,
         string $entityClass,
-        string $associationName = null,
-        Route $route = null
+        ?string $associationName = null,
+        ?Route $route = null
     ): Context|SubresourceContext {
         $processor = $this->processorBag->getProcessor($action);
         /** @var Context $context */
@@ -48,10 +48,11 @@ class RestDocContextProvider
         $context->getRequestType()->set($this->docViewDetector->getRequestType());
         $context->setVersion($this->docViewDetector->getVersion());
         $context->setLastGroup(ApiActionGroup::INITIALIZE);
-        $context->setMasterRequest(true);
+        $context->setMainRequest(true);
         if ($associationName && $context instanceof SubresourceContext) {
             $context->setParentClassName($entityClass);
             $context->setAssociationName($associationName);
+            $context->addParentConfigExtra(new DescriptionsConfigExtra());
         } else {
             $context->setClassName($entityClass);
         }
@@ -113,7 +114,7 @@ class RestDocContextProvider
         Route $route,
         string $action,
         string $entityClass,
-        string $associationName = null
+        ?string $associationName = null
     ): void {
         $actionType = self::getActionType($route);
         if (!$actionType) {
@@ -172,7 +173,7 @@ class RestDocContextProvider
         Route $route,
         string $action,
         string $entityClass,
-        string $associationName = null
+        ?string $associationName = null
     ): \LogicException {
         $message .= sprintf(' Entity Class: %s. Action: %s.', $entityClass, $action);
         if ($associationName) {

@@ -216,7 +216,7 @@ define(function(require, exports, module) {
         },
 
         processDatagridOptions: function(deferred, options) {
-            if (!_.isArray(options.metadata.plugins)) {
+            if (!Array.isArray(options.metadata.plugins)) {
                 options.metadata.plugins = [];
             }
 
@@ -231,7 +231,6 @@ define(function(require, exports, module) {
             if (_.isFunction(FiltersTogglePlugin.isApplicable) && FiltersTogglePlugin.isApplicable(options) === false) {
                 options.enableToggleFilters = false;
             }
-
             deferred.resolve();
         }
     };

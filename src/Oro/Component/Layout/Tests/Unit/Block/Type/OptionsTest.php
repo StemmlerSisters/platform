@@ -9,6 +9,7 @@ class OptionsTest extends \PHPUnit\Framework\TestCase
     /** @var Options */
     private $options;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->options = new Options(['value' => 'test']);
@@ -52,7 +53,7 @@ class OptionsTest extends \PHPUnit\Framework\TestCase
 
     public function testSetMultiple()
     {
-        $values = ['value'=> 'test1', 'value2'=> 'test2', 'value3'=> 'test3'];
+        $values = ['value' => 'test1', 'value2' => 'test2', 'value3' => 'test3'];
         $this->options->setMultiple($values);
         $this->assertEquals($values, $this->options->toArray());
     }

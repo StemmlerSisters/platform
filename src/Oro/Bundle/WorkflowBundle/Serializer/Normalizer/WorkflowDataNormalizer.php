@@ -34,10 +34,8 @@ class WorkflowDataNormalizer implements
         $this->attributeNormalizers = $attributeNormalizers;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function normalize($object, string $format = null, array $context = [])
+    #[\Override]
+    public function normalize($object, ?string $format = null, array $context = [])
     {
         $attributes = [];
         $workflow = $this->getWorkflow();
@@ -66,10 +64,8 @@ class WorkflowDataNormalizer implements
         return $attributes;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function denormalize($data, string $type, string $format = null, array $context = [])
+    #[\Override]
+    public function denormalize($data, string $type, ?string $format = null, array $context = [])
     {
         $denormalizedData = [];
         $workflow = $this->getWorkflow();
@@ -191,18 +187,14 @@ class WorkflowDataNormalizer implements
         );
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function supportsNormalization($data, string $format = null, array $context = []): bool
+    #[\Override]
+    public function supportsNormalization($data, ?string $format = null, array $context = []): bool
     {
         return is_object($data) && $this->supportsClass(get_class($data));
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function supportsDenormalization($data, string $type, string $format = null, array $context = []): bool
+    #[\Override]
+    public function supportsDenormalization($data, string $type, ?string $format = null, array $context = []): bool
     {
         return $this->supportsClass($type);
     }

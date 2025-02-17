@@ -11,12 +11,14 @@ use Oro\Bundle\TranslationBundle\Translation\DynamicTranslationProvider;
 use Oro\Bundle\TranslationBundle\Translation\MessageCatalogueSanitizer;
 use Oro\Bundle\TranslationBundle\Translation\TranslationMessageSanitizationErrorCollection;
 use Oro\Component\Testing\TempDirExtension;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\Translation\Formatter\MessageFormatter;
 use Symfony\Component\Translation\Loader\LoaderInterface;
 use Symfony\Component\Translation\MessageCatalogue;
 
-class DebugTranslatorTest extends \PHPUnit\Framework\TestCase
+class DebugTranslatorTest extends TestCase
 {
     use TempDirExtension;
 
@@ -43,22 +45,34 @@ class DebugTranslatorTest extends \PHPUnit\Framework\TestCase
         ],
     ];
 
+    private string $cacheDir;
+
+    private DebugTranslator $translator;
+
+    private ContainerInterface|MockObject $container;
+
+    #[\Override]
+    protected function setUp(): void
+    {
+        $this->cacheDir = $this->getTempDir('debug_translator');
+        $this->container = $this->createMock(ContainerInterface::class);
+    }
+
     private function getTranslator(array $fallbackLocales = []): DebugTranslator
     {
-        $cacheDir = $this->getTempDir('debug_translator');
-
-        $container = $this->createMock(ContainerInterface::class);
-        $container->expects(self::atLeastOnce())
+        $this
+            ->container
+            ->expects(self::atLeastOnce())
             ->method('get')
-            ->with('loader')
+            ->with('oro_database_translation')
             ->willReturn($this->getLoader());
 
         $translator = new DebugTranslator(
-            $container,
+            $this->container,
             new MessageFormatter(),
             'en',
-            ['loader' => ['loader']],
-            ['resource_files' => [], 'cache_dir' => $cacheDir]
+            ['oro_database_translation' => ['oro_database_translation']],
+            ['resource_files' => [], 'cache_dir' => $this->cacheDir]
         );
 
         $translator->setStrategyProvider($this->getStrategyProvider($fallbackLocales));
@@ -70,8 +84,8 @@ class DebugTranslatorTest extends \PHPUnit\Framework\TestCase
             $this->createMock(DynamicTranslationCache::class)
         ));
 
-        $translator->addResource('loader', 'foo.fr.loader', 'fr');
-        $translator->addResource('loader', 'foo.en.loader', 'en');
+        $translator->addResource('oro_database_translation', 'orm.en.oro_database_translation', 'en');
+        $translator->addResource('oro_database_translation', 'orm.fr.oro_database_translation', 'fr');
 
         return $translator;
     }
@@ -81,9 +95,7 @@ class DebugTranslatorTest extends \PHPUnit\Framework\TestCase
         $loader = $this->createMock(LoaderInterface::class);
         $loader->expects(self::any())
             ->method('load')
-            ->willReturnCallback(function ($resource, $locale) {
-                return $this->getCatalogue($locale, $this->messages[$locale]);
-            });
+            ->willReturnCallback(fn ($resource, $locale) => $this->getCatalogue($locale, $this->messages[$locale]));
 
         return $loader;
     }

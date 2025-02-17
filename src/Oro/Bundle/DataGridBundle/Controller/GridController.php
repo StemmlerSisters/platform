@@ -3,7 +3,7 @@
 namespace Oro\Bundle\DataGridBundle\Controller;
 
 use Oro\Bundle\DataGridBundle\Async\Topic\DatagridPreExportTopic;
-use Oro\Bundle\DataGridBundle\Datagrid\Manager;
+use Oro\Bundle\DataGridBundle\Datagrid\ManagerInterface;
 use Oro\Bundle\DataGridBundle\Datagrid\RequestParameterBagFactory;
 use Oro\Bundle\DataGridBundle\Exception\LogicException;
 use Oro\Bundle\DataGridBundle\Exception\UserInputErrorExceptionInterface;
@@ -56,7 +56,7 @@ class GridController extends AbstractController
     #[Route(path: '/{gridName}', name: 'oro_datagrid_index', requirements: ['gridName' => '[\w\:-]+'])]
     public function getAction($gridName)
     {
-        $gridManager = $this->container->get(Manager::class);
+        $gridManager = $this->container->get(ManagerInterface::class);
         $gridConfig  = $gridManager->getConfigurationForGrid($gridName);
         $acl         = $gridConfig->getAclResource();
 
@@ -88,9 +88,9 @@ class GridController extends AbstractController
     #[Route(path: '/{gridName}/filter-metadata', name: 'oro_datagrid_filter_metadata', options: ['expose' => true])]
     public function filterMetadataAction(Request $request, $gridName)
     {
-        $filterNames = $request->query->get('filterNames', []);
+        $filterNames = $request->query->all('filterNames') ?? [];
 
-        $gridManager = $this->container->get(Manager::class);
+        $gridManager = $this->container->get(ManagerInterface::class);
         $gridConfig  = $gridManager->getConfigurationForGrid($gridName);
         $acl         = $gridConfig->getAclResource();
 
@@ -211,9 +211,7 @@ class GridController extends AbstractController
         return $renderParams;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public static function getSubscribedServices(): array
     {
         return array_merge(
@@ -223,7 +221,7 @@ class GridController extends AbstractController
                 MessageProducerInterface::class,
                 MassActionDispatcher::class,
                 RequestParameterBagFactory::class,
-                Manager::class,
+                ManagerInterface::class,
                 KernelInterface::class,
                 LoggerInterface::class,
             ]

@@ -22,18 +22,13 @@ class ExpressionLanguage extends SymfonyExpressionLanguage
 
     protected ?Parser $parser = null;
 
-    public function __construct(CacheItemPoolInterface $cache = null, array $providers = [])
+    public function __construct(?CacheItemPoolInterface $cache = null, array $providers = [])
     {
         $this->cache = $cache ?? new ArrayAdapter();
         parent::__construct($cache, $providers);
     }
 
-    /**
-     * {@inheritdoc}
-     *
-     * Copy of {@see \Symfony\Component\ExpressionLanguage\ExpressionLanguage::parse()}:
-     * - makes use own $parser and $cache properties.
-     */
+    #[\Override]
     public function parse($expression, array $names): ParsedExpression
     {
         if ($expression instanceof ParsedExpression) {
@@ -60,12 +55,7 @@ class ExpressionLanguage extends SymfonyExpressionLanguage
         return $parsedExpression;
     }
 
-    /**
-     * {@inheritdoc}
-     *
-     * Copy of {@see \Symfony\Component\ExpressionLanguage\ExpressionLanguage::lint()}:
-     * - makes use own $parser and $lexer properties.
-     */
+    #[\Override]
     public function lint($expression, ?array $names): void
     {
         if ($expression instanceof ParsedExpression) {

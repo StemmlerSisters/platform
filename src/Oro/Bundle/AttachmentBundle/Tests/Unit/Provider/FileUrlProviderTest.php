@@ -15,6 +15,7 @@ class FileUrlProviderTest extends \PHPUnit\Framework\TestCase
 
     private FileUrlProvider $provider;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->urlGenerator = $this->createMock(UrlGeneratorInterface::class);
@@ -120,7 +121,7 @@ class FileUrlProviderTest extends \PHPUnit\Framework\TestCase
         );
     }
 
-    private function getFile(int $id = null, string $filename = ''): File
+    private function getFile(?int $id = null, string $filename = ''): File
     {
         $file = $this->createMock(File::class);
         $file

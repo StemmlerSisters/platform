@@ -9,7 +9,8 @@ use Symfony\Component\ErrorHandler\ErrorHandler as BaseErrorHandler;
  */
 class ErrorHandler extends BaseErrorHandler
 {
-    public static function register(BaseErrorHandler $handler = null, bool $replace = true): BaseErrorHandler
+    #[\Override]
+    public static function register(?BaseErrorHandler $handler = null, bool $replace = true): BaseErrorHandler
     {
         $errorLevel = error_reporting();
         // Silence all PHP deprecation notices as many of them are triggered all over the ORO and vendor code
@@ -18,9 +19,7 @@ class ErrorHandler extends BaseErrorHandler
         return parent::register($handler, $replace);
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function handleError(int $type, string $message, string $file, int $line): bool
     {
         if (error_reporting() !== 0) {

@@ -9,7 +9,6 @@ use Oro\Bundle\OrganizationBundle\Entity\Organization;
 use Oro\Bundle\TestFrameworkBundle\Tests\Functional\DataFixtures\LoadBusinessUnit;
 use Oro\Bundle\TestFrameworkBundle\Tests\Functional\DataFixtures\LoadOrganization;
 use Oro\Bundle\UserBundle\Entity\Role;
-use Oro\Bundle\UserBundle\Entity\UserApi;
 use Oro\Bundle\UserBundle\Entity\UserManager;
 use Symfony\Component\DependencyInjection\ContainerAwareInterface;
 use Symfony\Component\DependencyInjection\ContainerAwareTrait;
@@ -18,17 +17,13 @@ class LoadUserWithUserRoleData extends AbstractFixture implements ContainerAware
 {
     use ContainerAwareTrait;
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function getDependencies(): array
     {
         return [LoadBusinessUnit::class, LoadOrganization::class];
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function load(ObjectManager $manager): void
     {
         /** @var UserManager $userManager */
@@ -50,11 +45,6 @@ class LoadUserWithUserRoleData extends AbstractFixture implements ContainerAware
             ->setLastName('User')
             ->setEnabled(true)
             ->setSalt('');
-        $apiKey = new UserApi();
-        $apiKey->setApiKey('limited_user');
-        $apiKey->setOrganization($organization);
-        $manager->persist($apiKey);
-        $user->addApiKey($apiKey);
 
         $userManager->updateUser($user);
         $manager->flush();

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Oro\Bundle\ApiBundle\Command;
 
 use Oro\Bundle\ApiBundle\Provider\ResourcesProvider;
+use Oro\Bundle\ApiBundle\Request\ApiAction;
 use Oro\Bundle\ApiBundle\Request\RequestType;
 use Oro\Bundle\ApiBundle\Request\ValueNormalizer;
 use Oro\Bundle\ApiBundle\Util\ValueNormalizerUtil;
@@ -29,6 +30,7 @@ abstract class AbstractDebugCommand extends Command
     }
 
     /** @noinspection PhpMissingParentCallCommonInspection */
+    #[\Override]
     protected function configure(): void
     {
         $this
@@ -143,5 +145,13 @@ HELP
         }
 
         return $entityClass;
+    }
+
+    protected function isCollection(string $action): bool
+    {
+        return
+            ApiAction::GET_LIST === $action
+            || ApiAction::DELETE_LIST === $action
+            || ApiAction::UPDATE_LIST === $action;
     }
 }

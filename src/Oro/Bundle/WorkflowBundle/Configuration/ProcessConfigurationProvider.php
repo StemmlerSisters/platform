@@ -38,8 +38,8 @@ class ProcessConfigurationProvider extends AbstractConfigurationProvider
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
     public function getProcessConfiguration(
-        array $usedDirectories = null,
-        array $usedDefinitions = null
+        ?array $usedDirectories = null,
+        ?array $usedDefinitions = null
     ) {
         $finder = $this->getConfigFinder((array)$usedDirectories);
 
@@ -136,9 +136,7 @@ class ProcessConfigurationProvider extends AbstractConfigurationProvider
         return [$definitionsData, $triggersData];
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     protected function getConfigFilePattern()
     {
         return $this->configFilePattern;

@@ -24,9 +24,7 @@ class FiltersConfigLoader extends AbstractConfigLoader
         ConfigUtil::ALLOW_RANGE      => 'setRangeAllowed'
     ];
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function load(array $config): mixed
     {
         $filters = new FiltersConfig();
@@ -55,6 +53,9 @@ class FiltersConfigLoader extends AbstractConfigLoader
         $filter = new FilterFieldConfig();
         if (!empty($config)) {
             foreach ($config as $key => $value) {
+                if (ConfigUtil::DATA_TYPE === $key) {
+                    $value = $this->resolveDataType($value);
+                }
                 $this->loadConfigValue($filter, $key, $value, self::FIELD_METHOD_MAP);
             }
         }

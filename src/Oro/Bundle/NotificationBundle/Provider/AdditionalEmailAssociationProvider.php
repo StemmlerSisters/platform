@@ -6,6 +6,7 @@ use Doctrine\Common\Util\ClassUtils;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\Persistence\Proxy;
 use Oro\Bundle\EntityConfigBundle\Provider\ConfigProvider;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
@@ -33,9 +34,7 @@ class AdditionalEmailAssociationProvider implements AdditionalEmailAssociationPr
         $this->translator = $translator;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getAssociations(string $entityClass): array
     {
         $associations = [];
@@ -52,19 +51,19 @@ class AdditionalEmailAssociationProvider implements AdditionalEmailAssociationPr
         return $associations;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function isAssociationSupported($entity, string $associationName): bool
     {
         return null !== $this->getEntityMetadata(ClassUtils::getClass($entity));
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getAssociationValue($entity, string $associationName)
     {
+        if ($entity instanceof Proxy && !$entity->__isInitialized()) {
+            $entity->__load();
+        }
+
         return $this->getEntityMetadata(ClassUtils::getClass($entity))
             ->getFieldValue($entity, $associationName);
     }

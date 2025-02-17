@@ -106,8 +106,8 @@ class DoctrineAclCacheProvider
 
     private function getCache(
         ?string $entityClass = null,
-        ?int    $entityId = null,
-        bool    $ensureCacheIsKnown = true
+        ?int $entityId = null,
+        bool $ensureCacheIsKnown = true
     ): AdapterInterface {
         if (null === $entityClass && null === $entityId) {
             [$entityClass, $entityId] = $this->aclCacheUserInfoProvider->getCurrentUserCacheKeyInfo();
@@ -173,6 +173,6 @@ class DoctrineAclCacheProvider
 
     private function getCacheClassRepresentation(string $entityClass): string
     {
-        return substr($entityClass, strrpos($entityClass, '\\') +1);
+        return substr($entityClass, strrpos($entityClass, '\\') + 1);
     }
 }

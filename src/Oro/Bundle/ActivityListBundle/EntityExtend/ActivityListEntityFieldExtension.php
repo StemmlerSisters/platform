@@ -8,23 +8,28 @@ use Oro\Bundle\ActivityListBundle\Tools\ActivityListEntityConfigDumperExtension;
 use Oro\Bundle\EntityExtendBundle\EntityExtend\AbstractAssociationEntityFieldExtension;
 use Oro\Bundle\EntityExtendBundle\EntityExtend\EntityFieldProcessTransport;
 use Oro\Bundle\EntityExtendBundle\Extend\RelationType;
+use Oro\Bundle\EntityExtendBundle\Tools\AssociationNameGenerator;
 
 /**
  * Extended Entity Field Processor Extension for activity list associations
  */
 class ActivityListEntityFieldExtension extends AbstractAssociationEntityFieldExtension
 {
-    protected function isApplicable(EntityFieldProcessTransport $transport): bool
+    #[\Override]
+    public function isApplicable(EntityFieldProcessTransport $transport): bool
     {
-        return $transport->getClass() === ActivityListEntityConfigDumperExtension::ENTITY_CLASS;
+        return $transport->getClass() === ActivityListEntityConfigDumperExtension::ENTITY_CLASS
+            && AssociationNameGenerator::extractAssociationKind($transport->getName()) === $this->getRelationKind();
     }
 
-    protected function getRelationKind(): ?string
+    #[\Override]
+    public function getRelationKind(): ?string
     {
         return ActivityListEntityConfigDumperExtension::ASSOCIATION_KIND;
     }
 
-    protected function getRelationType(): string
+    #[\Override]
+    public function getRelationType(): string
     {
         return RelationType::MANY_TO_MANY;
     }

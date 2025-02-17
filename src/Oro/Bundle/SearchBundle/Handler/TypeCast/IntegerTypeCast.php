@@ -10,12 +10,8 @@ use Oro\Bundle\SearchBundle\Query\Query;
  */
 class IntegerTypeCast extends AbstractTypeCastingHandler
 {
-    /**
-     * @param integer|bool $value
-     *
-     * @return object|int
-     */
-    public function castValue($value)
+    #[\Override]
+    public function castValue(mixed $value): mixed
     {
         if ($this->isSupported($value)) {
             return (int)$value;
@@ -24,11 +20,13 @@ class IntegerTypeCast extends AbstractTypeCastingHandler
         return parent::castValue($value);
     }
 
+    #[\Override]
     public function isSupported($value): bool
     {
         return is_int($value) || is_bool($value);
     }
 
+    #[\Override]
     public static function getType(): string
     {
         return Query::TYPE_INTEGER;

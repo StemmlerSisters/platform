@@ -85,6 +85,7 @@ class UpdateListMessageProcessorTest extends \PHPUnit\Framework\TestCase
     /** @var UpdateListMessageProcessor */
     private $processor;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->jobRunner = $this->createMock(JobRunner::class);
@@ -272,6 +273,7 @@ class UpdateListMessageProcessorTest extends \PHPUnit\Framework\TestCase
             'entityClass'           => 'Test\Entity',
             'requestType'           => $requestType,
             'version'               => '1.1',
+            'synchronousMode'       => false,
             'fileName'              => $fileName,
             'chunkSize'             => 10,
             'includedDataChunkSize' => 20
@@ -304,6 +306,7 @@ class UpdateListMessageProcessorTest extends \PHPUnit\Framework\TestCase
             'entityClass'           => 'Test\Entity',
             'requestType'           => $requestType,
             'version'               => '1.1',
+            'synchronousMode'       => false,
             'fileName'              => $fileName,
             'chunkSize'             => 10,
             'includedDataChunkSize' => 20
@@ -342,6 +345,7 @@ class UpdateListMessageProcessorTest extends \PHPUnit\Framework\TestCase
             'entityClass'           => 'Test\Entity',
             'requestType'           => $requestType,
             'version'               => '1.1',
+            'synchronousMode'       => false,
             'fileName'              => $fileName,
             'chunkSize'             => $chunkSize,
             'includedDataChunkSize' => 20
@@ -392,6 +396,7 @@ class UpdateListMessageProcessorTest extends \PHPUnit\Framework\TestCase
             'entityClass'           => 'Test\Entity',
             'requestType'           => $requestType,
             'version'               => '1.1',
+            'synchronousMode'       => false,
             'fileName'              => $fileName,
             'chunkSize'             => $chunkSize,
             'includedDataChunkSize' => 20
@@ -435,6 +440,7 @@ class UpdateListMessageProcessorTest extends \PHPUnit\Framework\TestCase
             'entityClass'           => 'Test\Entity',
             'requestType'           => $requestType,
             'version'               => '1.1',
+            'synchronousMode'       => false,
             'fileName'              => $fileName,
             'chunkSize'             => $chunkSize,
             'includedDataChunkSize' => 20
@@ -489,6 +495,7 @@ class UpdateListMessageProcessorTest extends \PHPUnit\Framework\TestCase
             'entityClass'           => $entityClass,
             'requestType'           => $requestType,
             'version'               => $version,
+            'synchronousMode'       => false,
             'fileName'              => $fileName,
             'chunkSize'             => $chunkSize,
             'includedDataChunkSize' => 20,
@@ -595,6 +602,7 @@ class UpdateListMessageProcessorTest extends \PHPUnit\Framework\TestCase
             'entityClass'           => $entityClass,
             'requestType'           => $requestType,
             'version'               => $version,
+            'synchronousMode'       => false,
             'fileName'              => $fileName,
             'chunkSize'             => $chunkSize,
             'includedDataChunkSize' => 20,
@@ -718,6 +726,7 @@ class UpdateListMessageProcessorTest extends \PHPUnit\Framework\TestCase
                 'entityClass'           => $entityClass,
                 'requestType'           => $requestType,
                 'version'               => $version,
+                'synchronousMode'       => false,
                 'fileName'              => $fileName,
                 'chunkSize'             => $chunkSize,
                 'includedDataChunkSize' => $includedDataChunkSize,
@@ -784,6 +793,7 @@ class UpdateListMessageProcessorTest extends \PHPUnit\Framework\TestCase
             'entityClass'           => $entityClass,
             'requestType'           => $requestType,
             'version'               => $version,
+            'synchronousMode'       => false,
             'fileName'              => $fileName,
             'chunkSize'             => $chunkSize,
             'includedDataChunkSize' => $includedDataChunkSize,
@@ -806,6 +816,7 @@ class UpdateListMessageProcessorTest extends \PHPUnit\Framework\TestCase
                 'entityClass'           => $entityClass,
                 'requestType'           => $requestType,
                 'version'               => '1.1',
+                'synchronousMode'       => false,
                 'fileName'              => $fileName,
                 'chunkSize'             => $chunkSize,
                 'includedDataChunkSize' => 20,
@@ -874,6 +885,7 @@ class UpdateListMessageProcessorTest extends \PHPUnit\Framework\TestCase
             'entityClass'           => $entityClass,
             'requestType'           => $requestType,
             'version'               => $version,
+            'synchronousMode'       => false,
             'fileName'              => $fileName,
             'chunkSize'             => $chunkSize,
             'includedDataChunkSize' => 20,
@@ -985,6 +997,7 @@ class UpdateListMessageProcessorTest extends \PHPUnit\Framework\TestCase
             'entityClass'           => 'Test\Entity',
             'requestType'           => $requestType,
             'version'               => '1.1',
+            'synchronousMode'       => false,
             'fileName'              => $fileName,
             'chunkSize'             => $chunkSize,
             'includedDataChunkSize' => 20

@@ -20,9 +20,10 @@ class DateFormatExtensionTest extends \PHPUnit\Framework\TestCase
     /** @var DateFormatExtension */
     private $extension;
 
+    #[\Override]
     protected function setUp(): void
     {
-        $this->converterRegistry =$this->createMock(DateTimeFormatConverterRegistry::class);
+        $this->converterRegistry = $this->createMock(DateTimeFormatConverterRegistry::class);
 
         $container = self::getContainerBuilder()
             ->add('oro_locale.format_converter.date_time.registry', $this->converterRegistry)

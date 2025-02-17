@@ -15,9 +15,9 @@ use Oro\Component\ChainProcessor\ParameterBagInterface;
 
 class SetTargetContextTest extends BatchUpdateItemProcessorTestCase
 {
-    /** @var SetTargetContext */
-    private $processor;
+    private SetTargetContext $processor;
 
+    #[\Override]
     protected function setUp(): void
     {
         parent::setUp();
@@ -125,6 +125,7 @@ class SetTargetContextTest extends BatchUpdateItemProcessorTestCase
         self::assertEquals([RequestType::REST, RequestType::BATCH], $targetContext->getRequestType()->toArray());
         self::assertEquals($this->context->getClassName(), $targetContext->getClassName());
         self::assertSame($this->context->getId(), $targetContext->getId());
+        self::assertSame($this->context->getId(), $targetContext->getRequestId());
         self::assertSame($this->context->getRequestData(), $targetContext->getRequestData());
         self::assertTrue($targetContext->isSoftErrorsHandling());
         self::assertSame($sharedData, $this->context->getSharedData());

@@ -40,17 +40,17 @@ class DoctrineIsolator implements IsolatorInterface
     ) {
     }
 
-    public function addInitializer(ReferenceRepositoryInitializerInterface $initializer)
+    public function addInitializer(ReferenceRepositoryInitializerInterface $initializer): void
     {
         $this->initializers[] = $initializer;
     }
 
-    public function setRequiredListeners(array $requiredListeners)
+    public function setRequiredListeners(array $requiredListeners): void
     {
         $this->requiredListeners = $requiredListeners;
     }
 
-    public function initReferences()
+    public function initReferences(): void
     {
         $doctrine = $this->kernel->getContainer()->get('doctrine');
 
@@ -72,17 +72,13 @@ class DoctrineIsolator implements IsolatorInterface
         $em->getEventManager()->removeEventListener([Events::preFlush], $restrictListener);
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function start(BeforeStartTestsEvent $event)
+    #[\Override]
+    public function start(BeforeStartTestsEvent $event): void
     {
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function beforeTest(BeforeIsolatedTestEvent $event)
+    #[\Override]
+    public function beforeTest(BeforeIsolatedTestEvent $event): void
     {
         $manager = $this->kernel->getContainer()->get('oro_platform.optional_listeners.manager');
         $listenersToDisable = array_filter($manager->getListeners(), function ($listener) {
@@ -96,9 +92,7 @@ class DoctrineIsolator implements IsolatorInterface
                 $event->writeln(sprintf('<comment>  => %s</comment>', $listener));
             }
         }
-
         $event->writeln('<info>Load fixtures</info>');
-
         $this->initReferences();
         $this->loadFixtures($event);
 
@@ -108,58 +102,44 @@ class DoctrineIsolator implements IsolatorInterface
         }
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function afterTest(AfterIsolatedTestEvent $event)
+    #[\Override]
+    public function afterTest(AfterIsolatedTestEvent $event): void
     {
         $this->kernel->getContainer()->get('doctrine')->getManager()->clear();
         $this->kernel->getContainer()->get('doctrine')->resetManager();
         $this->clearAliceIncompleteObjectsState();
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function terminate(AfterFinishTestsEvent $event)
+    #[\Override]
+    public function terminate(AfterFinishTestsEvent $event): void
     {
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function isApplicable(ContainerInterface $container)
+    #[\Override]
+    public function isApplicable(ContainerInterface $container): bool
     {
         return true;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function restoreState(RestoreStateEvent $event)
+    #[\Override]
+    public function restoreState(RestoreStateEvent $event): void
     {
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function isOutdatedState()
+    #[\Override]
+    public function isOutdatedState(): bool
     {
         return false;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getName()
+    #[\Override]
+    public function getName(): string
     {
         return 'Doctrine';
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getTag()
+    #[\Override]
+    public function getTag(): string
     {
         return 'doctrine';
     }
@@ -202,7 +182,7 @@ class DoctrineIsolator implements IsolatorInterface
         usleep(300000);
     }
 
-    private function clearAliceIncompleteObjectsState()
+    private function clearAliceIncompleteObjectsState(): void
     {
         $this->fixtureReferenceResolver->clear();
         foreach ($this->fixtureReferenceResolver->getInstances() as $resolver) {

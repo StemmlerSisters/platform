@@ -9,9 +9,7 @@ use Symfony\Component\Yaml\Yaml;
 
 class LoadDataFixtures extends AbstractFixture
 {
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function load(ObjectManager $manager)
     {
         $data = $this->getFixturesData();
@@ -32,7 +30,7 @@ class LoadDataFixtures extends AbstractFixture
      *
      * @return DataFixture
      */
-    private function createDataFixture(array $fixtureData, \DateTime $now = null)
+    private function createDataFixture(array $fixtureData, ?\DateTime $now = null)
     {
         $fixture = new DataFixture();
 

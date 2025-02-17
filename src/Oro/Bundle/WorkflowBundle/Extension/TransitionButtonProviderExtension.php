@@ -14,22 +14,20 @@ use Oro\Bundle\WorkflowBundle\Model\Workflow;
 
 class TransitionButtonProviderExtension extends AbstractButtonProviderExtension
 {
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function supports(ButtonInterface $button)
     {
         return $button instanceof TransitionButton && !$button->getTransition()->isStart();
     }
 
     /**
-     * {@inheritdoc}
      * @param TransitionButton $button
      */
+    #[\Override]
     public function isAvailable(
         ButtonInterface $button,
         ButtonSearchContext $buttonSearchContext,
-        Collection $errors = null
+        ?Collection $errors = null
     ) {
         if (!$this->supports($button)) {
             throw $this->createUnsupportedButtonException($button);
@@ -55,9 +53,7 @@ class TransitionButtonProviderExtension extends AbstractButtonProviderExtension
         return $isAvailable;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     protected function getTransitions(Workflow $workflow, ButtonSearchContext $searchContext)
     {
         $transitions = $this->findByDatagrids($workflow, $searchContext);
@@ -85,9 +81,7 @@ class TransitionButtonProviderExtension extends AbstractButtonProviderExtension
         return [];
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     protected function createTransitionButton(
         Transition $transition,
         Workflow $workflow,
@@ -96,9 +90,7 @@ class TransitionButtonProviderExtension extends AbstractButtonProviderExtension
         return new TransitionButton($transition, $workflow, $buttonContext);
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     protected function getApplication()
     {
         return CurrentApplicationProviderInterface::DEFAULT_APPLICATION;

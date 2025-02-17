@@ -49,9 +49,7 @@ abstract class PhpConfigProvider implements
         $this->debug = $debug;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function isCacheFresh(?int $timestamp): bool
     {
         if (null === $timestamp) {
@@ -70,9 +68,7 @@ abstract class PhpConfigProvider implements
         return $this->cacheFresh;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getCacheTimestamp(): ?int
     {
         if (false === $this->cacheTimestamp) {
@@ -90,9 +86,7 @@ abstract class PhpConfigProvider implements
         return $this->cacheTimestamp;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function clearCache(): void
     {
         $this->config = null;
@@ -101,9 +95,7 @@ abstract class PhpConfigProvider implements
         $this->getCacheAccessor()->remove($this->getConfigCache());
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function warmUpCache(): void
     {
         $this->clearCache();
@@ -121,7 +113,7 @@ abstract class PhpConfigProvider implements
                 $overrideExistingCacheFile = $this->debug && file_exists($cache->getPath());
 
                 $resourcesContainer = new ResourcesContainer();
-                $config = $this->doLoadConfig($resourcesContainer);
+                $config = $this->loadConfig($resourcesContainer);
                 $this->getCacheAccessor()->save($cache, $config, $resourcesContainer->getResources());
                 $this->cacheTimestamp = false;
                 $this->cacheFresh = null;
@@ -142,6 +134,14 @@ abstract class PhpConfigProvider implements
     public function getCacheResource(): ResourceInterface
     {
         return new FileResource($this->cacheFile);
+    }
+
+    /**
+     * Loads configuration data.
+     */
+    public function loadConfig(ResourcesContainerInterface $resourcesContainer): mixed
+    {
+        return $this->doLoadConfig($resourcesContainer);
     }
 
     /**

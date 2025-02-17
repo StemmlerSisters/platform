@@ -7,6 +7,7 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
 
 class Configuration implements ConfigurationInterface
 {
+    #[\Override]
     public function getConfigTreeBuilder()
     {
         $builder = new TreeBuilder('oro_test_framework');
@@ -30,6 +31,12 @@ class Configuration implements ConfigurationInterface
                         ->end()
                         ->scalarNode('language')->end()
                         ->scalarNode('formatting_code')->end()
+                    ->end()
+                ->end()
+                ->arrayNode('test_auth_firewalls')
+                    ->info('The list of security firewalls for which test authorization should be enabled.')
+                    ->prototype('scalar')
+                        ->cannotBeEmpty()
                     ->end()
                 ->end()
             ->end();

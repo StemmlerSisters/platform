@@ -43,6 +43,7 @@ class DumpTranslationToFilesCommand extends Command
     }
 
     /** @noinspection PhpMissingParentCallCommonInspection */
+    #[\Override]
     protected function configure()
     {
         $loaders = implode(', ', $this->getLoadersNames());
@@ -51,7 +52,7 @@ class DumpTranslationToFilesCommand extends Command
             ->addOption(
                 'locale',
                 'l',
-                InputOption::VALUE_REQUIRED|InputOption::VALUE_IS_ARRAY,
+                InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
                 'The locale names for which the translations should be dumped'
             )
             ->addOption(
@@ -110,6 +111,7 @@ HELP
     }
 
     /** @noinspection PhpMissingParentCallCommonInspection */
+    #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $symfonyStyle = new SymfonyStyle($input, $output);

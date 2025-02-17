@@ -67,7 +67,7 @@ define(function(require) {
          * Converts collection in to an object that is used for API requests
          *
          * @param {Object} [options]
-         * @return {Object<string, {data: Array<Object>}>}
+         * @return {Object.<string, {data: Array.<Object>}>}
          */
         toJSON: function(options) {
             const data = this.map(function(model) {
@@ -153,7 +153,7 @@ define(function(require) {
          */
         remove: function(models, options) {
             EntityCollection.__super__.remove.call(this, models, options);
-            models = _.isArray(models) ? models.slice() : [models];
+            models = Array.isArray(models) ? models.slice() : [models];
             _.each(models, function(model) {
                 registry.relieve(model, this);
             }, this);

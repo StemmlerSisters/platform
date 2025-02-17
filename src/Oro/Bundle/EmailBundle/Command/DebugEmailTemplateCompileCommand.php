@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Oro\Bundle\EmailBundle\Command;
 
-use Oro\Bundle\EmailBundle\Entity\EmailTemplate;
+use Oro\Bundle\EmailBundle\Model\EmailTemplateCriteria;
+use Oro\Bundle\EmailBundle\Model\EmailTemplateInterface;
 use Oro\Bundle\EmailBundle\Provider\EmailRenderer;
+use Oro\Bundle\EmailBundle\Provider\EmailTemplateProvider;
 use Oro\Bundle\EntityBundle\ORM\DoctrineHelper;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -31,9 +33,11 @@ class DebugEmailTemplateCompileCommand extends Command
      * @var string
      */
     protected static $defaultDescription = 'Renders an email template.'
-    . ' Optionally, sends a compiled email to the email address specified in the "recipient" option.';
+        . ' Optionally, sends a compiled email to the email address specified in the "recipient" option.';
 
     private DoctrineHelper $doctrineHelper;
+
+    private EmailTemplateProvider $emailTemplateProvider;
 
     private EmailRenderer $emailRenderer;
 
@@ -41,19 +45,19 @@ class DebugEmailTemplateCompileCommand extends Command
 
     public function __construct(
         DoctrineHelper $doctrineHelper,
+        EmailTemplateProvider $emailTemplateProvider,
         EmailRenderer $emailRenderer,
         MailerInterface $mailer
     ) {
         $this->doctrineHelper = $doctrineHelper;
+        $this->emailTemplateProvider = $emailTemplateProvider;
         $this->emailRenderer = $emailRenderer;
         $this->mailer = $mailer;
 
         parent::__construct();
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     protected function configure(): void
     {
         $this
@@ -83,44 +87,41 @@ class DebugEmailTemplateCompileCommand extends Command
             );
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $templateName = $input->getArgument('template');
 
-        $template = $this->doctrineHelper
-            ->getEntityRepositoryForClass(EmailTemplate::class)
-            ->findOneBy(['name' => $templateName]);
-
-        if (!$template) {
-            $output->writeln(sprintf('Template "%s" not found', $templateName));
+        $emailTemplate = $this->emailTemplateProvider->loadEmailTemplate(new EmailTemplateCriteria($templateName));
+        if ($emailTemplate === null) {
+            $output->writeln(sprintf('Email template "%s" is not found', $templateName));
 
             return Command::FAILURE;
         }
 
-        $params = $this->getNormalizedParams($input->getOption('params-file'));
-
-        if ($template->getEntityName()) {
-            $params['entity'] = $this->getEntity($template->getEntityName(), $input->getOption('entity-id'));
+        $templateParams = $this->getNormalizedParams($input->getOption('params-file'));
+        if ($emailTemplate->getEntityName()) {
+            $templateParams['entity'] = $this->getEntity(
+                $emailTemplate->getEntityName(),
+                $input->getOption('entity-id')
+            );
         }
 
-        [$subject, $body] = $this->emailRenderer->compileMessage($template, $params);
+        $renderedEmailTemplate = $this->emailRenderer->renderEmailTemplate($emailTemplate, $templateParams);
 
         if (!$input->getOption('recipient')) {
-            $output->writeln(sprintf('SUBJECT: %s', $subject));
+            $output->writeln(sprintf('SUBJECT: %s', $renderedEmailTemplate->getSubject()));
             $output->writeln('');
             $output->writeln('BODY:');
-            $output->writeln($body);
+            $output->writeln($renderedEmailTemplate->getContent());
         } else {
             $emailMessage = (new Email())
-                ->subject($subject);
+                ->subject($renderedEmailTemplate->getSubject());
 
-            if ($template->getType() === 'html') {
-                $emailMessage->html($body);
+            if ($emailTemplate->getType() === EmailTemplateInterface::TYPE_HTML) {
+                $emailMessage->html($renderedEmailTemplate->getContent());
             } else {
-                $emailMessage->text($body);
+                $emailMessage->text($renderedEmailTemplate->getContent());
             }
 
             $emailMessage->from($input->getOption('recipient'));

@@ -30,9 +30,7 @@ class HandleMetaPropertyFilter implements ProcessorInterface
         $this->valueNormalizer = $valueNormalizer;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function process(ContextInterface $context): void
     {
         /** @var Context $context */
@@ -49,7 +47,7 @@ class HandleMetaPropertyFilter implements ProcessorInterface
             return;
         }
 
-        $filterValue = $context->getFilterValues()->get($filterName);
+        $filterValue = $context->getFilterValues()->getOne($filterName);
         if (null === $filterValue) {
             // meta properties were not requested
             return;
@@ -98,7 +96,7 @@ class HandleMetaPropertyFilter implements ProcessorInterface
         }
     }
 
-    private function createInvalidFilterValueKeyError(string $filterKey, string $detail = null): Error
+    private function createInvalidFilterValueKeyError(string $filterKey, ?string $detail = null): Error
     {
         return Error::createValidationError(Constraint::FILTER, $detail)
             ->setSource(ErrorSource::createByParameter($filterKey));

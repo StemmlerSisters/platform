@@ -10,9 +10,7 @@ use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 
 class OroDataGridExtension extends Extension
 {
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function load(array $configs, ContainerBuilder $container): void
     {
         $config = $this->processConfiguration($this->getConfiguration($configs, $container), $configs);
@@ -35,6 +33,9 @@ class OroDataGridExtension extends Extension
 
         if ('test' === $container->getParameter('kernel.environment')) {
             $loader->load('services_test.yml');
+        }
+        if ($container->hasParameter('kernel.debug') && $container->getParameter('kernel.debug')) {
+            $loader->load('debug.yml');
         }
     }
 }

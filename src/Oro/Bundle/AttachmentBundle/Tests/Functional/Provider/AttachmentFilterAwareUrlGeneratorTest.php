@@ -19,9 +19,10 @@ class AttachmentFilterAwareUrlGeneratorTest extends WebTestCase
     /** @var AttachmentFilterAwareUrlGenerator */
     private $attachmentUrlGenerator;
 
+    #[\Override]
     protected function setUp(): void
     {
-        $this->initClient([], $this->generateWsseAuthHeader());
+        $this->initClient([], self::generateApiAuthHeader());
         $this->attachmentUrlGenerator =
             $this->getContainer()->get('oro_attachment.url_generator');
     }

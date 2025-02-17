@@ -28,16 +28,14 @@ class CleanUpProcessorsCompilerPass implements CompilerPassInterface
     public function __construct(
         string $simpleProcessorRegistryServiceId,
         string $processorTagName,
-        string $processorRegistryServiceId = null
+        ?string $processorRegistryServiceId = null
     ) {
         $this->simpleProcessorRegistryServiceId = $simpleProcessorRegistryServiceId;
         $this->processorTagName = $processorTagName;
         $this->processorRegistryServiceId = $processorRegistryServiceId;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function process(ContainerBuilder $container)
     {
         $simpleProcessors = [];

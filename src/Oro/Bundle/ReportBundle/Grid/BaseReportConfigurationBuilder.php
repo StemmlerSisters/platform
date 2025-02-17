@@ -23,17 +23,13 @@ class BaseReportConfigurationBuilder extends DatagridConfigurationBuilder
         $this->configManager = $configManager;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function isApplicable($gridName)
     {
         return str_starts_with($gridName, Report::GRID_PREFIX);
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getConfiguration()
     {
         $configuration = parent::getConfiguration();
@@ -45,7 +41,6 @@ class BaseReportConfigurationBuilder extends DatagridConfigurationBuilder
             return $configuration;
         }
 
-        $entityAlias = null;
         $identifiers = $this->doctrineHelper->getEntityMetadataForClass($className)->getIdentifier();
         $primaryKey = array_shift($identifiers);
         $entityAlias = $configuration->getOrmQuery()->findRootAlias($className);

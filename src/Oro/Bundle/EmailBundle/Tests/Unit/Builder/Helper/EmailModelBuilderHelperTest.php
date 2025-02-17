@@ -48,6 +48,7 @@ class EmailModelBuilderHelperTest extends \PHPUnit\Framework\TestCase
     /** @var EmailModelBuilderHelper */
     private $helper;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->entityRoutingHelper = $this->createMock(EntityRoutingHelper::class);
@@ -238,7 +239,7 @@ class EmailModelBuilderHelperTest extends \PHPUnit\Framework\TestCase
     public function testPreciseFullEmailAddressWithProvider(
         string $expected,
         string $emailAddress,
-        ?string  $ownerClass,
+        ?string $ownerClass,
         ?int $ownerId
     ): void {
         $emailAddressRepository = $this->createMock(EntityRepository::class);

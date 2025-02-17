@@ -11,6 +11,7 @@ class DateTimeTypeCastTest extends \PHPUnit\Framework\TestCase
     /** @var DateTimeTypeCast */
     private $handler;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->handler = new DateTimeTypeCast();
@@ -46,7 +47,7 @@ class DateTimeTypeCastTest extends \PHPUnit\Framework\TestCase
                 'value' => 1
             ],
             'decimal' => [
-                'value'=> 1.1
+                'value' => 1.1
             ]
         ];
     }

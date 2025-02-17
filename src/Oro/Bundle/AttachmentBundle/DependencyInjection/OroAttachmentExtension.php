@@ -10,16 +10,14 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
 use Symfony\Component\DependencyInjection\Loader;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
-use Symfony\Component\Yaml\Parser;
+use Symfony\Component\Yaml\Yaml;
 
 class OroAttachmentExtension extends Extension implements PrependExtensionInterface
 {
     private const IMAGINE_DATA_ROOT = '%kernel.project_dir%/public';
     private const IMAGINE_FILE_MANAGER = 'oro_attachment.manager.public_mediacache';
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function load(array $configs, ContainerBuilder $container): void
     {
         $config = $this->processConfiguration($this->getConfiguration($configs, $container), $configs);
@@ -62,14 +60,11 @@ class OroAttachmentExtension extends Extension implements PrependExtensionInterf
             $config['cleanup']['load_attachments_batch_size']
         );
 
-        $yaml = new Parser();
-        $value = $yaml->parse(file_get_contents(__DIR__ . '/../Resources/config/files.yml'));
+        $value = Yaml::parse(file_get_contents(__DIR__ . '/../Resources/config/files.yml'));
         $container->setParameter('oro_attachment.files', $value['file-icons']);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function prepend(ContainerBuilder $container): void
     {
         if ($container instanceof ExtendedContainerBuilder) {

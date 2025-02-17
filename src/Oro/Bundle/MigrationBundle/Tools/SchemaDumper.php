@@ -31,9 +31,7 @@ class SchemaDumper extends AbstractVisitor
         $this->twig = $twig;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function acceptSchema(Schema $schema)
     {
         $this->schema = $schema;
@@ -48,11 +46,11 @@ class SchemaDumper extends AbstractVisitor
      * @return string
      */
     public function dump(
-        array $allowedTables = null,
+        ?array $allowedTables = null,
         $namespace = null,
         $className = self::DEFAULT_CLASS_NAME,
         $version = self::DEFAULT_VERSION,
-        array $extendedOptions = null
+        ?array $extendedOptions = null
     ) {
         $content = $this->twig->render(
             self::SCHEMA_TEMPLATE,

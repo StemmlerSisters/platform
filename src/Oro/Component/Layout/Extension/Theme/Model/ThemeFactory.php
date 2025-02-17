@@ -17,9 +17,7 @@ class ThemeFactory implements ThemeFactoryInterface
         $this->propertyAccessor = $propertyAccessor;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function create($themeName, array $themeDefinition)
     {
         $theme = new Theme(
@@ -48,6 +46,7 @@ class ThemeFactory implements ThemeFactoryInterface
             'logo_small',
             'image_placeholders',
             'rtl_support',
+            'svg_icons_support',
             'directory',
             'groups',
             'description',

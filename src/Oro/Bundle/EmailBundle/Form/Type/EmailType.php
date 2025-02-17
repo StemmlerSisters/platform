@@ -8,11 +8,11 @@ use Oro\Bundle\EmailBundle\Builder\Helper\EmailModelBuilderHelper;
 use Oro\Bundle\EmailBundle\Entity\Repository\EmailTemplateRepository;
 use Oro\Bundle\EmailBundle\Form\Model\Email;
 use Oro\Bundle\EmailBundle\Form\Model\EmailAttachment;
-use Oro\Bundle\EmailBundle\Provider\EmailRenderer;
+use Oro\Bundle\EmailBundle\Provider\EmailTemplateOrganizationProvider;
 use Oro\Bundle\FormBundle\Form\Type\OroResizeableRichTextType;
 use Oro\Bundle\FormBundle\Form\Type\OroRichTextType;
 use Oro\Bundle\FormBundle\Utils\FormUtils;
-use Oro\Bundle\SecurityBundle\Authentication\TokenAccessorInterface;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Event\PostSubmitEvent;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
@@ -31,40 +31,27 @@ use Symfony\Component\Validator\Constraints\Valid;
  */
 class EmailType extends AbstractType
 {
-    /** @var AuthorizationCheckerInterface */
-    protected $authorizationChecker;
-
-    /** @var TokenAccessorInterface */
-    protected $tokenAccessor;
-
-    /** @var EmailRenderer */
-    protected $emailRenderer;
-
-    /** @var EmailModelBuilderHelper */
-    protected $emailModelBuilderHelper;
-
-    /** @var ConfigManager */
-    protected $configManager;
+    private const WYSIWYG_VALID_ELEMENTS = [
+        'style[type|media]',
+        'td[background|align|style|class|colspan|width|valign|height]',
+        'span[style]'
+    ];
+    private const WYSIWYG_CUSTOM_ELEMENTS = ['style'];
 
     public function __construct(
-        AuthorizationCheckerInterface $authorizationChecker,
-        TokenAccessorInterface $tokenAccessor,
-        EmailRenderer $emailRenderer,
-        EmailModelBuilderHelper $emailModelBuilderHelper,
-        ConfigManager $configManager
+        private AuthorizationCheckerInterface $authorizationChecker,
+        private EmailModelBuilderHelper $emailModelBuilderHelper,
+        private ConfigManager $configManager,
+        private EventSubscriberInterface $emailTemplateRenderingSubscriber,
+        private EmailTemplateOrganizationProvider $emailTemplateOrganizationProvider,
     ) {
-        $this->authorizationChecker = $authorizationChecker;
-        $this->tokenAccessor = $tokenAccessor;
-        $this->emailRenderer = $emailRenderer;
-        $this->emailModelBuilderHelper = $emailModelBuilderHelper;
-        $this->configManager = $configManager;
     }
 
     /**
-     * {@inheritdoc}
      *
      * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      */
+    #[\Override]
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
@@ -179,9 +166,10 @@ class EmailType extends AbstractType
             );
 
         $builder->addEventListener(FormEvents::PRE_SET_DATA, [$this, 'initChoicesByEntityName']);
-        $builder->addEventListener(FormEvents::PRE_SET_DATA, [$this, 'fillFormByTemplate']);
         $builder->addEventListener(FormEvents::PRE_SUBMIT, [$this, 'initChoicesByEntityName']);
         $builder->addEventListener(FormEvents::POST_SUBMIT, [$this, 'postSubmit']);
+
+        $builder->addEventSubscriber($this->emailTemplateRenderingSubscriber);
     }
 
     public function postSubmit(PostSubmitEvent $event)
@@ -234,16 +222,18 @@ class EmailType extends AbstractType
         }
 
         $entityClass = is_object($data) ? $data->getEntityClass() : $data['entityClass'];
+        $organization = $this->emailTemplateOrganizationProvider->getOrganization();
+
         FormUtils::replaceField(
             $form,
             'template',
             [
                 'selectedEntity' => $entityClass,
                 'query_builder'  =>
-                    function (EmailTemplateRepository $templateRepository) use ($entityClass) {
+                    function (EmailTemplateRepository $templateRepository) use ($entityClass, $organization) {
                         return $templateRepository->getEntityTemplatesQueryBuilder(
                             $entityClass,
-                            $this->tokenAccessor->getOrganization(),
+                            $organization,
                             true
                         );
                     },
@@ -252,36 +242,7 @@ class EmailType extends AbstractType
         );
     }
 
-    public function fillFormByTemplate(FormEvent $event)
-    {
-        /** @var Email|null $data */
-        $data = $event->getData();
-        if (null === $data || !is_object($data) || null === $data->getTemplate()) {
-            return;
-        }
-
-        if (null !== $data->getSubject() && null !== $data->getBody()) {
-            return;
-        }
-
-        $emailTemplate = $data->getTemplate();
-
-        $targetEntity = $this->emailModelBuilderHelper->getTargetEntity($data->getEntityClass(), $data->getEntityId());
-
-        list($emailSubject, $emailBody) = $this->emailRenderer
-            ->compileMessage($emailTemplate, ['entity' => $targetEntity]);
-
-        if (null === $data->getSubject()) {
-            $data->setSubject($emailSubject);
-        }
-        if (null === $data->getBody()) {
-            $data->setBody($emailBody);
-        }
-    }
-
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setDefaults(
@@ -293,17 +254,7 @@ class EmailType extends AbstractType
         );
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getName()
-    {
-        return $this->getBlockPrefix();
-    }
-
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getBlockPrefix(): string
     {
         return 'oro_email_email';
@@ -321,6 +272,8 @@ class EmailType extends AbstractType
         return [
             'valid_elements' => null, //all elements are valid
             'plugins' => array_merge(OroRichTextType::$defaultPlugins, ['fullscreen']),
+            'extended_valid_elements' => implode(',', self::WYSIWYG_VALID_ELEMENTS),
+            'custom_elements' => implode(',', self::WYSIWYG_CUSTOM_ELEMENTS)
         ];
     }
 }

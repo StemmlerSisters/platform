@@ -24,13 +24,14 @@ class OptionalListenersGlobalOptionsProvider extends AbstractGlobalOptionsProvid
         $this->listenersManager = $listenerManager;
     }
 
+    #[\Override]
     public function addGlobalOptions(Command $command)
     {
         $options = [
             new InputOption(
                 self::DISABLE_OPTIONAL_LISTENERS,
                 null,
-                InputOption::VALUE_REQUIRED|InputOption::VALUE_IS_ARRAY,
+                InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
                 \sprintf(
                     '"<comment>all</comment>" or run <info>%s</info> to see available',
                     OptionalListenersCommand::getDefaultName(),
@@ -41,6 +42,7 @@ class OptionalListenersGlobalOptionsProvider extends AbstractGlobalOptionsProvid
         $this->addOptionsToCommand($command, $options);
     }
 
+    #[\Override]
     public function resolveGlobalOptions(InputInterface $input): void
     {
         $listeners = $this->getListenersToDisable($input);

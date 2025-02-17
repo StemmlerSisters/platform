@@ -55,10 +55,6 @@ services:
            - '@oro_locale.manager.localization'
            - '@oro_locale.provider.config_default_localization'
 
-    oro_locale.helper.localization.link:
-        tags:
-            - { name: oro_service_link, service: oro_locale.helper.localization }
-
     oro_locale.listener.orm.localization_listener:
         class: Oro\Bundle\LocaleBundle\EventListener\ORM\LocalizationListener
         arguments:
@@ -226,6 +222,7 @@ services:
         class: Oro\Bundle\LocaleBundle\Twig\LocaleExtension
         arguments:
             - '@oro_platform.twig.service_locator'
+            - '%oro_entity.do_not_lowercase_noun_locales%'
         tags:
             - { name: twig.extension }
 
@@ -350,6 +347,9 @@ services:
         class: Oro\Bundle\LocaleBundle\Provider\CurrentLocalizationProvider
         arguments:
             - !tagged_iterator oro_locale.extension.current_localization
+            - '@oro_locale.manager.localization'
+            - '@translator'
+            - '@stof_doctrine_extensions.listener.translatable'
 
     oro_locale.provider.config_default_localization:
         class: Oro\Bundle\LocaleBundle\Provider\ConfigDefaultLocalizationProvider
@@ -487,4 +487,13 @@ services:
 
     oro_locale.helper.localized_value_extractor:
         class: 'Oro\Bundle\LocaleBundle\Helper\LocalizedValueExtractor'
-        public: false
+
+    oro_locale.twig.formatted_address_renderer:
+        class: Oro\Bundle\LocaleBundle\Twig\FormattedAddressRenderer
+        arguments:
+            - '@twig'
+            - '%kernel.debug%'
+        calls:
+            - [ setLogger, [ '@logger' ] ]
+        tags:
+            - { name: monolog.logger, channel: oro_locale }

@@ -120,7 +120,7 @@ abstract class AbstractLocalizedFallbackValue
      * @param Localization|null $localization
      * @return $this
      */
-    public function setLocalization(Localization $localization = null)
+    public function setLocalization(?Localization $localization = null)
     {
         $this->localization = $localization;
 
@@ -130,6 +130,7 @@ abstract class AbstractLocalizedFallbackValue
     /**
      * @return string
      */
+    #[\Override]
     public function __toString()
     {
         $fields = get_object_vars($this);

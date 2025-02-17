@@ -17,6 +17,7 @@ class CreateDateTest extends \PHPUnit\Framework\TestCase
     /** @var CreateDate */
     private $action;
 
+    #[\Override]
     protected function setUp(): void
     {
         $localeSettings = $this->createMock(LocaleSettings::class);
@@ -39,7 +40,7 @@ class CreateDateTest extends \PHPUnit\Framework\TestCase
     /**
      * @dataProvider executeDataProvider
      */
-    public function testExecute(array $options, \DateTime $expectedResult = null)
+    public function testExecute(array $options, ?\DateTime $expectedResult = null)
     {
         $context = new ItemStub([]);
         $attributeName = (string)$options['attribute'];

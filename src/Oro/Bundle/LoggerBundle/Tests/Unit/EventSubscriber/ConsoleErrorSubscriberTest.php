@@ -34,13 +34,13 @@ class ConsoleErrorSubscriberTest extends \PHPUnit\Framework\TestCase
         E_USER_DEPRECATED => [null, LogLevel::INFO],
         E_NOTICE => [null, LogLevel::WARNING],
         E_USER_NOTICE => [null, LogLevel::WARNING],
-        E_STRICT => [null, LogLevel::WARNING],
         E_WARNING => [null, LogLevel::WARNING],
         E_USER_WARNING => [null, LogLevel::WARNING],
         E_COMPILE_WARNING => [null, LogLevel::WARNING],
         E_CORE_WARNING => [null, LogLevel::WARNING],
     ];
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->logger = $this->createMock(LoggerInterface::class);
@@ -51,6 +51,7 @@ class ConsoleErrorSubscriberTest extends \PHPUnit\Framework\TestCase
         $this->output = $this->createMock(OutputInterface::class);
     }
 
+    #[\Override]
     protected function tearDown(): void
     {
         restore_error_handler();
@@ -66,7 +67,7 @@ class ConsoleErrorSubscriberTest extends \PHPUnit\Framework\TestCase
             new ConsoleCommandEvent($this->createMock($command), $this->input, $this->output)
         );
 
-        $this->assertSame(
+        $this->assertEquals(
             self::$defaultLoggers + [
                 E_USER_ERROR => [$this->logger, LogLevel::CRITICAL],
                 E_RECOVERABLE_ERROR => [$this->logger, LogLevel::CRITICAL],

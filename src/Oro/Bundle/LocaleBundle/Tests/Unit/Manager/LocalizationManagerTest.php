@@ -38,6 +38,7 @@ class LocalizationManagerTest extends \PHPUnit\Framework\TestCase
     /** @var Localization[] */
     private $entities = [];
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->repository = $this->createMock(LocalizationRepository::class);
@@ -231,7 +232,7 @@ class LocalizationManagerTest extends \PHPUnit\Framework\TestCase
      * @param Localization|null $entity
      * @param Localization[] $entities
      */
-    private function assertRepositoryCalls(Localization $entity = null, array $entities = [])
+    private function assertRepositoryCalls(?Localization $entity = null, array $entities = [])
     {
         if (count($entities) > 0) {
             $this->repository->expects($this->once())

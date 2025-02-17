@@ -13,9 +13,7 @@ use Oro\Component\DoctrineUtils\ORM\QueryBuilderUtil;
  */
 class QueryBuilderTools extends AbstractQueryBuilderTools
 {
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function prepareFieldAliases(array $selects)
     {
         $this->resetFieldAliases();
@@ -38,9 +36,7 @@ class QueryBuilderTools extends AbstractQueryBuilderTools
         }
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function prepareJoinTablePaths(array $joins)
     {
         $this->resetJoinTablePaths();
@@ -133,6 +129,10 @@ class QueryBuilderTools extends AbstractQueryBuilderTools
                 $aliases = array_merge($aliases, $this->getUsedTableAliases($wherePart, $replace));
             }
         } else {
+            if ($where instanceof Expr\Composite && $where->getParts()[0] instanceof Expr\Func) {
+                $replace = false;
+            }
+
             $where = (string)$where;
 
             if ($replace) {

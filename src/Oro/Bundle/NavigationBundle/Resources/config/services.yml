@@ -217,7 +217,7 @@ services:
         arguments:
             - '@oro_ui.dynamic_asset_version_manager'
         tags:
-            - { name: kernel.event_listener, event: console.command, method: onConsoleCommand }
+            - { name: kernel.event_listener, event: console.terminate, method: onConsoleTerminate, priority: -10 }
 
     oro_navigation.listener.js_routing_route_collection_listener:
         class: Oro\Bundle\NavigationBundle\EventListener\JsRoutingRouteCollectionListener
@@ -633,3 +633,11 @@ services:
         class: Oro\Bundle\NavigationBundle\Provider\MenuNamesProvider
         arguments:
             - '@oro_navigation.configuration.provider'
+
+    oro_navigation.provider.route_title:
+        class: Oro\Bundle\NavigationBundle\Provider\RouteTitleProvider
+        arguments:
+            - '@oro_navigation.title_reader.registry'
+            - '@oro_navigation.title_translator'
+            - '@oro_navigation.title_service'
+

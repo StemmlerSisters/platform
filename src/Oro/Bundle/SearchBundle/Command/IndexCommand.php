@@ -32,13 +32,14 @@ class IndexCommand extends Command
     }
 
     /** @noinspection PhpMissingParentCallCommonInspection */
+    #[\Override]
     protected function configure()
     {
         $this
             ->addArgument('class', InputArgument::REQUIRED, 'Entity to reindex (FQCN or short name)')
             ->addArgument(
                 'identifiers',
-                InputArgument::REQUIRED|InputArgument::IS_ARRAY,
+                InputArgument::REQUIRED | InputArgument::IS_ARRAY,
                 'IDs of the entities to reindex'
             )
             ->setDescription('Updates search index for specified entities.')
@@ -54,6 +55,7 @@ HELP
     }
 
     /** @noinspection PhpMissingParentCallCommonInspection */
+    #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $class = $input->getArgument('class');

@@ -34,6 +34,7 @@ class UpdateEmailVisibilitiesForOrganizationProcessorTest extends OrmTestCase
     /** @var UpdateEmailVisibilitiesForOrganizationProcessor */
     private $processor;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->jobRunner = $this->createMock(JobRunner::class);
@@ -97,7 +98,7 @@ class UpdateEmailVisibilitiesForOrganizationProcessorTest extends OrmTestCase
         );
     }
 
-    private function addDataQueryExpectation(int $organizationId, array $data, int $offset = null): void
+    private function addDataQueryExpectation(int $organizationId, array $data, ?int $offset = null): void
     {
         $sql = 'SELECT o0_.id AS id_0'
             . ' FROM oro_email o0_'

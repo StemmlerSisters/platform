@@ -23,6 +23,7 @@ class DatasourceBindParametersListenerTest extends \PHPUnit\Framework\TestCase
     /** @var DatasourceBindParametersListener */
     private $listener;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->event = $this->createMock(BuildAfter::class);
@@ -35,7 +36,7 @@ class DatasourceBindParametersListenerTest extends \PHPUnit\Framework\TestCase
     /**
      * @dataProvider onBuildAfterDataProvider
      */
-    public function testOnBuildAfterWorks(array $config, array $expectedBindParameters = null)
+    public function testOnBuildAfterWorks(array $config, ?array $expectedBindParameters = null)
     {
         $config = DatagridConfiguration::create($config);
 

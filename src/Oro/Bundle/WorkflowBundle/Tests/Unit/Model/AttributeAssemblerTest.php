@@ -15,6 +15,7 @@ class AttributeAssemblerTest extends \PHPUnit\Framework\TestCase
 {
     private TranslatorInterface|\PHPUnit\Framework\MockObject\MockObject $translator;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->translator = $this->createMock(TranslatorInterface::class);
@@ -357,7 +358,7 @@ class AttributeAssemblerTest extends \PHPUnit\Framework\TestCase
         string $type,
         array $options = [],
         mixed $default = null,
-        string $propertyPath = null,
+        ?string $propertyPath = null,
         array $entityAcl = []
     ): Attribute {
         $attribute = new Attribute();

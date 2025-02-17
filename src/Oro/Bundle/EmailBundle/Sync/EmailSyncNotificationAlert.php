@@ -40,25 +40,19 @@ class EmailSyncNotificationAlert implements NotificationAlertInterface
 
     protected array $additionalInfo = [];
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function getId(): string
     {
         return $this->id;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function getSourceType(): string
     {
         return self::SOURCE_TYPE;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function toArray(): array
     {
         $data = [
@@ -159,7 +153,7 @@ class EmailSyncNotificationAlert implements NotificationAlertInterface
      */
     public static function createForGetListFail(
         ?string $message = null,
-        array   $additionalInfo = []
+        array $additionalInfo = []
     ): EmailSyncNotificationAlert {
         $item = new EmailSyncNotificationAlert();
         $item->alertType = self::ALERT_TYPE_SYNC;
@@ -178,7 +172,7 @@ class EmailSyncNotificationAlert implements NotificationAlertInterface
     public static function createForSwitchFolderFail(
         ?string $message = null,
         ?string $folderName = null,
-        ?int    $folderId = null
+        ?int $folderId = null
     ): EmailSyncNotificationAlert {
         $item = new EmailSyncNotificationAlert();
         $item->alertType = self::ALERT_TYPE_SWITCH_FOLDER;
@@ -196,7 +190,7 @@ class EmailSyncNotificationAlert implements NotificationAlertInterface
      * Creates a notification alert object that represents a failure during getting the email body data.
      */
     public static function createForGetItemBodyFail(
-        int     $itemId,
+        int $itemId,
         ?string $message = null
     ): EmailSyncNotificationAlert {
         $item = new EmailSyncNotificationAlert();
@@ -214,7 +208,7 @@ class EmailSyncNotificationAlert implements NotificationAlertInterface
      * Creates a notification alert object that represents a failure during save the email body data.
      */
     public static function createForSaveItemBodyFail(
-        int     $itemId,
+        int $itemId,
         ?string $message = null
     ): EmailSyncNotificationAlert {
         $item = new EmailSyncNotificationAlert();
@@ -233,7 +227,7 @@ class EmailSyncNotificationAlert implements NotificationAlertInterface
      */
     public static function createForConvertFailed(
         ?string $message = null,
-        array   $additionalInfo = []
+        array $additionalInfo = []
     ): EmailSyncNotificationAlert {
         $item = new EmailSyncNotificationAlert();
         $item->alertType = self::ALERT_TYPE_SYNC;

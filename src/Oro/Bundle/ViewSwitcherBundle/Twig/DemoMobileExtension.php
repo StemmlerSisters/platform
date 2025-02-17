@@ -25,9 +25,7 @@ class DemoMobileExtension extends AbstractExtension implements ServiceSubscriber
         $this->container = $container;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getFunctions()
     {
         return [
@@ -43,8 +41,8 @@ class DemoMobileExtension extends AbstractExtension implements ServiceSubscriber
     public function isMobile(): bool
     {
         if (null === $this->isMobile) {
-            $masterRequest = $this->getMasterRequest();
-            $isForceMobile = null !== $masterRequest && $masterRequest->cookies->get('demo_version') === 'mobile';
+            $mainRequest = $this->getMainRequest();
+            $isForceMobile = null !== $mainRequest && $mainRequest->cookies->get('demo_version') === 'mobile';
             $this->isMobile = $isForceMobile || $this->getUserAgentProvider()->getUserAgent()->isMobile();
         }
 
@@ -60,9 +58,7 @@ class DemoMobileExtension extends AbstractExtension implements ServiceSubscriber
         return !$this->isMobile();
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public static function getSubscribedServices(): array
     {
         return [
@@ -76,7 +72,7 @@ class DemoMobileExtension extends AbstractExtension implements ServiceSubscriber
         return $this->container->get('oro_ui.user_agent_provider');
     }
 
-    private function getMasterRequest(): ?Request
+    private function getMainRequest(): ?Request
     {
         return $this->container->get(RequestStack::class)->getMainRequest();
     }

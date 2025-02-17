@@ -6,6 +6,7 @@ use Oro\Bundle\EntityBundle\ORM\DoctrineHelper;
 use Oro\Bundle\ImportExportBundle\Async\ImportExportResultSummarizer;
 use Oro\Bundle\ImportExportBundle\Async\Topic\PostExportTopic;
 use Oro\Bundle\ImportExportBundle\Async\Topic\SaveImportExportResultTopic;
+use Oro\Bundle\ImportExportBundle\Exception\FileSizeExceededException;
 use Oro\Bundle\ImportExportBundle\Exception\RuntimeException;
 use Oro\Bundle\ImportExportBundle\Handler\ExportHandler;
 use Oro\Bundle\MessageQueueBundle\Entity\Job;
@@ -57,9 +58,7 @@ class PostExportMessageProcessor implements MessageProcessorInterface, TopicSubs
         $this->notificationSettings = $notificationSettings;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function process(MessageInterface $message, SessionInterface $session)
     {
         $messageBody = $message->getBody();
@@ -88,6 +87,13 @@ class PostExportMessageProcessor implements MessageProcessorInterface, TopicSubs
                 $messageBody['outputFormat'],
                 $files
             );
+        } catch (FileSizeExceededException $e) {
+            $this->logger->critical(
+                sprintf('Error occurred during export merge: %s', $e->getMessage()),
+                ['exception' => $e]
+            );
+
+            return self::REJECT;
         } catch (RuntimeException $e) {
             $this->logger->critical(
                 sprintf('Error occurred during export merge: %s', $e->getMessage()),
@@ -120,9 +126,7 @@ class PostExportMessageProcessor implements MessageProcessorInterface, TopicSubs
         return self::ACK;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public static function getSubscribedTopics()
     {
         return [PostExportTopic::getName()];

@@ -49,9 +49,7 @@ class BlockViewNormalizer implements NormalizerInterface, DenormalizerInterface,
         $this->typeNameConverter = $typeNameConverter;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function setSerializer(SerializerInterface $serializer)
     {
         if (!($serializer instanceof NormalizerInterface && $serializer instanceof DenormalizerInterface)) {
@@ -61,18 +59,14 @@ class BlockViewNormalizer implements NormalizerInterface, DenormalizerInterface,
         $this->serializer = $serializer;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function supportsNormalization($data, $format = null): bool
     {
         return $data instanceof BlockView;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function normalize($object, string $format = null, array $context = [])
+    #[\Override]
+    public function normalize($object, ?string $format = null, array $context = [])
     {
         /** @var BlockView $object */
 
@@ -114,18 +108,14 @@ class BlockViewNormalizer implements NormalizerInterface, DenormalizerInterface,
         return $data;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function supportsDenormalization($data, string $type, string $format = null): bool
+    #[\Override]
+    public function supportsDenormalization($data, string $type, ?string $format = null): bool
     {
         return BlockView::class === $type;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function denormalize($data, string $type, string $format = null, array $context = [])
+    #[\Override]
+    public function denormalize($data, string $type, ?string $format = null, array $context = [])
     {
         $view = new BlockView();
         [$id, $blockType, $blockPrefixes] = $data[self::DATA_KEYS];

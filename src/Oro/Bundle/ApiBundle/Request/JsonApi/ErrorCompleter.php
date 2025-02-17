@@ -28,7 +28,6 @@ class ErrorCompleter extends AbstractErrorCompleter
 {
     private const POINTER_DELIMITER = '/';
 
-    private ValueNormalizer $valueNormalizer;
     private FilterNamesRegistry $filterNamesRegistry;
 
     public function __construct(
@@ -37,31 +36,27 @@ class ErrorCompleter extends AbstractErrorCompleter
         ValueNormalizer $valueNormalizer,
         FilterNamesRegistry $filterNamesRegistry
     ) {
-        parent::__construct($errorTitleOverrideProvider, $exceptionTextExtractor);
-        $this->valueNormalizer = $valueNormalizer;
+        parent::__construct($errorTitleOverrideProvider, $exceptionTextExtractor, $valueNormalizer);
         $this->filterNamesRegistry = $filterNamesRegistry;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function complete(Error $error, RequestType $requestType, EntityMetadata $metadata = null): void
+    #[\Override]
+    public function complete(Error $error, RequestType $requestType, ?EntityMetadata $metadata = null): void
     {
         $this->completeStatusCode($error);
         $this->completeCode($error);
         $this->completeTitle($error);
         $this->completeDetail($error);
         $this->completeSource($error, $requestType, $metadata);
+        $this->completeMetaProperties($error, $requestType);
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function fixIncludedEntityPath(
         string $entityPath,
         Error $error,
         RequestType $requestType,
-        EntityMetadata $metadata = null
+        ?EntityMetadata $metadata = null
     ): void {
         $this->completeSource($error, $requestType, $metadata);
         $errorSource = $error->getSource();
@@ -86,7 +81,7 @@ class ErrorCompleter extends AbstractErrorCompleter
         }
     }
 
-    private function completeSource(Error $error, RequestType $requestType, EntityMetadata $metadata = null): void
+    private function completeSource(Error $error, RequestType $requestType, ?EntityMetadata $metadata = null): void
     {
         $source = $error->getSource();
         if (null === $source && $this->isConfigFilterConstraintViolation($error)) {

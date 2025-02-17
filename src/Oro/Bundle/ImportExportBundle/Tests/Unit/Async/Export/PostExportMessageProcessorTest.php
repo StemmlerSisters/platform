@@ -6,6 +6,7 @@ use Oro\Bundle\EntityBundle\ORM\DoctrineHelper;
 use Oro\Bundle\ImportExportBundle\Async\Export\PostExportMessageProcessor;
 use Oro\Bundle\ImportExportBundle\Async\ImportExportResultSummarizer;
 use Oro\Bundle\ImportExportBundle\Async\Topic\SaveImportExportResultTopic;
+use Oro\Bundle\ImportExportBundle\Exception\FileSizeExceededException;
 use Oro\Bundle\ImportExportBundle\Exception\RuntimeException;
 use Oro\Bundle\ImportExportBundle\Handler\ExportHandler;
 use Oro\Bundle\MessageQueueBundle\Entity\Job;
@@ -35,6 +36,7 @@ class PostExportMessageProcessorTest extends \PHPUnit\Framework\TestCase
 
     private PostExportMessageProcessor $postExportMessageProcessor;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->logger = $this->createMock(LoggerInterface::class);
@@ -62,7 +64,10 @@ class PostExportMessageProcessorTest extends \PHPUnit\Framework\TestCase
         );
     }
 
-    public function testProcessExceptionsAreHandledDuringMerge(): void
+    /**
+     * @dataProvider exceptionTypeProvider
+     */
+    public function testProcessExceptionsAreHandledDuringMerge($exception, $expectedResult): void
     {
         $session = $this->createMock(SessionInterface::class);
         $message = $this->createMock(MessageInterface::class);
@@ -97,7 +102,6 @@ class PostExportMessageProcessorTest extends \PHPUnit\Framework\TestCase
             ->willReturn('acme_filename');
 
         $exceptionMessage = 'Exception message';
-        $exception = new RuntimeException($exceptionMessage);
         $this->exportHandler->expects(self::once())
             ->method('exportResultFileMerge')
             ->willThrowException($exception);
@@ -114,7 +118,7 @@ class PostExportMessageProcessorTest extends \PHPUnit\Framework\TestCase
 
         $result = $this->postExportMessageProcessor->process($message, $session);
 
-        self::assertSame(MessageProcessorInterface::ACK, $result);
+        self::assertSame($expectedResult, $result);
     }
 
     public function testProcess(): void
@@ -185,5 +189,21 @@ class PostExportMessageProcessorTest extends \PHPUnit\Framework\TestCase
             MessageProcessorInterface::ACK,
             $this->postExportMessageProcessor->process($message, $session)
         );
+    }
+
+    public function exceptionTypeProvider(): array
+    {
+        $exceptionMessage = 'Exception message';
+
+        return [
+            [
+                new RuntimeException($exceptionMessage),
+                MessageProcessorInterface::ACK
+            ],
+            [
+                new FileSizeExceededException($exceptionMessage),
+                MessageProcessorInterface::REJECT
+            ],
+        ];
     }
 }

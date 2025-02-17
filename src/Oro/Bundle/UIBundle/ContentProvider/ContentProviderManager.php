@@ -38,9 +38,7 @@ class ContentProviderManager implements ResetInterface
         $this->enabledProviderNames = $this->initialEnabledProviderNames = $enabledProviderNames;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function reset()
     {
         $this->enabledProviderNames = $this->initialEnabledProviderNames;
@@ -85,7 +83,7 @@ class ContentProviderManager implements ResetInterface
      *
      * @return array [name => content, ...]
      */
-    public function getContent(array $names = null): array
+    public function getContent(?array $names = null): array
     {
         if (!$names) {
             $names = $this->enabledProviderNames;

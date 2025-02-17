@@ -22,6 +22,7 @@ class BuildCriteriaTest extends GetListProcessorOrmRelatedTestCase
     /** @var BuildCriteria */
     private $processor;
 
+    #[\Override]
     protected function setUp(): void
     {
         parent::setUp();
@@ -57,12 +58,11 @@ class BuildCriteriaTest extends GetListProcessorOrmRelatedTestCase
 
     public function testProcess()
     {
-        $filterValues = $this->context->getFilterValues();
-        $filterValues->set(
+        $this->context->getFilterValues()->set(
             'filter[label]',
             FilterValue::createFromSource('filter[label]', 'label', 'val1', FilterOperator::EQ)
         );
-        $filterValues->set(
+        $this->context->getFilterValues()->set(
             'filter[name]',
             FilterValue::createFromSource('filter[name]', 'name', 'val2', FilterOperator::EQ)
         );
@@ -71,7 +71,6 @@ class BuildCriteriaTest extends GetListProcessorOrmRelatedTestCase
         $filers->add('filter[label]', $this->getComparisonFilter('string', 'label'));
         $filers->add('filter[name]', $this->getComparisonFilter('string', 'association.name'));
 
-        $this->context->setFilterValues($filterValues);
         $this->context->setCriteria(new Criteria());
         $this->processor->process($this->context);
 
@@ -89,12 +88,11 @@ class BuildCriteriaTest extends GetListProcessorOrmRelatedTestCase
 
     public function testProcessShouldApplyFiltersInCorrectOrder()
     {
-        $filterValues = $this->context->getFilterValues();
-        $filterValues->set(
+        $this->context->getFilterValues()->set(
             'filter[label]',
             FilterValue::createFromSource('filter[label]', 'label', 'val1', FilterOperator::EQ)
         );
-        $filterValues->set(
+        $this->context->getFilterValues()->set(
             'filter[name]',
             FilterValue::createFromSource('filter[name]', 'name', 'val2', FilterOperator::EQ)
         );
@@ -103,7 +101,6 @@ class BuildCriteriaTest extends GetListProcessorOrmRelatedTestCase
         $filers->add('filter[name]', $this->getComparisonFilter('string', 'association.name'));
         $filers->add('filter[label]', $this->getComparisonFilter('string', 'label'));
 
-        $this->context->setFilterValues($filterValues);
         $this->context->setCriteria(new Criteria());
         $this->processor->process($this->context);
 
@@ -121,13 +118,11 @@ class BuildCriteriaTest extends GetListProcessorOrmRelatedTestCase
 
     public function testProcessForUnknownFilter()
     {
-        $filterValues = $this->context->getFilterValues();
-        $filterValues->set(
+        $this->context->getFilterValues()->set(
             'filter[name]',
             FilterValue::createFromSource('filter[name]', 'name', 'val', FilterOperator::EQ)
         );
 
-        $this->context->setFilterValues($filterValues);
         $this->context->setCriteria(new Criteria());
         $this->processor->process($this->context);
 
@@ -138,8 +133,7 @@ class BuildCriteriaTest extends GetListProcessorOrmRelatedTestCase
 
     public function testProcessWhenApplyFilterFailed()
     {
-        $filterValues = $this->context->getFilterValues();
-        $filterValues->set(
+        $this->context->getFilterValues()->set(
             'filter[name]',
             FilterValue::createFromSource('filter[name]', 'name', 'val', FilterOperator::EQ)
         );
@@ -154,7 +148,6 @@ class BuildCriteriaTest extends GetListProcessorOrmRelatedTestCase
             ->method('apply')
             ->willThrowException($exception);
 
-        $this->context->setFilterValues($filterValues);
         $this->context->setCriteria(new Criteria());
         $this->processor->process($this->context);
 
@@ -171,8 +164,7 @@ class BuildCriteriaTest extends GetListProcessorOrmRelatedTestCase
 
     public function testProcessWhenApplyPredefinedFilterFailed()
     {
-        $filterValues = $this->context->getFilterValues();
-        $filterValues->set(
+        $this->context->getFilterValues()->set(
             'someFilter',
             new FilterValue('someFilter', 'val', FilterOperator::EQ)
         );
@@ -187,7 +179,6 @@ class BuildCriteriaTest extends GetListProcessorOrmRelatedTestCase
             ->method('apply')
             ->willThrowException($exception);
 
-        $this->context->setFilterValues($filterValues);
         $this->context->setCriteria(new Criteria());
         $this->processor->process($this->context);
 

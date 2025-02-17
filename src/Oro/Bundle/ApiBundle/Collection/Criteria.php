@@ -79,9 +79,9 @@ class Criteria extends BaseCriteria
     public function addInnerJoin(
         string $propertyPath,
         string $join,
-        string $conditionType = null,
-        string $condition = null,
-        string $indexBy = null
+        ?string $conditionType = null,
+        ?string $condition = null,
+        ?string $indexBy = null
     ): Join {
         return $this->addJoin($propertyPath, Join::INNER_JOIN, $join, $conditionType, $condition, $indexBy);
     }
@@ -104,9 +104,9 @@ class Criteria extends BaseCriteria
     public function addLeftJoin(
         string $propertyPath,
         string $join,
-        string $conditionType = null,
-        string $condition = null,
-        string $indexBy = null
+        ?string $conditionType = null,
+        ?string $condition = null,
+        ?string $indexBy = null
     ): Join {
         return $this->addJoin($propertyPath, Join::LEFT_JOIN, $join, $conditionType, $condition, $indexBy);
     }
@@ -127,9 +127,9 @@ class Criteria extends BaseCriteria
         string $propertyPath,
         string $joinType,
         string $join,
-        string $conditionType = null,
-        string $condition = null,
-        string $indexBy = null
+        ?string $conditionType = null,
+        ?string $condition = null,
+        ?string $indexBy = null
     ): Join {
         if (!$propertyPath) {
             throw new \InvalidArgumentException('The property path must be not empty.');

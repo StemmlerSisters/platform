@@ -25,9 +25,9 @@ abstract class StartTransitionButtonProviderExtensionTestCase extends AbstractTr
      */
     public function testFind(
         bool $expected,
-        string $entityClass = null,
+        ?string $entityClass = null,
         string $routeName = '',
-        string $datagrid = null
+        ?string $datagrid = null
     ) {
         $this->applicationProvider->expects($this->atLeastOnce())
             ->method('getCurrentApplication')

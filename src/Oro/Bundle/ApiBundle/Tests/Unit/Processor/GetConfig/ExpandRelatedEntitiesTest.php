@@ -35,6 +35,7 @@ class ExpandRelatedEntitiesTest extends ConfigProcessorTestCase
     /** @var ExpandRelatedEntities */
     private $processor;
 
+    #[\Override]
     protected function setUp(): void
     {
         parent::setUp();
@@ -58,7 +59,7 @@ class ExpandRelatedEntitiesTest extends ConfigProcessorTestCase
         );
     }
 
-    private function createRelationConfigObject(array $definition = null, array $testSection = null): Config
+    private function createRelationConfigObject(?array $definition = null, ?array $testSection = null): Config
     {
         $config = new Config();
         if (null !== $definition) {

@@ -21,6 +21,7 @@ class EmailTest extends \PHPUnit\Framework\TestCase
     /** @var Email */
     private $email;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->message = $this->createMock(Message::class);
@@ -95,8 +96,8 @@ class EmailTest extends \PHPUnit\Framework\TestCase
     public function testGetAttachments(
         array $attachments,
         bool $getBodyCalled,
-        ContentType $contentType = null,
-        Attachment $msgAsAttachment = null,
+        ?ContentType $contentType = null,
+        ?Attachment $msgAsAttachment = null,
         array $expected = []
     ) {
         $this->message->expects($this->once())

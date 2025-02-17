@@ -19,6 +19,7 @@ class EmailFactoryTest extends \PHPUnit\Framework\TestCase
 
     private EmailFactory $factory;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->parentMessageIdProvider = $this->createMock(ParentMessageIdProvider::class);
@@ -183,7 +184,7 @@ class EmailFactoryTest extends \PHPUnit\Framework\TestCase
         self::assertContainsEquals($inlineAttachment, $attachments);
     }
 
-    private function createEmailAttachmentModel(string $embeddedContentId = null): EmailAttachmentModel
+    private function createEmailAttachmentModel(?string $embeddedContentId = null): EmailAttachmentModel
     {
         $emailAttachmentContent = (new EmailAttachmentContent())
             ->setContent(base64_encode('sample_content'))

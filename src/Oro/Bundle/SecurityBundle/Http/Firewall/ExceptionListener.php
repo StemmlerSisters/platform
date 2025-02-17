@@ -21,18 +21,15 @@ class ExceptionListener extends BaseExceptionListener
 
     private array $excludedRoutes = [];
 
-    /**
-     * {@inheritdoc}
-     */
     public function __construct(
         TokenStorageInterface $tokenStorage,
         AuthenticationTrustResolverInterface $trustResolver,
         HttpUtils $httpUtils,
         $providerKey,
-        AuthenticationEntryPointInterface $authenticationEntryPoint = null,
+        ?AuthenticationEntryPointInterface $authenticationEntryPoint = null,
         $errorPage = null,
-        AccessDeniedHandlerInterface $accessDeniedHandler = null,
-        LoggerInterface $logger = null,
+        ?AccessDeniedHandlerInterface $accessDeniedHandler = null,
+        ?LoggerInterface $logger = null,
         $stateless = false
     ) {
         parent::__construct(
@@ -54,9 +51,7 @@ class ExceptionListener extends BaseExceptionListener
         $this->excludedRoutes = $excludedRoutes;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     protected function setTargetPath(Request $request): void
     {
         if (!$request->hasSession() ||

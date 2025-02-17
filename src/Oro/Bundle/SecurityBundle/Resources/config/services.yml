@@ -2,6 +2,19 @@ parameters:
     oro_security.allowed_protocols: ['http', 'https']
 
 services:
+    oro_security.http_kernel.session_path:
+        class: \Oro\Bundle\SecurityBundle\Request\SessionHttpKernelDecorator
+        decorates: http_kernel
+        decoration_priority: 250
+        arguments:
+            - '@.inner'
+            - '@oro_security.request.session_storage_options_manipulator'
+
+    oro_security.request.session_storage_options_manipulator:
+        class: Oro\Bundle\SecurityBundle\Request\SessionStorageOptionsManipulator
+        arguments:
+            - '@service_container'
+
     oro_security.authorization_checker:
         class: Oro\Bundle\SecurityBundle\Authorization\AuthorizationChecker
         decorates: security.authorization_checker
@@ -310,6 +323,7 @@ services:
             - '@oro_security.entity_security_metadata_provider'
         tags:
             - { name: kernel.event_listener, event: oro.entity_config.pre_flush, method: preFlush }
+            - { name: kernel.event_listener, event: oro.entity_config.post_flush, method: postFlush }
 
     oro_security.entity_security_metadata_provider.cache.warmer:
         class: Oro\Bundle\SecurityBundle\Cache\EntitySecurityMetadataCacheWarmer
@@ -497,6 +511,9 @@ services:
         calls:
             - [setTokenFactory, ['@oro_security.token.factory.username_password_organization']]
             - [setOrganizationGuesser, ['@oro_security.authentication.organization_guesser']]
+            - [setCaptchaSettingsProvider, ['@oro_form.captcha.settings_provider']]
+            - [mapFirewallToLoginForm, ['main', 'oro_user_form_login']]
+            - [mapFirewallToLoginForm, ['frontend', 'oro_customer_form_login']]
         abstract: true
         public: false
 
@@ -508,6 +525,14 @@ services:
             - '@logger'
         tags:
             - { name: kernel.event_listener, event: kernel.request, method: onKernelRequest, priority: 7 }
+
+    oro_security.listener.captcha_protection_listener:
+        class: Oro\Bundle\SecurityBundle\Http\Firewall\CaptchaProtectionListener
+        arguments:
+            - '@oro_form.captcha.service_registry'
+            - '@translator'
+        tags:
+            - { name: kernel.event_subscriber }
 
     oro_security.listener.api_listener:
           class: Oro\Bundle\SecurityBundle\EventListener\ApiEventListener
@@ -723,7 +748,7 @@ services:
            - '@oro_security.owner.entity_owner_accessor'
            - '@security.authorization_checker'
            - '@oro_security.token_accessor'
-           - '@oro_security.ownership_tree_provider'
+           - '@oro_security.ownership_tree_provider.chain'
            - '@security.acl.voter.basic_permissions'
 
     oro_security.provider.console.console_context_global_options_provider:

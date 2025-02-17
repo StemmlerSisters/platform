@@ -75,6 +75,7 @@ class TranslatorTest extends \PHPUnit\Framework\TestCase
     /** @var MessageCatalogueSanitizer|MockObject */
     private $messageCatalogueSanitizer;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->sanitizationErrorCollection = new TranslationMessageSanitizationErrorCollection();
@@ -87,14 +88,14 @@ class TranslatorTest extends \PHPUnit\Framework\TestCase
         $container = $this->createMock(ContainerInterface::class);
         $container->expects(self::any())
             ->method('get')
-            ->with('loader')
+            ->with('oro_database_translation')
             ->willReturn($this->getLoader(self::MESSAGES));
 
         $translator = new Translator(
             $container,
             new MessageFormatter(),
             $locale,
-            ['loader' => ['loader']],
+            ['oro_database_translation' => ['oro_database_translation']],
             ['resource_files' => [], 'cache_dir' => $cacheDir]
         );
         $this->messageCatalogueSanitizer = $this->createMock(MessageCatalogueSanitizer::class);
@@ -104,11 +105,13 @@ class TranslatorTest extends \PHPUnit\Framework\TestCase
         $translator->setSanitizationErrorCollection($this->sanitizationErrorCollection);
         $translator->setDynamicTranslationProvider($this->getDynamicTranslationProvider([]));
 
-        $translator->addResource('loader', 'foo.fr.loader', 'fr');
-        $translator->addResource('loader', 'foo.en.loader', 'en');
-        $translator->addResource('loader', 'foo.es.loader', 'es');
-        $translator->addResource('loader', 'foo.pt-PT.loader', 'pt-PT'); // European Portuguese
-        $translator->addResource('loader', 'foo.pt_BR.loader', 'pt_BR'); // Brazilian Portuguese
+        $translator->addResource('oro_database_translation', 'orm.fr.oro_database_translation', 'fr');
+        $translator->addResource('oro_database_translation', 'orm.en.oro_database_translation', 'en');
+        $translator->addResource('oro_database_translation', 'orm.es.oro_database_translation', 'es');
+        // European Portuguese
+        $translator->addResource('oro_database_translation', 'orm.pt-PT.oro_database_translation', 'pt-PT');
+        // Brazilian Portuguese
+        $translator->addResource('oro_database_translation', 'orm.pt_BR.oro_database_translation', 'pt_BR');
 
         return $translator;
     }
@@ -118,9 +121,7 @@ class TranslatorTest extends \PHPUnit\Framework\TestCase
         $loader = $this->createMock(LoaderInterface::class);
         $loader->expects(self::any())
             ->method('load')
-            ->willReturnCallback(function ($resource, $locale) use ($messages) {
-                return $this->getCatalogue($locale, $messages[$locale]);
-            });
+            ->willReturnCallback(fn ($resource, $locale) => $this->getCatalogue($locale, $messages[$locale]));
 
         return $loader;
     }

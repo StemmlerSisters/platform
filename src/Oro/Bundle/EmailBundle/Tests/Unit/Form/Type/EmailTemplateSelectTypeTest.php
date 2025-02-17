@@ -14,6 +14,7 @@ class EmailTemplateSelectTypeTest extends \PHPUnit\Framework\TestCase
     /** @var EmailTemplateSelectType */
     private $type;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->type = new EmailTemplateSelectType();
@@ -31,11 +32,6 @@ class EmailTemplateSelectTypeTest extends \PHPUnit\Framework\TestCase
     public function testGetParent()
     {
         $this->assertEquals(Select2TranslatableEntityType::class, $this->type->getParent());
-    }
-
-    public function testGetName()
-    {
-        $this->assertEquals('oro_email_template_list', $this->type->getName());
     }
 
     public function testFinishView()

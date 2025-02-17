@@ -18,6 +18,7 @@ use Symfony\Component\PasswordHasher\PasswordHasherInterface;
  */
 class UserTest extends RestJsonApiTestCase
 {
+    #[\Override]
     protected function setUp(): void
     {
         parent::setUp();
@@ -53,6 +54,27 @@ class UserTest extends RestJsonApiTestCase
         $this->assertResponseContains('get_user.yml', $response);
         $this->assertResponseNotHasAttributes(
             ['password', 'plainPassword', 'salt', 'confirmationToken', 'emailLowercase'],
+            $response
+        );
+    }
+
+    public function testGetListWithTitles()
+    {
+        $response = $this->cget(
+            ['entity' => 'users'],
+            ['meta' => 'title', 'fields[users]' => 'id', 'filter[email]' => LoadUserData::SIMPLE_USER_EMAIL]
+        );
+
+        $this->assertResponseContains(
+            [
+                'data' => [
+                    [
+                        'type' => 'users',
+                        'id'   => '<toString(@simple_user->id)>',
+                        'meta' => ['title' => 'Elley Towards']
+                    ]
+                ]
+            ],
             $response
         );
     }

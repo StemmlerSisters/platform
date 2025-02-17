@@ -23,9 +23,10 @@ class WidgetControllerTest extends WebTestCase
     /** @var Manager */
     private $dashboardManager;
 
+    #[\Override]
     protected function setUp(): void
     {
-        $this->initClient([], $this->generateWsseAuthHeader());
+        $this->initClient([], self::generateApiAuthHeader());
         $this->em = $this->getContainer()->get('doctrine.orm.entity_manager');
         $this->configProvider = $this->getContainer()->get('oro_dashboard.config_provider');
         $this->dashboardManager = $this->getContainer()->get('oro_dashboard.manager');

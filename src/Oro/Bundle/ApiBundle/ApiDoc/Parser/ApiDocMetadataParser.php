@@ -39,9 +39,7 @@ class ApiDocMetadataParser implements ParserInterface
         $this->dataTypeConverter = $dataTypeConverter;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function supports(array $item)
     {
         return
@@ -49,9 +47,7 @@ class ApiDocMetadataParser implements ParserInterface
             && $item['options']['metadata'] instanceof ApiDocMetadata;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function parse(array $item)
     {
         /** @var ApiDocMetadata $data */
@@ -160,25 +156,21 @@ class ApiDocMetadataParser implements ParserInterface
 
     private function getMetaPropertyData(MetaPropertyMetadata $metadata, EntityDefinitionFieldConfig $config): array
     {
-        $dataType = $this->getApiDocDataType($metadata->getDataType());
-
         return [
             'description' => $config->getDescription(),
             'required'    => false,
-            'dataType'    => $dataType,
-            'actualType'  => $dataType
+            'dataType'    => $this->getApiDocDataType($metadata->getDataType()),
+            'actualType'  => $metadata->getDataType()
         ];
     }
 
     private function getFieldData(FieldMetadata $metadata, EntityDefinitionFieldConfig $config): array
     {
-        $dataType = $this->getApiDocDataType($metadata->getDataType());
-
         return [
             'description' => $config->getDescription(),
             'required'    => !$metadata->isNullable(),
-            'dataType'    => $dataType,
-            'actualType'  => $dataType
+            'dataType'    => $this->getApiDocDataType($metadata->getDataType()),
+            'actualType'  => $metadata->getDataType()
         ];
     }
 
@@ -187,12 +179,11 @@ class ApiDocMetadataParser implements ParserInterface
         EntityDefinitionFieldConfig $config,
         RequestType $requestType
     ): array {
-        $dataType = $this->getApiDocDataType($metadata->getDataType());
         $result = [
             'description' => $config->getDescription(),
             'required'    => !$metadata->isNullable(),
-            'dataType'    => $dataType,
-            'actualType'  => $dataType
+            'dataType'    => $this->getApiDocDataType($metadata->getDataType()),
+            'actualType'  => $metadata->getDataType()
         ];
         if (!DataType::isAssociationAsField($metadata->getDataType())) {
             $result['subType'] = $this->getEntityType($metadata->getTargetClassName(), $requestType);

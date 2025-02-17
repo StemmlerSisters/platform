@@ -24,9 +24,7 @@ class PrepareTranslationModelToSave implements ProcessorInterface
         $this->doctrineHelper = $doctrineHelper;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function process(ContextInterface $context): void
     {
         /** @var CustomizeFormDataContext $context */
@@ -64,7 +62,7 @@ class PrepareTranslationModelToSave implements ProcessorInterface
             return null;
         }
 
-        return  $this->doctrineHelper->createQueryBuilder(Translation::class, 't')
+        return $this->doctrineHelper->createQueryBuilder(Translation::class, 't')
             ->innerJoin('t.translationKey', 'tk')
             ->addSelect('tk')
             ->where('t.id = :id')
@@ -75,12 +73,12 @@ class PrepareTranslationModelToSave implements ProcessorInterface
 
     private function loadTranslationKeyEntity(?int $translationKeyId): TranslationKey
     {
-        return  $this->getEntityManager()->find(TranslationKey::class, $translationKeyId);
+        return $this->getEntityManager()->find(TranslationKey::class, $translationKeyId);
     }
 
     private function loadLanguageEntity(string $languageCode): Language
     {
-        return  $this->doctrineHelper->createQueryBuilder(Language::class, 'l')
+        return $this->doctrineHelper->createQueryBuilder(Language::class, 'l')
             ->where('l.code = :code')
             ->setParameter('code', $languageCode)
             ->getQuery()

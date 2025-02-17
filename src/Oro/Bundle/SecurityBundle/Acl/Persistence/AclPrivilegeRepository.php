@@ -385,9 +385,6 @@ class AclPrivilegeRepository
         }
     }
 
-    /**
-     * {@inheritdoc}
-     */
     protected function getFieldPermissionMasks($permissions, AclExtensionInterface $extension, array $maskBuilders)
     {
         // check if there are no full field permissions and add missing to calculate correct masks.
@@ -699,7 +696,7 @@ class AclPrivilegeRepository
         OID $oid,
         \SplObjectStorage $acls,
         AclExtensionInterface $extension,
-        AclInterface $rootAcl = null,
+        ?AclInterface $rootAcl = null,
         $aclGroup = null
     ) {
         $allowedPermissions = $extension->getAllowedPermissions($oid, null, $aclGroup);
@@ -725,8 +722,8 @@ class AclPrivilegeRepository
      * @param AclPrivilege          $privilege
      * @param string[]              $permissions
      * @param AclExtensionInterface $extension
-     * @param AclInterface|null     $rootAcl
-     * @param AclInterface|null     $acl
+     * @param AclInterface|null $rootAcl
+     * @param AclInterface|null $acl
      */
     protected function addAclPermissions(
         SID $sid,
@@ -734,8 +731,8 @@ class AclPrivilegeRepository
         AclPrivilege $privilege,
         array $permissions,
         AclExtensionInterface $extension,
-        AclInterface $rootAcl = null,
-        AclInterface $acl = null
+        ?AclInterface $rootAcl = null,
+        ?AclInterface $acl = null
     ) {
         if ($acl !== null) {
             // check object ACEs

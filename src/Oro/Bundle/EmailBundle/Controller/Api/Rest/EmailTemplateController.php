@@ -6,6 +6,8 @@ use Doctrine\Persistence\ManagerRegistry;
 use Nelmio\ApiDocBundle\Annotation\ApiDoc;
 use Oro\Bundle\EmailBundle\Entity\EmailTemplate;
 use Oro\Bundle\EmailBundle\Entity\Repository\EmailTemplateRepository;
+use Oro\Bundle\EmailBundle\Provider\EmailTemplateOrganizationProvider;
+use Oro\Bundle\EmailBundle\Tools\EmailTemplateSerializer;
 use Oro\Bundle\EntityBundle\Twig\Sandbox\VariablesProvider;
 use Oro\Bundle\SecurityBundle\Attribute\Acl;
 use Oro\Bundle\SecurityBundle\Attribute\AclAncestor;
@@ -22,6 +24,8 @@ use Twig\Error\SyntaxError;
  */
 class EmailTemplateController extends RestController
 {
+    private EmailTemplateOrganizationProvider $organizationProvider;
+
     /**
      * REST DELETE
      *
@@ -87,7 +91,7 @@ class EmailTemplateController extends RestController
             ->getTemplateByEntityName(
                 $this->container->get('oro_security.acl_helper'),
                 $entityName,
-                $this->container->get('oro_security.token_accessor')->getOrganization(),
+                $this->organizationProvider->getOrganization(),
                 (bool)$includeNonEntity,
                 (bool)$includeSystemTemplates
             );
@@ -192,25 +196,19 @@ class EmailTemplateController extends RestController
         return $this->handleView($view);
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getManager()
     {
         return $this->container->get('oro_email.manager.emailtemplate.api');
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getForm()
     {
         throw new \BadMethodCallException('Form is not available.');
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getFormHandler()
     {
         throw new \BadMethodCallException('FormHandler is not available.');
@@ -218,27 +216,24 @@ class EmailTemplateController extends RestController
 
     protected function serializeEmailTemplate(EmailTemplate $template): array
     {
-        return [
-            'id'          => $template->getId(),
-            'name'        => $template->getName(),
-            'is_system'   => $template->getIsSystem(),
-            'is_editable' => $template->getIsEditable(),
-            'parent'      => $template->getParent(),
-            'subject'     => $template->getSubject(),
-            'content'     => $template->getContent(),
-            'entity_name' => $template->getEntityName(),
-            'type'        => $template->getType()
-        ];
+        return $this->container->get(EmailTemplateSerializer::class)->serialize($template);
     }
 
+    #[\Override]
     public static function getSubscribedServices(): array
     {
         return array_merge(
             parent::getSubscribedServices(),
             [
                 'doctrine' => ManagerRegistry::class,
-                'translator' => TranslatorInterface::class
+                'translator' => TranslatorInterface::class,
+                EmailTemplateSerializer::class,
             ]
         );
+    }
+
+    public function setOrganizationProvider(EmailTemplateOrganizationProvider  $organizationProvider): void
+    {
+        $this->organizationProvider = $organizationProvider;
     }
 }

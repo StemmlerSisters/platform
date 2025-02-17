@@ -156,8 +156,11 @@ define(function(require, exports, module) {
          */
         getTemplateData: function() {
             const data = ModalView.__super__.getTemplateData.call(this);
-            const fields = ['allowOk', 'allowCancel', 'cancelButtonClass', 'closeButtonClass', 'secondaryButtonClass',
-                'okButtonClass', 'closeText', 'cancelText', 'okText', 'secondaryText', 'title', 'content'];
+            const fields = [
+                'allowOk', 'allowCancel', 'cancelButtonClass', 'closeButtonClass', 'secondaryButtonClass',
+                'okButtonClass', 'closeText', 'cancelText', 'okText', 'secondaryText', 'title', 'content',
+                'allowClose'
+            ];
 
             return _.extend({
                 modalId: this.cid
@@ -252,7 +255,7 @@ define(function(require, exports, module) {
 
             // Adjust the modal and backdrop z-index; for dealing with multiple modals
             const numModalViews = ModalView.count;
-            const $backdrop = $('.modal-backdrop:eq(' + numModalViews + ')');
+            const $backdrop = $('.modal-backdrop').eq(numModalViews);
             const backdropIndex = parseInt($backdrop.css('z-index'), 10);
             const elIndex = parseInt($backdrop.css('z-index'), 10) + 1;
 
@@ -281,7 +284,7 @@ define(function(require, exports, module) {
 
             // Focus OK button
             if (this.options.focusOk) {
-                this.$('.ok').focus();
+                this.$('.ok').trigger('focus');
             }
 
             this.hasOpenModal = true;

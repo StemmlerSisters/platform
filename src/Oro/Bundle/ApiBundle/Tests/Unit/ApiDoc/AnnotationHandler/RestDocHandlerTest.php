@@ -49,6 +49,7 @@ class RestDocHandlerTest extends \PHPUnit\Framework\TestCase
     /** @var RestDocHandler */
     private $handler;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->docViewDetector = $this->createMock(RestDocViewDetector::class);
@@ -265,7 +266,7 @@ class RestDocHandlerTest extends \PHPUnit\Framework\TestCase
         $metadata = new EntityMetadata('Test\Entity');
         $metadata->setIdentifierFieldNames(['id']);
 
-        $filters = new FilterCollection();
+        $filterCollection = new FilterCollection();
 
         $context = $this->createMock(Context::class);
         $context->expects(self::once())
@@ -276,7 +277,7 @@ class RestDocHandlerTest extends \PHPUnit\Framework\TestCase
             ->willReturn($metadata);
         $context->expects(self::once())
             ->method('getFilters')
-            ->willReturn($filters);
+            ->willReturn($filterCollection);
 
         $this->docViewDetector->expects(self::atLeastOnce())
             ->method('getRequestType')
@@ -301,7 +302,7 @@ class RestDocHandlerTest extends \PHPUnit\Framework\TestCase
             ->method('handle')
             ->with(
                 self::identicalTo($annotation),
-                self::identicalTo($filters),
+                self::identicalTo($filterCollection),
                 self::identicalTo($metadata)
             );
 
@@ -340,7 +341,7 @@ class RestDocHandlerTest extends \PHPUnit\Framework\TestCase
         $metadata = new EntityMetadata('Test\Entity');
         $metadata->setIdentifierFieldNames(['id']);
 
-        $filters = new FilterCollection();
+        $filterCollection = new FilterCollection();
 
         $context = $this->createMock(Context::class);
         $context->expects(self::once())
@@ -351,7 +352,7 @@ class RestDocHandlerTest extends \PHPUnit\Framework\TestCase
             ->willReturn($metadata);
         $context->expects(self::once())
             ->method('getFilters')
-            ->willReturn($filters);
+            ->willReturn($filterCollection);
 
         $this->docViewDetector->expects(self::atLeastOnce())
             ->method('getRequestType')
@@ -376,7 +377,7 @@ class RestDocHandlerTest extends \PHPUnit\Framework\TestCase
             ->method('handle')
             ->with(
                 self::identicalTo($annotation),
-                self::identicalTo($filters),
+                self::identicalTo($filterCollection),
                 self::identicalTo($metadata)
             );
 
@@ -426,7 +427,7 @@ class RestDocHandlerTest extends \PHPUnit\Framework\TestCase
 
         $metadata = new EntityMetadata('Test\Entity');
 
-        $filters = new FilterCollection();
+        $filterCollection = new FilterCollection();
 
         $context = $this->createMock(Context::class);
         $context->expects(self::once())
@@ -437,7 +438,7 @@ class RestDocHandlerTest extends \PHPUnit\Framework\TestCase
             ->willReturn($metadata);
         $context->expects(self::once())
             ->method('getFilters')
-            ->willReturn($filters);
+            ->willReturn($filterCollection);
 
         $this->docViewDetector->expects(self::atLeastOnce())
             ->method('getRequestType')
@@ -456,7 +457,7 @@ class RestDocHandlerTest extends \PHPUnit\Framework\TestCase
             ->method('handle')
             ->with(
                 self::identicalTo($annotation),
-                self::identicalTo($filters),
+                self::identicalTo($filterCollection),
                 self::identicalTo($metadata)
             );
 
@@ -510,7 +511,7 @@ class RestDocHandlerTest extends \PHPUnit\Framework\TestCase
         $metadata = new EntityMetadata('Test\Entity');
         $metadata->setIdentifierFieldNames(['id']);
 
-        $filters = new FilterCollection();
+        $filterCollection = new FilterCollection();
 
         $context = $this->createMock(Context::class);
         $context->expects(self::once())
@@ -521,7 +522,7 @@ class RestDocHandlerTest extends \PHPUnit\Framework\TestCase
             ->willReturn($metadata);
         $context->expects(self::once())
             ->method('getFilters')
-            ->willReturn($filters);
+            ->willReturn($filterCollection);
 
         $getConfig = new EntityDefinitionConfig();
         $getMetadata = new EntityMetadata('Test\Entity');
@@ -561,7 +562,7 @@ class RestDocHandlerTest extends \PHPUnit\Framework\TestCase
             ->method('handle')
             ->with(
                 self::identicalTo($annotation),
-                self::identicalTo($filters),
+                self::identicalTo($filterCollection),
                 self::identicalTo($metadata)
             );
 
@@ -619,7 +620,7 @@ class RestDocHandlerTest extends \PHPUnit\Framework\TestCase
         $metadata = new EntityMetadata('Test\Entity');
         $metadata->setIdentifierFieldNames(['id']);
 
-        $filters = new FilterCollection();
+        $filterCollection = new FilterCollection();
 
         $context = $this->createMock(Context::class);
         $context->expects(self::once())
@@ -630,7 +631,7 @@ class RestDocHandlerTest extends \PHPUnit\Framework\TestCase
             ->willReturn($metadata);
         $context->expects(self::once())
             ->method('getFilters')
-            ->willReturn($filters);
+            ->willReturn($filterCollection);
 
         $this->docViewDetector->expects(self::atLeastOnce())
             ->method('getRequestType')
@@ -649,7 +650,7 @@ class RestDocHandlerTest extends \PHPUnit\Framework\TestCase
             ->method('handle')
             ->with(
                 self::identicalTo($annotation),
-                self::identicalTo($filters),
+                self::identicalTo($filterCollection),
                 self::identicalTo($metadata)
             );
 
@@ -704,7 +705,7 @@ class RestDocHandlerTest extends \PHPUnit\Framework\TestCase
         $metadata = new EntityMetadata('Test\Entity');
         $metadata->setIdentifierFieldNames(['id']);
 
-        $filters = new FilterCollection();
+        $filterCollection = new FilterCollection();
 
         $parentConfig = new EntityDefinitionConfig();
         $parentConfig->setIdentifierDescription('A parent identifier description');
@@ -723,7 +724,7 @@ class RestDocHandlerTest extends \PHPUnit\Framework\TestCase
             ->willReturn($metadata);
         $context->expects(self::once())
             ->method('getFilters')
-            ->willReturn($filters);
+            ->willReturn($filterCollection);
         $context->expects(self::once())
             ->method('getParentConfig')
             ->willReturn($parentConfig);
@@ -754,7 +755,7 @@ class RestDocHandlerTest extends \PHPUnit\Framework\TestCase
             ->method('handle')
             ->with(
                 self::identicalTo($annotation),
-                self::identicalTo($filters),
+                self::identicalTo($filterCollection),
                 self::identicalTo($metadata)
             );
 
@@ -892,7 +893,7 @@ class RestDocHandlerTest extends \PHPUnit\Framework\TestCase
         $metadata = new EntityMetadata('Test\Entity');
         $metadata->setIdentifierFieldNames(['id']);
 
-        $filters = new FilterCollection();
+        $filterCollection = new FilterCollection();
 
         $context = $this->createMock(Context::class);
         $context->expects(self::once())
@@ -903,7 +904,7 @@ class RestDocHandlerTest extends \PHPUnit\Framework\TestCase
             ->willReturn($metadata);
         $context->expects(self::once())
             ->method('getFilters')
-            ->willReturn($filters);
+            ->willReturn($filterCollection);
 
         $this->docViewDetector->expects(self::atLeastOnce())
             ->method('getRequestType')
@@ -922,7 +923,7 @@ class RestDocHandlerTest extends \PHPUnit\Framework\TestCase
             ->method('handle')
             ->with(
                 self::identicalTo($annotation),
-                self::identicalTo($filters),
+                self::identicalTo($filterCollection),
                 self::identicalTo($metadata)
             );
 

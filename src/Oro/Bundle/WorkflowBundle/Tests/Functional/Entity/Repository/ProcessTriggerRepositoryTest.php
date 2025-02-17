@@ -10,6 +10,7 @@ use Oro\Bundle\WorkflowBundle\Tests\Functional\DataFixtures\LoadProcessEntities;
 
 class ProcessTriggerRepositoryTest extends WebTestCase
 {
+    #[\Override]
     protected function setUp(): void
     {
         $this->initClient();
@@ -98,7 +99,7 @@ class ProcessTriggerRepositoryTest extends WebTestCase
         }
     }
 
-    private function getTriggersCount(bool $enabled = null, bool $withCronTriggers = false): int
+    private function getTriggersCount(?bool $enabled = null, bool $withCronTriggers = false): int
     {
         $queryBuilder = $this->getRepository()->createQueryBuilder('trigger')
             ->select('COUNT(trigger.id) as triggerCount')

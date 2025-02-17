@@ -15,6 +15,7 @@ class CreateObjectTest extends \PHPUnit\Framework\TestCase
     /** @var CreateObject */
     private $action;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->action = new CreateObject(new ContextAccessor());
@@ -81,7 +82,7 @@ class CreateObjectTest extends \PHPUnit\Framework\TestCase
     /**
      * @dataProvider executeDataProvider
      */
-    public function testExecute(array $options, array $contextData = [], array $expectedData = null)
+    public function testExecute(array $options, array $contextData = [], ?array $expectedData = null)
     {
         $context = new ItemStub($contextData);
         $attributeName = (string)$options['attribute'];

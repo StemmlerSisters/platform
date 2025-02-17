@@ -15,9 +15,7 @@ use Oro\Component\ChainProcessor\ProcessorInterface;
  */
 class DisableUpdateOperation implements ProcessorInterface
 {
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function process(ContextInterface $context): void
     {
         /** @var FormContext $context */
@@ -27,11 +25,9 @@ class DisableUpdateOperation implements ProcessorInterface
             return;
         }
 
-        if ($context->isMainRequest()) {
-            $context->addError(
-                Error::createValidationError(Constraint::VALUE, 'The option is not supported.')
-                    ->setSource(ErrorSource::createByPointer('/' . JsonApiDoc::META . '/' . JsonApiDoc::META_UPDATE))
-            );
-        }
+        $context->addError(
+            Error::createValidationError(Constraint::VALUE, 'The option is not supported.')
+                ->setSource(ErrorSource::createByPointer('/' . JsonApiDoc::META . '/' . JsonApiDoc::META_UPDATE))
+        );
     }
 }

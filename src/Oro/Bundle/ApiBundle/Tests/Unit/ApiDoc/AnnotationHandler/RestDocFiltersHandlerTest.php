@@ -42,6 +42,7 @@ class RestDocFiltersHandlerTest extends \PHPUnit\Framework\TestCase
     /** @var RestDocFiltersHandler */
     private $filtersHandler;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->requestType = new RequestType([RequestType::REST]);
@@ -69,10 +70,10 @@ class RestDocFiltersHandlerTest extends \PHPUnit\Framework\TestCase
     public function testHandleWithoutFilters()
     {
         $annotation = new ApiDoc([]);
-        $filters = new FilterCollection();
+        $filterCollection = new FilterCollection();
         $metadata = new EntityMetadata('Test\Entity');
 
-        $this->filtersHandler->handle($annotation, $filters, $metadata);
+        $this->filtersHandler->handle($annotation, $filterCollection, $metadata);
 
         self::assertSame([], $annotation->getFilters());
     }
@@ -80,19 +81,19 @@ class RestDocFiltersHandlerTest extends \PHPUnit\Framework\TestCase
     public function testHandleWithFiltersInAnnotationButNoFiltersInFilterCollection()
     {
         $annotation = new ApiDoc([]);
-        $filters = new FilterCollection();
+        $filterCollection = new FilterCollection();
         $metadata = new EntityMetadata('Test\Entity');
 
         $annotation->addFilter('firstName', ['type' => 'string']);
         $annotation->addFilter('lastName', ['type' => 'string']);
-        $annotation->addFilter('id', ['type' => 'int']);
+        $annotation->addFilter('id', ['type' => 'integer']);
 
-        $this->filtersHandler->handle($annotation, $filters, $metadata);
+        $this->filtersHandler->handle($annotation, $filterCollection, $metadata);
 
         self::assertSame(
             [
                 'firstName' => ['type' => 'string'],
-                'id'        => ['type' => 'int'],
+                'id'        => ['type' => 'integer'],
                 'lastName'  => ['type' => 'string']
             ],
             $annotation->getFilters()
@@ -102,12 +103,12 @@ class RestDocFiltersHandlerTest extends \PHPUnit\Framework\TestCase
     public function testHandleForNonStandaloneFilter()
     {
         $annotation = new ApiDoc([]);
-        $filters = new FilterCollection();
+        $filterCollection = new FilterCollection();
         $metadata = new EntityMetadata('Test\Entity');
 
-        $filters->add('filter1', $this->createMock(FilterInterface::class));
+        $filterCollection->add('filter1', $this->createMock(FilterInterface::class));
 
-        $this->filtersHandler->handle($annotation, $filters, $metadata);
+        $this->filtersHandler->handle($annotation, $filterCollection, $metadata);
 
         self::assertSame([], $annotation->getFilters());
     }
@@ -115,18 +116,18 @@ class RestDocFiltersHandlerTest extends \PHPUnit\Framework\TestCase
     public function testHandleForStandaloneFilter()
     {
         $annotation = new ApiDoc([]);
-        $filters = new FilterCollection();
+        $filterCollection = new FilterCollection();
         $metadata = new EntityMetadata('Test\Entity');
 
-        $filter1 = new StandaloneFilter('int', 'A filter');
-        $filters->add('filter1', $filter1);
+        $filter1 = new StandaloneFilter('integer', 'A filter');
+        $filterCollection->add('filter1', $filter1);
 
         $this->valueNormalizer->expects(self::once())
             ->method('getRequirement')
-            ->with('int', $this->requestType, false, false, [])
+            ->with('integer', $this->requestType, false, false, [])
             ->willReturn('\d+');
 
-        $this->filtersHandler->handle($annotation, $filters, $metadata);
+        $this->filtersHandler->handle($annotation, $filterCollection, $metadata);
 
         self::assertSame(
             [
@@ -142,18 +143,18 @@ class RestDocFiltersHandlerTest extends \PHPUnit\Framework\TestCase
     public function testHandleForStandaloneFilterWithDefaultValue()
     {
         $annotation = new ApiDoc([]);
-        $filters = new FilterCollection();
+        $filterCollection = new FilterCollection();
         $metadata = new EntityMetadata('Test\Entity');
 
-        $filter1 = new StandaloneFilterWithDefaultValue('int', 'A filter', 123);
-        $filters->add('filter1', $filter1);
+        $filter1 = new StandaloneFilterWithDefaultValue('integer', 'A filter', 123);
+        $filterCollection->add('filter1', $filter1);
 
         $this->valueNormalizer->expects(self::once())
             ->method('getRequirement')
-            ->with('int', $this->requestType, false, false, [])
+            ->with('integer', $this->requestType, false, false, [])
             ->willReturn('\d+');
 
-        $this->filtersHandler->handle($annotation, $filters, $metadata);
+        $this->filtersHandler->handle($annotation, $filterCollection, $metadata);
 
         self::assertSame(
             [
@@ -170,24 +171,24 @@ class RestDocFiltersHandlerTest extends \PHPUnit\Framework\TestCase
     public function testHandleForComparisonFilter()
     {
         $annotation = new ApiDoc([]);
-        $filters = new FilterCollection();
+        $filterCollection = new FilterCollection();
         $metadata = new EntityMetadata('Test\Entity');
 
-        $filter1 = new ComparisonFilter('int', 'A filter');
+        $filter1 = new ComparisonFilter('integer', 'A filter');
         $filter1->setField('field1');
         $filter1->setSupportedOperators([FilterOperator::EQ, FilterOperator::NEQ]);
-        $filters->add('filter1', $filter1);
+        $filterCollection->add('filter1', $filter1);
 
         $this->dataTypeConverter->expects(self::once())
             ->method('convertDataType')
-            ->with('int', self::VIEW)
+            ->with('integer', self::VIEW)
             ->willReturn('integer');
         $this->valueNormalizer->expects(self::once())
             ->method('getRequirement')
-            ->with('int', $this->requestType, false, false, [])
+            ->with('integer', $this->requestType, false, false, [])
             ->willReturn('\d+');
 
-        $this->filtersHandler->handle($annotation, $filters, $metadata);
+        $this->filtersHandler->handle($annotation, $filterCollection, $metadata);
 
         self::assertSame(
             [
@@ -205,24 +206,24 @@ class RestDocFiltersHandlerTest extends \PHPUnit\Framework\TestCase
     public function testHandleForComparisonFilterWithOnlyEqualsOperator()
     {
         $annotation = new ApiDoc([]);
-        $filters = new FilterCollection();
+        $filterCollection = new FilterCollection();
         $metadata = new EntityMetadata('Test\Entity');
 
-        $filter1 = new ComparisonFilter('int', 'A filter');
+        $filter1 = new ComparisonFilter('integer', 'A filter');
         $filter1->setField('field1');
         $filter1->setSupportedOperators([FilterOperator::EQ]);
-        $filters->add('filter1', $filter1);
+        $filterCollection->add('filter1', $filter1);
 
         $this->dataTypeConverter->expects(self::once())
             ->method('convertDataType')
-            ->with('int', self::VIEW)
+            ->with('integer', self::VIEW)
             ->willReturn('integer');
         $this->valueNormalizer->expects(self::once())
             ->method('getRequirement')
-            ->with('int', $this->requestType, false, false, [])
+            ->with('integer', $this->requestType, false, false, [])
             ->willReturn('\d+');
 
-        $this->filtersHandler->handle($annotation, $filters, $metadata);
+        $this->filtersHandler->handle($annotation, $filterCollection, $metadata);
 
         self::assertSame(
             [
@@ -239,24 +240,24 @@ class RestDocFiltersHandlerTest extends \PHPUnit\Framework\TestCase
     public function testHandleForComparisonFilterWithArrayAllowed()
     {
         $annotation = new ApiDoc([]);
-        $filters = new FilterCollection();
+        $filterCollection = new FilterCollection();
         $metadata = new EntityMetadata('Test\Entity');
 
-        $filter1 = new ComparisonFilter('int', 'A filter');
+        $filter1 = new ComparisonFilter('integer', 'A filter');
         $filter1->setField('field1');
         $filter1->setArrayAllowed(true);
-        $filters->add('filter1', $filter1);
+        $filterCollection->add('filter1', $filter1);
 
         $this->dataTypeConverter->expects(self::once())
             ->method('convertDataType')
-            ->with('int', self::VIEW)
+            ->with('integer', self::VIEW)
             ->willReturn('integer');
         $this->valueNormalizer->expects(self::once())
             ->method('getRequirement')
-            ->with('int', $this->requestType, true, false, [])
+            ->with('integer', $this->requestType, true, false, [])
             ->willReturn('\d+');
 
-        $this->filtersHandler->handle($annotation, $filters, $metadata);
+        $this->filtersHandler->handle($annotation, $filterCollection, $metadata);
 
         self::assertSame(
             [
@@ -273,24 +274,24 @@ class RestDocFiltersHandlerTest extends \PHPUnit\Framework\TestCase
     public function testHandleForComparisonFilterWithRangeAllowed()
     {
         $annotation = new ApiDoc([]);
-        $filters = new FilterCollection();
+        $filterCollection = new FilterCollection();
         $metadata = new EntityMetadata('Test\Entity');
 
-        $filter1 = new ComparisonFilter('int', 'A filter');
+        $filter1 = new ComparisonFilter('integer', 'A filter');
         $filter1->setField('field1');
         $filter1->setRangeAllowed(true);
-        $filters->add('filter1', $filter1);
+        $filterCollection->add('filter1', $filter1);
 
         $this->dataTypeConverter->expects(self::once())
             ->method('convertDataType')
-            ->with('int', self::VIEW)
+            ->with('integer', self::VIEW)
             ->willReturn('integer');
         $this->valueNormalizer->expects(self::once())
             ->method('getRequirement')
-            ->with('int', $this->requestType, false, true, [])
+            ->with('integer', $this->requestType, false, true, [])
             ->willReturn('\d+');
 
-        $this->filtersHandler->handle($annotation, $filters, $metadata);
+        $this->filtersHandler->handle($annotation, $filterCollection, $metadata);
 
         self::assertSame(
             [
@@ -307,25 +308,25 @@ class RestDocFiltersHandlerTest extends \PHPUnit\Framework\TestCase
     public function testHandleForComparisonFilterWithArrayAndRangeAllowed()
     {
         $annotation = new ApiDoc([]);
-        $filters = new FilterCollection();
+        $filterCollection = new FilterCollection();
         $metadata = new EntityMetadata('Test\Entity');
 
-        $filter1 = new ComparisonFilter('int', 'A filter');
+        $filter1 = new ComparisonFilter('integer', 'A filter');
         $filter1->setField('field1');
         $filter1->setArrayAllowed(true);
         $filter1->setRangeAllowed(true);
-        $filters->add('filter1', $filter1);
+        $filterCollection->add('filter1', $filter1);
 
         $this->dataTypeConverter->expects(self::once())
             ->method('convertDataType')
-            ->with('int', self::VIEW)
+            ->with('integer', self::VIEW)
             ->willReturn('integer');
         $this->valueNormalizer->expects(self::once())
             ->method('getRequirement')
-            ->with('int', $this->requestType, true, true, [])
+            ->with('integer', $this->requestType, true, true, [])
             ->willReturn('\d+');
 
-        $this->filtersHandler->handle($annotation, $filters, $metadata);
+        $this->filtersHandler->handle($annotation, $filterCollection, $metadata);
 
         self::assertSame(
             [
@@ -342,13 +343,13 @@ class RestDocFiltersHandlerTest extends \PHPUnit\Framework\TestCase
     public function testHandleForStringComparisonFilterWithEmptyValueAllowed()
     {
         $annotation = new ApiDoc([]);
-        $filters = new FilterCollection();
+        $filterCollection = new FilterCollection();
         $metadata = new EntityMetadata('Test\Entity');
 
         $filter1 = new StringComparisonFilter('string', 'A filter');
         $filter1->setField('field1');
         $filter1->setAllowEmpty(true);
-        $filters->add('filter1', $filter1);
+        $filterCollection->add('filter1', $filter1);
 
         $this->dataTypeConverter->expects(self::once())
             ->method('convertDataType')
@@ -359,7 +360,7 @@ class RestDocFiltersHandlerTest extends \PHPUnit\Framework\TestCase
             ->with('string', $this->requestType, false, false, ['allow_empty' => true])
             ->willReturn('.+');
 
-        $this->filtersHandler->handle($annotation, $filters, $metadata);
+        $this->filtersHandler->handle($annotation, $filterCollection, $metadata);
 
         self::assertSame(
             [
@@ -376,31 +377,31 @@ class RestDocFiltersHandlerTest extends \PHPUnit\Framework\TestCase
     public function testHandleForComparisonFilterForAssociation()
     {
         $annotation = new ApiDoc([]);
-        $filters = new FilterCollection();
+        $filterCollection = new FilterCollection();
         $metadata = new EntityMetadata('Test\Entity');
 
-        $filter1 = new ComparisonFilter('int', 'A filter');
+        $filter1 = new ComparisonFilter('integer', 'A filter');
         $filter1->setField('field1');
-        $filters->add('filter1', $filter1);
+        $filterCollection->add('filter1', $filter1);
 
         $association = $metadata->addAssociation(new AssociationMetadata('field1'));
-        $association->setDataType('int');
+        $association->setDataType('integer');
         $association->addAcceptableTargetClassName('Test\TargetEntity');
 
         $this->dataTypeConverter->expects(self::once())
             ->method('convertDataType')
-            ->with('int', self::VIEW)
+            ->with('integer', self::VIEW)
             ->willReturn('integer');
         $this->valueNormalizer->expects(self::once())
             ->method('getRequirement')
-            ->with('int', $this->requestType, false, false, [])
+            ->with('integer', $this->requestType, false, false, [])
             ->willReturn('\d+');
         $this->valueNormalizer->expects(self::once())
             ->method('normalizeValue')
             ->with('Test\TargetEntity', DataType::ENTITY_TYPE, $this->requestType, false, false, [])
             ->willReturn('target_entity');
 
-        $this->filtersHandler->handle($annotation, $filters, $metadata);
+        $this->filtersHandler->handle($annotation, $filterCollection, $metadata);
 
         self::assertSame(
             [
@@ -418,12 +419,12 @@ class RestDocFiltersHandlerTest extends \PHPUnit\Framework\TestCase
     public function testHandleForComparisonFilterForAssociationThatShouldBeRepresentedAsField()
     {
         $annotation = new ApiDoc([]);
-        $filters = new FilterCollection();
+        $filterCollection = new FilterCollection();
         $metadata = new EntityMetadata('Test\Entity');
 
-        $filter1 = new ComparisonFilter('int', 'A filter');
+        $filter1 = new ComparisonFilter('integer', 'A filter');
         $filter1->setField('field1');
-        $filters->add('filter1', $filter1);
+        $filterCollection->add('filter1', $filter1);
 
         $association = $metadata->addAssociation(new AssociationMetadata('field1'));
         $association->setDataType('object');
@@ -431,16 +432,16 @@ class RestDocFiltersHandlerTest extends \PHPUnit\Framework\TestCase
 
         $this->dataTypeConverter->expects(self::once())
             ->method('convertDataType')
-            ->with('int', self::VIEW)
+            ->with('integer', self::VIEW)
             ->willReturn('integer');
         $this->valueNormalizer->expects(self::once())
             ->method('getRequirement')
-            ->with('int', $this->requestType, false, false, [])
+            ->with('integer', $this->requestType, false, false, [])
             ->willReturn('\d+');
         $this->valueNormalizer->expects(self::never())
             ->method('normalizeValue');
 
-        $this->filtersHandler->handle($annotation, $filters, $metadata);
+        $this->filtersHandler->handle($annotation, $filterCollection, $metadata);
 
         self::assertSame(
             [

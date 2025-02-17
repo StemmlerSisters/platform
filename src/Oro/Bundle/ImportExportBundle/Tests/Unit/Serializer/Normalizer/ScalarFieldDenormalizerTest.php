@@ -9,6 +9,7 @@ class ScalarFieldDenormalizerTest extends \PHPUnit\Framework\TestCase
     /** @var ScalarFieldDenormalizer */
     private $denormalizer;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->denormalizer = new ScalarFieldDenormalizer();
@@ -22,7 +23,7 @@ class ScalarFieldDenormalizerTest extends \PHPUnit\Framework\TestCase
         mixed $data,
         string $type,
         array $context = [],
-        string $format = null
+        ?string $format = null
     ) {
         $this->assertEquals(
             $isSupported,
@@ -164,7 +165,7 @@ class ScalarFieldDenormalizerTest extends \PHPUnit\Framework\TestCase
         mixed $data,
         string $type,
         array $context = [],
-        string $format = null
+        ?string $format = null
     ) {
         $this->assertEquals(
             $expectedValue,
@@ -177,7 +178,7 @@ class ScalarFieldDenormalizerTest extends \PHPUnit\Framework\TestCase
      */
     public function denormalizeProvider(): array
     {
-        $biggerThanIntMax = str_repeat('9', (strlen(PHP_INT_MAX) +1));
+        $biggerThanIntMax = str_repeat('9', (strlen(PHP_INT_MAX) + 1));
         $biggerThanIntMaxInScientificValue = '9e' . (strlen(PHP_INT_MAX) + 1);
 
         $biggerThanFloatMax = str_repeat('9', (strlen(PHP_INT_MAX) * 100));

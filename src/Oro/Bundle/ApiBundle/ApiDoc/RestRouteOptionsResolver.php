@@ -19,7 +19,6 @@ use Symfony\Contracts\Service\ResetInterface;
 
 /**
  * Adds all REST API routes to API sandbox based on the current API view and API configuration.
- *
  * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
  */
 class RestRouteOptionsResolver implements RouteOptionsResolverInterface, ResetInterface
@@ -67,9 +66,7 @@ class RestRouteOptionsResolver implements RouteOptionsResolverInterface, ResetIn
         $this->valueNormalizer = $valueNormalizer;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function resolve(Route $route, RouteCollectionAccessor $routes): void
     {
         if ($route->getOption(self::GROUP_OPTION) !== $this->routeGroup
@@ -91,9 +88,7 @@ class RestRouteOptionsResolver implements RouteOptionsResolverInterface, ResetIn
         }
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function reset(): void
     {
         $this->resources = [];
@@ -587,7 +582,7 @@ class RestRouteOptionsResolver implements RouteOptionsResolverInterface, ResetIn
         return $cache;
     }
 
-    private function resolveRoutePath(string $routePath, string $entityType, string $associationName = null): string
+    private function resolveRoutePath(string $routePath, string $entityType, ?string $associationName = null): string
     {
         $routePath = str_replace(self::ENTITY_PLACEHOLDER, $entityType, $routePath);
         if ($associationName) {
@@ -597,7 +592,7 @@ class RestRouteOptionsResolver implements RouteOptionsResolverInterface, ResetIn
         return $routePath;
     }
 
-    public function getEntityType(string $entityClass, RequestType $requestType): ?string
+    private function getEntityType(string $entityClass, RequestType $requestType): ?string
     {
         return ValueNormalizerUtil::tryConvertToEntityType($this->valueNormalizer, $entityClass, $requestType);
     }

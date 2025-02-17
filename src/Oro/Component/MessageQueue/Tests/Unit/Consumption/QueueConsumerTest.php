@@ -43,6 +43,7 @@ class QueueConsumerTest extends \PHPUnit\Framework\TestCase
 
     private Message $message;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->messageConsumer = $this->createMock(MessageConsumerInterface::class);
@@ -791,10 +792,10 @@ class QueueConsumerTest extends \PHPUnit\Framework\TestCase
     }
 
     private function createQueueConsumer(
-        ConnectionInterface $connection = null,
-        ExtensionInterface $extension = null,
-        ConsumerState $consumerState = null,
-        MessageProcessorRegistryInterface $messageProcessorRegistry = null
+        ?ConnectionInterface $connection = null,
+        ?ExtensionInterface $extension = null,
+        ?ConsumerState $consumerState = null,
+        ?MessageProcessorRegistryInterface $messageProcessorRegistry = null
     ): QueueConsumer {
         return new QueueConsumer(
             $connection ?? $this->connection,

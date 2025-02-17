@@ -16,16 +16,16 @@ class ThrowExceptionInBatchUpdate implements ProcessorInterface
     private BatchUpdateExceptionController $exceptionController;
     private ?string $stage;
 
-    public function __construct(BatchUpdateExceptionController $exceptionController, string $stage = null)
+    public function __construct(BatchUpdateExceptionController $exceptionController, ?string $stage = null)
     {
         $this->exceptionController = $exceptionController;
         $this->stage = $stage;
     }
 
     /**
-     * {@inheritdoc}
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
+    #[\Override]
     public function process(ContextInterface $context): void
     {
         /** @var BatchUpdateContext $context */

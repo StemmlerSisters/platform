@@ -18,6 +18,7 @@ class ThemeManagerTest extends \PHPUnit\Framework\TestCase
 {
     private ThemeFactoryInterface|\PHPUnit\Framework\MockObject\MockObject $factory;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->factory = $this->createMock(ThemeFactoryInterface::class);
@@ -25,7 +26,7 @@ class ThemeManagerTest extends \PHPUnit\Framework\TestCase
 
     private function createManager(
         array $definitions = [],
-        ThemeFactoryInterface $factory = null,
+        ?ThemeFactoryInterface $factory = null,
         array $enabledThemes = []
     ): ThemeManager {
         $themeDefinitionBag = $this->createMock(ThemeDefinitionBagInterface::class);

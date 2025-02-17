@@ -39,9 +39,9 @@ class DateTimeNormalizer implements ContextAwareNormalizerInterface, ContextAwar
     /**
      * @param \DateTime $object
      *
-     * {@inheritdoc}
      */
-    public function normalize($object, string $format = null, array $context = [])
+    #[\Override]
+    public function normalize($object, ?string $format = null, array $context = [])
     {
         if (!empty($context['format'])) {
             return $object->format($context['format']);
@@ -57,14 +57,14 @@ class DateTimeNormalizer implements ContextAwareNormalizerInterface, ContextAwar
     }
 
     /**
-     * {@inheritdoc}
      *
      * @return \DateTime|null
      *
      * @throws RuntimeException
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
-    public function denormalize($data, string $type, string $format = null, array $context = [])
+    #[\Override]
+    public function denormalize($data, string $type, ?string $format = null, array $context = [])
     {
         if (empty($data)) {
             return null;
@@ -103,18 +103,14 @@ class DateTimeNormalizer implements ContextAwareNormalizerInterface, ContextAwar
         return $datetime;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function supportsNormalization($data, string $format = null, array $context = []): bool
+    #[\Override]
+    public function supportsNormalization($data, ?string $format = null, array $context = []): bool
     {
         return $data instanceof \DateTime;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function supportsDenormalization($data, string $type, string $format = null, array $context = []): bool
+    #[\Override]
+    public function supportsDenormalization($data, string $type, ?string $format = null, array $context = []): bool
     {
         return is_string($data) && $type === 'DateTime';
     }

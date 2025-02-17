@@ -17,10 +17,7 @@ class PreloadedExtension extends BasePreloadExtension
      */
     private $types = [];
 
-    /**
-     * {@inheritdoc}
-     */
-    public function __construct(array $types, array $typeExtensions, FormTypeGuesserInterface $typeGuesser = null)
+    public function __construct(array $types, array $typeExtensions, ?FormTypeGuesserInterface $typeGuesser = null)
     {
         foreach ($types as $key => $type) {
             if (is_string($key)) {
@@ -31,9 +28,7 @@ class PreloadedExtension extends BasePreloadExtension
         parent::__construct($types, $typeExtensions, $typeGuesser);
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getType($name): FormTypeInterface
     {
         if (isset($this->types[$name])) {
@@ -43,9 +38,7 @@ class PreloadedExtension extends BasePreloadExtension
         return parent::getType($name);
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function hasType($name): bool
     {
         return isset($this->types[$name]) || parent::hasType($name);

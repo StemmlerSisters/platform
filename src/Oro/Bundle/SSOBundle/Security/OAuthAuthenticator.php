@@ -101,6 +101,7 @@ class OAuthAuthenticator implements
     }
 
 
+    #[\Override]
     public function supports(Request $request): bool
     {
         foreach ($this->checkPaths as $checkPath) {
@@ -112,7 +113,8 @@ class OAuthAuthenticator implements
         return false;
     }
 
-    public function start(Request $request, AuthenticationException $authException = null): Response
+    #[\Override]
+    public function start(Request $request, ?AuthenticationException $authException = null): Response
     {
         if ($this->options['use_forward'] ?? false) {
             $subRequest = $this->httpUtils->createRequest($request, $this->options['login_path']);
@@ -135,6 +137,7 @@ class OAuthAuthenticator implements
      * @throws AuthenticationException
      * @throws LazyResponseException
      */
+    #[\Override]
     public function authenticate(Request $request): Passport
     {
         [$resourceOwner, $checkPath] = $this->resourceOwnerMap->getResourceOwnerByRequest($request);
@@ -241,7 +244,7 @@ class OAuthAuthenticator implements
      *
      * @return T
      */
-    public function recreateToken(OAuthToken $token, UserInterface $user = null): OAuthToken
+    public function recreateToken(OAuthToken $token, ?UserInterface $user = null): OAuthToken
     {
         $user = $user instanceof UserInterface ? $user : $token->getUser();
 
@@ -267,6 +270,7 @@ class OAuthAuthenticator implements
         return $newToken;
     }
 
+    #[\Override]
     public function createToken(Passport $passport, string $firewallName): TokenInterface
     {
         if ($passport instanceof SelfValidatedOAuthPassport) {
@@ -290,16 +294,19 @@ class OAuthAuthenticator implements
         );
     }
 
+    #[\Override]
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response
     {
         return $this->successHandler->onAuthenticationSuccess($request, $token);
     }
 
+    #[\Override]
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception): Response
     {
         return $this->failureHandler->onAuthenticationFailure($request, $exception);
     }
 
+    #[\Override]
     public function isInteractive(): bool
     {
         return true;

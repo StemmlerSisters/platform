@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Oro\Bundle\EntityExtendBundle\Command;
 
+use Oro\Bundle\EntityConfigBundle\Config\ConfigManager;
 use Oro\Bundle\EntityExtendBundle\Tools\ConfigFilter\ByInitialStateFilter;
 use Oro\Bundle\EntityExtendBundle\Tools\ExtendConfigDumper;
 use Symfony\Component\Console\Command\Command;
@@ -13,20 +14,24 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 /**
  * Updates extend entity config.
+ * Entity config manager is set to utilizes only local cache.
  */
 class UpdateConfigCommand extends Command
 {
     protected static $defaultName = 'oro:entity-extend:update-config';
 
     private ExtendConfigDumper $extendConfigDumper;
+    private ConfigManager $configManager;
 
-    public function __construct(ExtendConfigDumper $extendConfigDumper)
+    public function __construct(ExtendConfigDumper $extendConfigDumper, ConfigManager $configManager)
     {
         $this->extendConfigDumper = $extendConfigDumper;
+        $this->configManager = $configManager;
         parent::__construct();
     }
 
     /** @noinspection PhpMissingParentCallCommonInspection */
+    #[\Override]
     public function configure()
     {
         $this
@@ -72,6 +77,7 @@ HELP
     }
 
     /** @noinspection PhpMissingParentCallCommonInspection */
+    #[\Override]
     public function execute(InputInterface $input, OutputInterface $output): int
     {
         $output->writeln($this->getDescription());
@@ -84,6 +90,7 @@ HELP
             return Command::FAILURE;
         }
 
+        $this->configManager->useLocalCacheOnly();
         $this->extendConfigDumper->updateConfig($this->getFilter($input), $input->getOption('update-custom'));
 
         return Command::SUCCESS;

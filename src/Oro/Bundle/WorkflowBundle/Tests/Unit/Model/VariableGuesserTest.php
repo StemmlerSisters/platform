@@ -27,6 +27,7 @@ class VariableGuesserTest extends \PHPUnit\Framework\TestCase
     /** @var VariableGuesser */
     private $guesser;
 
+    #[\Override]
     protected function setUp(): void
     {
         $formRegistry = $this->createMock(FormRegistry::class);
@@ -231,10 +232,10 @@ class VariableGuesserTest extends \PHPUnit\Framework\TestCase
 
     private function createVariable(
         string $type,
-        string $propertyPath = null,
+        ?string $propertyPath = null,
         array $options = [],
-        string $value = null,
-        string $label = null
+        ?string $value = null,
+        ?string $label = null
     ): Variable {
         $variable = new Variable();
         $variable->setType($type)

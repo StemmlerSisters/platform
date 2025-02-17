@@ -15,11 +15,10 @@ use Symfony\Component\Validator\Constraints\Sequentially;
 class GenericConstraintConverterTest extends TestCase
 {
     private ConstraintFactory|MockObject $constraintFactory;
-
     private ConstraintConverterInterface|MockObject $constraintConverter;
-
     private GenericConstraintConverter $converter;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->constraintFactory = $this->createMock(ConstraintFactory::class);

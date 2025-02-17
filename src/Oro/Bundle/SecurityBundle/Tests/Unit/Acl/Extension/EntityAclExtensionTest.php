@@ -95,6 +95,7 @@ class EntityAclExtensionTest extends \PHPUnit\Framework\TestCase
     /** @var Inflector */
     private $inflector;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->tree = new OwnerTree();
@@ -515,7 +516,7 @@ class EntityAclExtensionTest extends \PHPUnit\Framework\TestCase
             new OwnershipMetadata('ORGANIZATION', 'owner', 'owner_id', 'organization')
         );
 
-        $token =$this->createMock(UsernamePasswordOrganizationToken::class);
+        $token = $this->createMock(UsernamePasswordOrganizationToken::class);
 
         $this->assertTrue($this->extension->decideIsGranting(1, $object, $token));
     }
@@ -552,7 +553,7 @@ class EntityAclExtensionTest extends \PHPUnit\Framework\TestCase
             }
         }
 
-        $token =$this->createMock(UsernamePasswordOrganizationToken::class);
+        $token = $this->createMock(UsernamePasswordOrganizationToken::class);
         $token->expects($this->any())
             ->method('getOrganization')
             ->willReturn($organization);
@@ -663,7 +664,7 @@ class EntityAclExtensionTest extends \PHPUnit\Framework\TestCase
     /**
      * @dataProvider getAccessLevelProvider
      */
-    public function testGetAccessLevel(int $mask, int $expectedLevel, string $permission = null)
+    public function testGetAccessLevel(int $mask, int $expectedLevel, ?string $permission = null)
     {
         $this->assertEquals($expectedLevel, $this->extension->getAccessLevel($mask, $permission));
     }

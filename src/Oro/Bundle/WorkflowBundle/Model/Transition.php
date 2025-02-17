@@ -5,7 +5,20 @@ namespace Oro\Bundle\WorkflowBundle\Model;
 use Doctrine\Common\Collections\Collection;
 use Oro\Bundle\WorkflowBundle\Configuration\WorkflowConfiguration;
 use Oro\Bundle\WorkflowBundle\Entity\WorkflowItem;
+use Oro\Bundle\WorkflowBundle\Event\EventDispatcher;
+use Oro\Bundle\WorkflowBundle\Event\Transition\AnnounceEvent;
+use Oro\Bundle\WorkflowBundle\Event\Transition\GuardEvent;
+use Oro\Bundle\WorkflowBundle\Event\Transition\PreAnnounceEvent;
+use Oro\Bundle\WorkflowBundle\Event\Transition\PreGuardEvent;
+use Oro\Bundle\WorkflowBundle\Event\Transition\StepEnteredEvent;
+use Oro\Bundle\WorkflowBundle\Event\Transition\StepEnterEvent;
+use Oro\Bundle\WorkflowBundle\Event\Transition\StepLeaveEvent;
+use Oro\Bundle\WorkflowBundle\Event\Transition\TransitionCompletedEvent;
+use Oro\Bundle\WorkflowBundle\Event\Transition\TransitionEvent;
+use Oro\Bundle\WorkflowBundle\Event\Transition\WorkflowFinishEvent;
+use Oro\Bundle\WorkflowBundle\Event\Transition\WorkflowStartEvent;
 use Oro\Bundle\WorkflowBundle\Exception\ForbiddenTransitionException;
+use Oro\Bundle\WorkflowBundle\Exception\WorkflowException;
 use Oro\Bundle\WorkflowBundle\Resolver\TransitionOptionsResolver;
 use Oro\Component\Action\Action\ActionInterface;
 use Oro\Component\ConfigExpression\ExpressionInterface;
@@ -24,6 +37,15 @@ class Transition
 
     /** @var Step */
     protected $stepTo;
+
+    /** @var string|array|null */
+    protected $aclResource;
+
+    /** @var string|null */
+    protected $aclMessage;
+
+    /** @var array */
+    protected $conditionalStepsTo = [];
 
     /** @var string */
     protected $label;
@@ -106,9 +128,16 @@ class Transition
     /** @var TransitionOptionsResolver */
     protected $optionsResolver;
 
-    public function __construct(TransitionOptionsResolver $optionsResolver)
+    /** @var EventDispatcher */
+    protected $eventDispatcher;
+
+    /** @var TransitionServiceInterface|null */
+    protected $transitionService;
+
+    public function __construct(TransitionOptionsResolver $optionsResolver, EventDispatcher $eventDispatcher)
     {
         $this->optionsResolver = $optionsResolver;
+        $this->eventDispatcher = $eventDispatcher;
     }
 
     /**
@@ -120,6 +149,7 @@ class Transition
     public function setLabel($label)
     {
         $this->label = $label;
+
         return $this;
     }
 
@@ -141,6 +171,7 @@ class Transition
     public function setButtonLabel($buttonLabel)
     {
         $this->buttonLabel = $buttonLabel;
+
         return $this;
     }
 
@@ -160,6 +191,7 @@ class Transition
     public function setButtonTitle($buttonTitle)
     {
         $this->buttonTitle = $buttonTitle;
+
         return $this;
     }
 
@@ -177,9 +209,10 @@ class Transition
      * @param ExpressionInterface|null $condition
      * @return Transition
      */
-    public function setCondition(ExpressionInterface $condition = null)
+    public function setCondition(?ExpressionInterface $condition = null)
     {
         $this->condition = $condition;
+
         return $this;
     }
 
@@ -202,6 +235,7 @@ class Transition
     public function setPreCondition($condition)
     {
         $this->preCondition = $condition;
+
         return $this;
     }
 
@@ -224,6 +258,7 @@ class Transition
     public function setName($name)
     {
         $this->name = $name;
+
         return $this;
     }
 
@@ -241,9 +276,10 @@ class Transition
      * @param ActionInterface|null $preAction
      * @return Transition
      */
-    public function setPreAction(ActionInterface $preAction = null)
+    public function setPreAction(?ActionInterface $preAction = null)
     {
         $this->preAction = $preAction;
+
         return $this;
     }
 
@@ -259,9 +295,10 @@ class Transition
      * @param ActionInterface|null $action
      * @return Transition
      */
-    public function setAction(ActionInterface $action = null)
+    public function setAction(?ActionInterface $action = null)
     {
         $this->action = $action;
+
         return $this;
     }
 
@@ -282,6 +319,7 @@ class Transition
     public function setStepTo(Step $stepTo)
     {
         $this->stepTo = $stepTo;
+
         return $this;
     }
 
@@ -296,39 +334,137 @@ class Transition
     }
 
     /**
+     * Get resolved step to.
+     *
+     * If any of conditional steps matches its condition then the conditional step to will be returned,
+     * default step_to is added to the list of conditional steps by TransitionAssembler, and it is checked in the loop
+     *
+     * If there are no conditional steps then the default step_to will be returned.
+     */
+    public function getResolvedStepTo(WorkflowItem $workflowItem): Step
+    {
+        foreach ($this->conditionalStepsTo as $conditionalStepConfig) {
+            if ($conditionalStepConfig['condition']->evaluate($workflowItem)) {
+                return $conditionalStepConfig['step'];
+            }
+        }
+
+        if (!$this->conditionalStepsTo) {
+            return $this->getStepTo();
+        }
+
+        throw new ForbiddenTransitionException(
+            sprintf('Transition "%s" is not allowed.', $this->getName())
+        );
+    }
+
+    public function addConditionalStepTo(Step $stepTo, ExpressionInterface $condition)
+    {
+        $this->conditionalStepsTo[$stepTo->getName()] = [
+            'step' => $stepTo,
+            'condition' => $condition
+        ];
+
+        return $this;
+    }
+
+    public function getConditionalStepsTo(): array
+    {
+        return $this->conditionalStepsTo;
+    }
+
+    public function getAclResource(): string|array|null
+    {
+        return $this->aclResource;
+    }
+
+    public function setAclResource(string|array|null $aclResource): self
+    {
+        $this->aclResource = $aclResource;
+
+        return $this;
+    }
+
+    public function getAclMessage(): ?string
+    {
+        return $this->aclMessage;
+    }
+
+    public function setAclMessage(?string $aclMessage): self
+    {
+        $this->aclMessage = $aclMessage;
+
+        return $this;
+    }
+
+    /**
      * Check is transition condition is allowed for current workflow item.
      *
      * @param WorkflowItem $workflowItem
      * @param Collection|null $errors
      * @return boolean
      */
-    protected function isConditionAllowed(WorkflowItem $workflowItem, Collection $errors = null)
+    protected function isConditionAllowed(WorkflowItem $workflowItem, ?Collection $errors = null)
     {
-        if (!$this->condition) {
-            return true;
+        // Pre-guard transition to be able to block transition on early stages
+        // without a need to execute conditions.
+        $event = new PreGuardEvent($workflowItem, $this, true, $errors);
+        $this->eventDispatcher->dispatch($event, $this->getName());
+
+        if (!$event->isAllowed()) {
+            return false;
         }
 
-        return $this->condition->evaluate($workflowItem, $errors) ? true : false;
+        $workflowItem->lock();
+        // Execute check that transition service allows the transition or check conditions.
+        $isAllowed = true;
+        if ($this->transitionService) {
+            $isAllowed = $this->transitionService->isConditionAllowed($workflowItem, $errors);
+        } elseif ($this->condition) {
+            $isAllowed = (bool)$this->condition->evaluate($workflowItem, $errors);
+        }
+        $workflowItem->unlock();
+
+        $event = new GuardEvent($workflowItem, $this, $isAllowed, $errors);
+        $this->eventDispatcher->dispatch($event, $this->getName());
+
+        return $event->isAllowed();
     }
 
     /**
-     * Check is transition pre condition is allowed for current workflow item.
+     * Check is transition pre-condition is allowed for current workflow item.
      *
      * @param WorkflowItem $workflowItem
      * @param Collection|null $errors
      * @return boolean
      */
-    protected function isPreConditionAllowed(WorkflowItem $workflowItem, Collection $errors = null)
+    protected function isPreConditionAllowed(WorkflowItem $workflowItem, ?Collection $errors = null)
     {
-        if ($this->preAction) {
-            $this->preAction->execute($workflowItem);
+        // Pre-announce transition to be able to block transition availability on early stages
+        // without a need to execute pre-actions and pre-conditions.
+        $preAnnounceEvent = new PreAnnounceEvent($workflowItem, $this, true, $errors);
+        $this->eventDispatcher->dispatch($preAnnounceEvent, $this->getName());
+
+        if (!$preAnnounceEvent->isAllowed()) {
+            return false;
         }
 
-        if (!$this->preCondition) {
-            return true;
-        }
+        $workflowItem->lock();
+        // Execute pre-actions and pre-conditions
+        $isAllowed = true;
+        if ($this->transitionService) {
+            $isAllowed = $this->transitionService->isPreConditionAllowed($workflowItem, $errors);
+        } elseif ($this->preCondition || $this->preAction) {
+            $this->preAction?->execute($workflowItem);
 
-        return $this->preCondition->evaluate($workflowItem, $errors) ? true : false;
+            $isAllowed = !$this->preCondition || $this->preCondition->evaluate($workflowItem, $errors);
+        }
+        $workflowItem->unlock();
+
+        $announceEvent = new AnnounceEvent($workflowItem, $this, $isAllowed, $errors);
+        $this->eventDispatcher->dispatch($announceEvent, $this->getName());
+
+        return $announceEvent->isAllowed();
     }
 
     /**
@@ -338,7 +474,7 @@ class Transition
      * @param Collection|null $errors
      * @return bool
      */
-    public function isAllowed(WorkflowItem $workflowItem, Collection $errors = null)
+    public function isAllowed(WorkflowItem $workflowItem, ?Collection $errors = null)
     {
         return $this->isPreConditionAllowed($workflowItem, $errors)
             && $this->isConditionAllowed($workflowItem, $errors);
@@ -351,7 +487,7 @@ class Transition
      * @param Collection|null $errors
      * @return bool
      */
-    public function isAvailable(WorkflowItem $workflowItem, Collection $errors = null)
+    public function isAvailable(WorkflowItem $workflowItem, ?Collection $errors = null)
     {
         $result = $this->hasForm()
             ? $this->isPreConditionAllowed($workflowItem, $errors)
@@ -367,8 +503,12 @@ class Transition
      *
      * @throws ForbiddenTransitionException
      */
-    public function transit(WorkflowItem $workflowItem, Collection $errors = null)
+    public function transit(WorkflowItem $workflowItem, ?Collection $errors = null)
     {
+        if ($workflowItem->isLocked()) {
+            throw new WorkflowException('Can not transit locked WorkflowItem. Transit is allowed only in "actions".');
+        }
+
         if ($this->isAllowed($workflowItem, $errors)) {
             $this->transitUnconditionally($workflowItem);
         } else {
@@ -383,12 +523,55 @@ class Transition
      */
     public function transitUnconditionally(WorkflowItem $workflowItem): void
     {
-        $stepTo = $this->getStepTo();
-        $workflowItem->setCurrentStep($workflowItem->getDefinition()->getStepByName($stepTo->getName()));
+        $transitionEvent = new TransitionEvent($workflowItem, $this);
 
-        if ($this->action) {
+        $stepTo = $this->changeCurrentStep($workflowItem);
+
+        $this->eventDispatcher->dispatch($transitionEvent, $this->getName());
+        if ($this->transitionService) {
+            $this->transitionService->execute($workflowItem);
+        } elseif ($this->action) {
             $this->action->execute($workflowItem);
         }
+
+        $completedEvent = new TransitionCompletedEvent($workflowItem, $this);
+        $this->eventDispatcher->dispatch($completedEvent, $this->getName());
+
+        if ($stepTo?->isFinal()) {
+            $finishEvent = new WorkflowFinishEvent($workflowItem, $this);
+            $this->eventDispatcher->dispatch($finishEvent);
+        }
+    }
+
+    private function changeCurrentStep(WorkflowItem $workflowItem): ?Step
+    {
+        // Do not change current step if workflow entity does not exist.
+        if (!$workflowItem->getEntityId()) {
+            return null;
+        }
+
+        $currentStep = $workflowItem->getCurrentStep();
+        if ($currentStep) {
+            $leaveEvent = new StepLeaveEvent($workflowItem, $this);
+            $this->eventDispatcher->dispatch($leaveEvent, $currentStep->getName());
+        } else {
+            $startEvent = new WorkflowStartEvent($workflowItem, $this);
+            $this->eventDispatcher->dispatch($startEvent);
+        }
+
+        $stepTo = $this->getResolvedStepTo($workflowItem);
+        // Do not enter the same step again
+        if ($workflowItem->getCurrentStep()?->getName() !== $stepTo->getName()) {
+            $enterEvent = new StepEnterEvent($workflowItem, $this);
+            $this->eventDispatcher->dispatch($enterEvent, $stepTo->getName());
+
+            $workflowItem->setCurrentStep($workflowItem->getDefinition()->getStepByName($stepTo->getName()));
+
+            $enteredEvent = new StepEnteredEvent($workflowItem, $this);
+            $this->eventDispatcher->dispatch($enteredEvent, $stepTo->getName());
+        }
+
+        return $stepTo;
     }
 
     /**
@@ -400,6 +583,7 @@ class Transition
     public function setStart($start)
     {
         $this->start = $start;
+
         return $this;
     }
 
@@ -420,6 +604,7 @@ class Transition
     public function setFrontendOptions(array $frontendOptions)
     {
         $this->frontendOptions = $frontendOptions;
+
         return $this;
     }
 
@@ -449,6 +634,7 @@ class Transition
     public function setFormType($formType)
     {
         $this->formType = $formType;
+
         return $this;
     }
 
@@ -467,6 +653,7 @@ class Transition
     public function setFormOptions(array $formOptions)
     {
         $this->formOptions = $formOptions;
+
         return $this;
     }
 
@@ -493,6 +680,7 @@ class Transition
     public function setHidden($hidden)
     {
         $this->hidden = $hidden;
+
         return $this;
     }
 
@@ -511,6 +699,7 @@ class Transition
     public function setMessage($message)
     {
         $this->message = $message;
+
         return $this;
     }
 
@@ -529,6 +718,7 @@ class Transition
     public function setUnavailableHidden($unavailableHidden)
     {
         $this->unavailableHidden = $unavailableHidden;
+
         return $this;
     }
 
@@ -614,7 +804,7 @@ class Transition
      */
     public function setScheduleCron($cron)
     {
-        $this->scheduleCron = (string) $cron;
+        $this->scheduleCron = (string)$cron;
 
         return $this;
     }
@@ -633,7 +823,7 @@ class Transition
      */
     public function setScheduleFilter($dqlFilter)
     {
-        $this->scheduleFilter = (string) $dqlFilter;
+        $this->scheduleFilter = (string)$dqlFilter;
 
         return $this;
     }
@@ -668,6 +858,7 @@ class Transition
     /**
      * @return string
      */
+    #[\Override]
     public function __toString()
     {
         return (string)$this->name;
@@ -799,5 +990,12 @@ class Transition
     public function hasFormConfiguration()
     {
         return !empty($this->formOptions[WorkflowConfiguration::NODE_FORM_OPTIONS_CONFIGURATION]);
+    }
+
+    public function setTransitionService(?TransitionServiceInterface $transitionService): self
+    {
+        $this->transitionService = $transitionService;
+
+        return $this;
     }
 }

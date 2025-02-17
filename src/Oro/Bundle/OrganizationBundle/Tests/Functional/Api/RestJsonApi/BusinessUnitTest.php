@@ -11,6 +11,7 @@ use Oro\Bundle\UserBundle\Tests\Functional\DataFixtures\LoadBusinessUnitData;
 
 class BusinessUnitTest extends RestJsonApiTestCase
 {
+    #[\Override]
     protected function setUp(): void
     {
         parent::setUp();
@@ -40,21 +41,52 @@ class BusinessUnitTest extends RestJsonApiTestCase
         $this->assertResponseContains('get_businessunit.yml', $response);
     }
 
+    public function testGetListWithTitles()
+    {
+        $response = $this->cget(
+            ['entity' => 'businessunits'],
+            ['meta' => 'title', 'fields[businessunits]' => 'id']
+        );
+
+        $this->assertResponseContains(
+            [
+                'data' => [
+                    [
+                        'type' => 'businessunits',
+                        'id'   => '<toString(@business_unit->id)>',
+                        'meta' => ['title' => 'Main']
+                    ],
+                    [
+                        'type' => 'businessunits',
+                        'id'   => '<toString(@business_unit_1->id)>',
+                        'meta' => ['title' => 'business_unit_1']
+                    ],
+                    [
+                        'type' => 'businessunits',
+                        'id'   => '<toString(@business_unit_2->id)>',
+                        'meta' => ['title' => 'business_unit_2']
+                    ]
+                ]
+            ],
+            $response
+        );
+    }
+
     public function testCreate()
     {
         $response = $this->post(
             ['entity' => 'businessunits'],
             [
                 'data' => [
-                    'type' => 'businessunits',
-                    'attributes' => [
+                    'type'          => 'businessunits',
+                    'attributes'    => [
                         'name' => 'test bu'
                     ],
                     'relationships' => [
                         'owner' => [
                             'data' => [
                                 'type' => 'businessunits',
-                                'id' =>'<toString(@business_unit->id)>'
+                                'id'   => '<toString(@business_unit->id)>'
                             ]
                         ]
                     ]
@@ -91,8 +123,8 @@ class BusinessUnitTest extends RestJsonApiTestCase
     {
         $updateData = [
             'data' => [
-                'type' => 'businessunits',
-                'id' => '<toString(@business_unit_2->id)>',
+                'type'       => 'businessunits',
+                'id'         => '<toString(@business_unit_2->id)>',
                 'attributes' => [
                     'name' => 'renamed bu'
                 ]
@@ -111,13 +143,13 @@ class BusinessUnitTest extends RestJsonApiTestCase
     {
         $updateData = [
             'data' => [
-                'type' => 'businessunits',
-                'id' => '<toString(@business_unit_2->id)>',
+                'type'          => 'businessunits',
+                'id'            => '<toString(@business_unit_2->id)>',
                 'relationships' => [
                     'owner' => [
                         'data' => [
                             'type' => 'businessunits',
-                            'id' =>'<toString(@business_unit->id)>'
+                            'id'   => '<toString(@business_unit->id)>'
                         ]
                     ]
                 ]

@@ -80,7 +80,7 @@ class Manager implements FunctionProviderInterface
      *
      * @throws \RuntimeException if a filter with the given name does not exist
      */
-    public function createFilter($name, array $params = null)
+    public function createFilter($name, ?array $params = null)
     {
         $filtersConfig = $this->getConfig()->offsetGet('filters');
         if (!isset($filtersConfig[$name])) {
@@ -95,9 +95,7 @@ class Manager implements FunctionProviderInterface
         return $this->getFilterObject($name, $config);
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getFunction($name, $groupName, $groupType)
     {
         $result = null;

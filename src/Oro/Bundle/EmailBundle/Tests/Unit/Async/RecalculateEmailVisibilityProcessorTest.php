@@ -34,6 +34,7 @@ class RecalculateEmailVisibilityProcessorTest extends OrmTestCase
     /** @var RecalculateEmailVisibilityProcessor */
     private $processor;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->jobRunner = $this->createMock(JobRunner::class);
@@ -101,7 +102,7 @@ class RecalculateEmailVisibilityProcessorTest extends OrmTestCase
         );
     }
 
-    private function addDataQueryExpectation(string $email, array $data, int $offset = null): void
+    private function addDataQueryExpectation(string $email, array $data, ?int $offset = null): void
     {
         $sql = 'SELECT DISTINCT o0_.id AS id_0'
             . ' FROM oro_email_user o0_'
@@ -139,7 +140,7 @@ class RecalculateEmailVisibilityProcessorTest extends OrmTestCase
         );
     }
 
-    private function addDataQueryExpectationForArray(array $emails, array $data, int $offset = null): void
+    private function addDataQueryExpectationForArray(array $emails, array $data, ?int $offset = null): void
     {
         $sql = 'SELECT DISTINCT o0_.id AS id_0'
             . ' FROM oro_email_user o0_'
@@ -291,11 +292,11 @@ class RecalculateEmailVisibilityProcessorTest extends OrmTestCase
             RecalculateEmailVisibilityChunkTopic::getName(),
             [
                 [
-                    'jobId'=> $job1Id,
+                    'jobId' => $job1Id,
                     'ids'  => $expected1Data
                 ],
                 [
-                    'jobId'=> $job2Id,
+                    'jobId' => $job2Id,
                     'ids'  => $expected2Data,
                 ]
             ]

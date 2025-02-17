@@ -29,6 +29,7 @@ class ThemeExtensionTest extends \PHPUnit\Framework\TestCase
 
     private ThemeExtension $extension;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->pathProvider = $this->createMock(StubContextAwarePathProvider::class);
@@ -210,7 +211,7 @@ class ThemeExtensionTest extends \PHPUnit\Framework\TestCase
         $this->extension->getLayoutUpdates($this->getLayoutItem('root', $themeName));
     }
 
-    private function getLayoutItem(string $id, string $theme = null): LayoutItemInterface
+    private function getLayoutItem(string $id, ?string $theme = null): LayoutItemInterface
     {
         $context = new LayoutContext([], ['theme']);
         $context->set('theme', $theme);

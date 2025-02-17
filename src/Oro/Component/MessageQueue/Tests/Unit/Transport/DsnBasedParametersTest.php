@@ -45,11 +45,11 @@ class DsnBasedParametersTest extends \PHPUnit\Framework\TestCase
         string $transportName,
         array $parameters,
         array $parameter,
-        string $user = null,
-        string $password = null,
-        string $host = null,
-        string $port = null,
-        string $path = null
+        ?string $user = null,
+        ?string $password = null,
+        ?string $host = null,
+        ?string $port = null,
+        ?string $path = null
     ): void {
         $dsnParametersBag = new DsnBasedParameters($dsn);
         self::assertEquals($transportName, $dsnParametersBag->getTransportName());

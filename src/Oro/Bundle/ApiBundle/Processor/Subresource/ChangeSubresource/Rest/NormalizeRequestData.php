@@ -2,7 +2,6 @@
 
 namespace Oro\Bundle\ApiBundle\Processor\Subresource\ChangeSubresource\Rest;
 
-use Oro\Bundle\ApiBundle\Exception\RuntimeException;
 use Oro\Bundle\ApiBundle\Processor\Shared\Rest\AbstractNormalizeRequestData;
 use Oro\Bundle\ApiBundle\Processor\Subresource\ChangeSubresourceContext;
 use Oro\Component\ChainProcessor\ContextInterface;
@@ -12,26 +11,41 @@ use Oro\Component\ChainProcessor\ContextInterface;
  */
 class NormalizeRequestData extends AbstractNormalizeRequestData
 {
-    /**
-     * {@inheritdoc}
-     */
+    public const OPERATION_NAME = 'normalize_request_data';
+
+    #[\Override]
     public function process(ContextInterface $context): void
     {
         /** @var ChangeSubresourceContext $context */
 
-        $data = $context->getRequestData();
-        if (!\is_array($data)) {
-            // the request data were not validated
-            throw new RuntimeException('The request data should be an array.');
+        if ($context->isProcessed(self::OPERATION_NAME)) {
+            // the request data are already normalized
+            return;
         }
 
-        $metadata = $context->getMetadata();
+        $metadata = $context->getRequestMetadata();
+        if (null === $metadata) {
+            $context->setProcessed(self::OPERATION_NAME);
+
+            return;
+        }
+
+        $data = $context->getRequestData();
         $this->context = $context;
         try {
             if ($context->isCollection()) {
                 $normalizedData = [];
                 foreach ($data as $key => $value) {
-                    $normalizedData[$key] = $this->normalizeData($data, $metadata);
+                    if (\is_array($value)) {
+                        $this->requestDataItemKey = (string)$key;
+                        try {
+                            $normalizedData[$key] = $this->normalizeData($value, $metadata);
+                        } finally {
+                            $this->requestDataItemKey = null;
+                        }
+                    } else {
+                        $normalizedData[$key] = $this->normalizeData($value, $metadata);
+                    }
                 }
             } else {
                 $normalizedData = $this->normalizeData($data, $metadata);
@@ -40,5 +54,6 @@ class NormalizeRequestData extends AbstractNormalizeRequestData
         } finally {
             $this->context = null;
         }
+        $context->setProcessed(self::OPERATION_NAME);
     }
 }

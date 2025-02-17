@@ -20,10 +20,8 @@ class Mailer implements MailerInterface
         $this->transport = $transport;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function send(RawMessage $message, Envelope $envelope = null): void
+    #[\Override]
+    public function send(RawMessage $message, ?Envelope $envelope = null): void
     {
         $sentMessage = $this->transport->send($message, $envelope);
         // copy the Message ID header to be able to detect emails sent from ORO side and to avoid duplicates.

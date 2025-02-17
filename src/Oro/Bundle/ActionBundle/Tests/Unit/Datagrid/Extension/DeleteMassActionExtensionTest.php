@@ -33,6 +33,7 @@ class DeleteMassActionExtensionTest extends \PHPUnit\Framework\TestCase
     /** @var DeleteMassActionExtension */
     private $extension;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->doctrineHelper = $this->createMock(DoctrineHelper::class);
@@ -61,7 +62,7 @@ class DeleteMassActionExtensionTest extends \PHPUnit\Framework\TestCase
     /**
      * @dataProvider isApplicableDataProvider
      */
-    public function testIsApplicable(ActionData $actionData, Operation $operation = null, bool $expected = false)
+    public function testIsApplicable(ActionData $actionData, ?Operation $operation = null, bool $expected = false)
     {
         $this->registry->expects($this->once())
             ->method('findByName')

@@ -45,8 +45,8 @@ class LocalizedFallbackValueCollectionNormalizer extends CollectionNormalizer
         $this->localization = new $localizationClass();
     }
 
-    /** {@inheritdoc} */
-    public function normalize($object, string $format = null, array $context = [])
+    #[\Override]
+    public function normalize($object, ?string $format = null, array $context = [])
     {
         $result = [];
 
@@ -62,10 +62,10 @@ class LocalizedFallbackValueCollectionNormalizer extends CollectionNormalizer
     }
 
     /**
-     * {@inheritdoc}
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
-    public function denormalize($data, string $type, string $format = null, array $context = [])
+    #[\Override]
+    public function denormalize($data, string $type, ?string $format = null, array $context = [])
     {
         if (!is_array($data)) {
             return new ArrayCollection();
@@ -126,8 +126,8 @@ class LocalizedFallbackValueCollectionNormalizer extends CollectionNormalizer
         return $this->localizations[$localizationName] ?? null;
     }
 
-    /** {@inheritdoc} */
-    public function supportsNormalization($data, string $format = null, array $context = []): bool
+    #[\Override]
+    public function supportsNormalization($data, ?string $format = null, array $context = []): bool
     {
         if (!parent::supportsNormalization($data, $format, $context)) {
             return false;
@@ -136,8 +136,8 @@ class LocalizedFallbackValueCollectionNormalizer extends CollectionNormalizer
         return $this->isApplicable($context);
     }
 
-    /** {@inheritdoc} */
-    public function supportsDenormalization($data, string $type, string $format = null, array $context = []): bool
+    #[\Override]
+    public function supportsDenormalization($data, string $type, ?string $format = null, array $context = []): bool
     {
         if (!parent::supportsDenormalization($data, $type, $format, $context)) {
             return false;

@@ -21,10 +21,8 @@ class OrmDataCollector extends DataCollector
         $this->reset();
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function collect(Request $request, Response $response, \Throwable $exception = null)
+    #[\Override]
+    public function collect(Request $request, Response $response, ?\Throwable $exception = null)
     {
         $this->data['hydrations'] = $this->logger->getHydrations();
         $this->data['stats']      = $this->logger->getStats();
@@ -105,17 +103,13 @@ class OrmDataCollector extends DataCollector
         return $this->getHydrationTime() + $this->data['statsTime'];
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getName(): string
     {
         return 'orm';
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function reset()
     {
         $this->data = [

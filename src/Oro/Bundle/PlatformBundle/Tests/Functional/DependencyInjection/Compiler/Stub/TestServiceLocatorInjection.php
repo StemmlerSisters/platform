@@ -13,19 +13,17 @@ class TestServiceLocatorInjection implements
     /** @var ContainerInterface */
     protected $container;
 
-    public function __construct(ContainerInterface $container = null)
+    public function __construct(?ContainerInterface $container = null)
     {
         $this->container = $container;
     }
 
-    public function setContainer(ContainerInterface $container = null): void
+    public function setContainer(?ContainerInterface $container = null): void
     {
         $this->container = $container;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public static function getSubscribedServices(): array
     {
         return [
@@ -34,17 +32,13 @@ class TestServiceLocatorInjection implements
         ];
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function getContainer(): ContainerInterface
     {
         return $this->container;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function validateInjectedServiceLocator(): void
     {
         foreach (self::getSubscribedServices() as $alias => $type) {

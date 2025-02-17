@@ -76,7 +76,7 @@ define(function(require) {
                 $.each(attrs, function(name, value) {
                     const $elem = elementsMap[name];
                     if ($elem) {
-                        value = self.options.setter($elem, name, value);
+                        value = self.options.setter($elem, name, value, attrs);
                         setValue($elem, value);
                     }
                 });
@@ -128,7 +128,7 @@ define(function(require) {
             const validator = this._getValidator();
             let result = true;
             if (validator) {
-                this.element.removeAttr('data-validation-ignore');
+                this.element.attr('data-validation-ignore', null);
                 if (elem) {
                     result = validator.element(elem);
                 } else {

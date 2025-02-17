@@ -34,9 +34,7 @@ class BuildFormBuilder implements ProcessorInterface
         $this->enableFullValidation = $enableFullValidation;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function process(ContextInterface $context): void
     {
         /** @var FormContext $context */
@@ -101,7 +99,7 @@ class BuildFormBuilder implements ProcessorInterface
         $options[CustomizeFormDataHandler::API_CONTEXT] = $context;
         $options[ValidationExtension::ENABLE_FULL_VALIDATION] = $this->enableFullValidation;
 
-        return $options;
+        return array_merge($options, $context->getFormOptions() ?? []);
     }
 
     protected function getFormDataClass(FormContext $context, EntityDefinitionConfig $config): string

@@ -13,6 +13,7 @@ class StoreRequestDataTest extends UpdateListProcessorTestCase
     /** @var StoreRequestData */
     private $processor;
 
+    #[\Override]
     protected function setUp(): void
     {
         parent::setUp();
@@ -68,7 +69,7 @@ class StoreRequestDataTest extends UpdateListProcessorTestCase
         $errors = $this->context->getErrors();
         self::assertNull($this->context->getTargetFileName());
         self::assertCount(1, $errors);
-        self::assertEquals('The request data should not be empty', $errors[0]->getDetail());
+        self::assertEquals('The request data should not be empty.', $errors[0]->getDetail());
         self::assertEquals(400, $errors[0]->getStatusCode());
     }
 

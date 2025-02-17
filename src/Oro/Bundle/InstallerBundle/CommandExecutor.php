@@ -30,7 +30,7 @@ class CommandExecutor extends AbstractCommandExecutor
         InputInterface $input,
         OutputInterface $output,
         Application $application,
-        OroDataCacheManager $dataCacheManager = null
+        ?OroDataCacheManager $dataCacheManager = null
     ) {
         $this->input = $input;
         $this->output = $output;
@@ -162,10 +162,10 @@ class CommandExecutor extends AbstractCommandExecutor
     }
 
     /**
-     * {@inheritDoc}
      *
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
+    #[\Override]
     protected function prepareParameters(string $command, array $params): array
     {
         $params = parent::prepareParameters($command, $params);

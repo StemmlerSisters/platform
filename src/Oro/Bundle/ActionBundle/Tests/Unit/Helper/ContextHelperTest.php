@@ -24,6 +24,7 @@ class ContextHelperTest extends \PHPUnit\Framework\TestCase
     /** @var ContextHelper */
     private $helper;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->doctrineHelper = $this->createMock(DoctrineHelper::class);
@@ -147,7 +148,7 @@ class ContextHelperTest extends \PHPUnit\Framework\TestCase
     public function testGetActionParametersException()
     {
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('Master Request is not defined');
+        $this->expectExceptionMessage('The main request is not defined');
 
         $this->helper->getActionParameters([]);
     }
@@ -215,7 +216,7 @@ class ContextHelperTest extends \PHPUnit\Framework\TestCase
         ?Request $request,
         int $requestStackCalls,
         ActionData $expected,
-        array $context = null
+        ?array $context = null
     ) {
         $entity = new \stdClass();
         $entity->id = 42;
@@ -392,7 +393,7 @@ class ContextHelperTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($actionData, $this->helper->getActionData($context2));
     }
 
-    private function getEntity(int $id = null): object
+    private function getEntity(?int $id = null): object
     {
         $entity = new \stdClass();
         $entity->id = $id;
@@ -401,9 +402,9 @@ class ContextHelperTest extends \PHPUnit\Framework\TestCase
     }
 
     private function generateOperationToken(
-        string $entityClass = null,
+        ?string $entityClass = null,
         mixed $entityId = null,
-        string $datagrid = null
+        ?string $datagrid = null
     ): string {
         $array = [];
 

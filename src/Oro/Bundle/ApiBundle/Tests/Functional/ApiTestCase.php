@@ -3,6 +3,8 @@
 namespace Oro\Bundle\ApiBundle\Tests\Functional;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Oro\Bundle\ApiBundle\Provider\ResourcesProvider;
+use Oro\Bundle\ApiBundle\Provider\SubresourcesProvider;
 use Oro\Bundle\ApiBundle\Request\RequestType;
 use Oro\Bundle\ApiBundle\Request\ValueNormalizer;
 use Oro\Bundle\ApiBundle\Request\Version;
@@ -57,16 +59,25 @@ abstract class ApiTestCase extends WebTestCase
         return self::getContainer()->get('oro_api.value_normalizer');
     }
 
+    protected function getResourcesProvider(): ResourcesProvider
+    {
+        return self::getContainer()->get('oro_api.resources_provider');
+    }
+
+    protected function getSubresourcesProvider(): SubresourcesProvider
+    {
+        return self::getContainer()->get('oro_api.subresources_provider');
+    }
+
     protected function isActionEnabled(string $entityClass, string $action): bool
     {
-        $resourcesProvider = self::getContainer()->get('oro_api.resources_provider');
-        $excludeActions = $resourcesProvider->getResourceExcludeActions(
+        $excludeActions = $this->getResourcesProvider()->getResourceExcludeActions(
             $entityClass,
             Version::LATEST,
             $this->getRequestType()
         );
 
-        return !in_array($action, $excludeActions, true);
+        return !\in_array($action, $excludeActions, true);
     }
 
     /**
@@ -75,14 +86,9 @@ abstract class ApiTestCase extends WebTestCase
     protected function getEntities(): array
     {
         $result = [];
-        $doctrineHelper = $this->getDoctrineHelper();
-        $resourcesProvider = self::getContainer()->get('oro_api.resources_provider');
-        $resources = $resourcesProvider->getResources(Version::LATEST, $this->getRequestType());
+        $resources = $this->getResourcesProvider()->getResources(Version::LATEST, $this->getRequestType());
         foreach ($resources as $resource) {
             $entityClass = $resource->getEntityClass();
-            if (!$doctrineHelper->isManageableEntityClass($entityClass)) {
-                continue;
-            }
             $result[$entityClass] = [$entityClass, $resource->getExcludedActions()];
         }
 
@@ -111,9 +117,8 @@ abstract class ApiTestCase extends WebTestCase
     protected function getSubresources(): array
     {
         $result = [];
-        $resourcesProvider = self::getContainer()->get('oro_api.resources_provider');
-        $subresourcesProvider = self::getContainer()->get('oro_api.subresources_provider');
-        $resources = $resourcesProvider->getResources(Version::LATEST, $this->getRequestType());
+        $subresourcesProvider = $this->getSubresourcesProvider();
+        $resources = $this->getResourcesProvider()->getResources(Version::LATEST, $this->getRequestType());
         foreach ($resources as $resource) {
             $entityClass = $resource->getEntityClass();
             $subresources = $subresourcesProvider->getSubresources(
@@ -192,7 +197,7 @@ abstract class ApiTestCase extends WebTestCase
     /**
      * Loads the response content and convert it to an array.
      */
-    protected function loadYamlData(string $fileName, string $folderName = null): array
+    protected function loadYamlData(string $fileName, ?string $folderName = null): array
     {
         return Yaml::parse($this->loadData($fileName, $folderName));
     }
@@ -200,7 +205,7 @@ abstract class ApiTestCase extends WebTestCase
     /**
      * Loads the response content.
      */
-    protected function loadData(string $fileName, string $folderName = null): string
+    protected function loadData(string $fileName, ?string $folderName = null): string
     {
         if ($this->isRelativePath($fileName)) {
             $fileName = $this->getTestResourcePath($folderName, $fileName);
@@ -221,7 +226,10 @@ abstract class ApiTestCase extends WebTestCase
     protected function getRequestData(array|string $request): array
     {
         if (is_string($request) && $this->isRelativePath($request)) {
-            $request = $this->getTestResourcePath($this->getRequestDataFolderName(), $request);
+            $request = $this->getTestResourcePath(
+                !str_starts_with($request, '..') ? $this->getRequestDataFolderName() : null,
+                $request
+            );
         }
 
         return self::processTemplateData($request);
@@ -240,19 +248,15 @@ abstract class ApiTestCase extends WebTestCase
         if (is_string($expectedContent)) {
             $expectedContent = $this->loadYamlData($expectedContent, $this->getResponseDataFolderName());
         }
+        array_walk_recursive($expectedContent, function (&$val) {
+            if (is_string($val) && str_contains($val, '{baseUrl}')) {
+                $val = str_replace('{baseUrl}', $this->getApiBaseUrl(), $val);
+            }
+
+            return $val;
+        });
 
         return self::processTemplateData($expectedContent);
-    }
-
-    /**
-     * Resolves "{baseUrl}" placeholders and all entity references in the given expected content.
-     */
-    protected function getExpectedContentWithPaginationLinks(array $expectedContent): array
-    {
-        $content = Yaml::dump($expectedContent);
-        $content = str_replace('{baseUrl}', $this->getApiBaseUrl(), $content);
-
-        return self::processTemplateData(Yaml::parse($content));
     }
 
     /**
@@ -369,9 +373,7 @@ abstract class ApiTestCase extends WebTestCase
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     protected static function assertResponseStatusCodeEquals(
         Response $response,
         int $statusCode,
@@ -403,7 +405,7 @@ abstract class ApiTestCase extends WebTestCase
         try {
             if (!is_array($statusCode)) {
                 \PHPUnit\Framework\TestCase::assertEquals($statusCode, $response->getStatusCode(), $message);
-            } elseif (!in_array($response->getStatusCode(), $statusCode, true)) {
+            } elseif (!\in_array($response->getStatusCode(), $statusCode, true)) {
                 $failureMessage = sprintf(
                     'Failed asserting that %s is one of %s',
                     $response->getStatusCode(),
@@ -438,7 +440,7 @@ abstract class ApiTestCase extends WebTestCase
         try {
             if (!is_array($statusCode)) {
                 \PHPUnit\Framework\TestCase::assertNotEquals($statusCode, $response->getStatusCode(), $message);
-            } elseif (in_array($response->getStatusCode(), $statusCode, true)) {
+            } elseif (\in_array($response->getStatusCode(), $statusCode, true)) {
                 $failureMessage = sprintf(
                     'Failed asserting that %s is not one of %s',
                     $response->getStatusCode(),
@@ -488,7 +490,7 @@ abstract class ApiTestCase extends WebTestCase
         return $headers->contains('Content-Type', 'application/json');
     }
 
-    protected function getEntityManager(string $entityClass = null): EntityManagerInterface
+    protected function getEntityManager(?string $entityClass = null): EntityManagerInterface
     {
         $doctrine = self::getContainer()->get('doctrine');
         if ($entityClass) {

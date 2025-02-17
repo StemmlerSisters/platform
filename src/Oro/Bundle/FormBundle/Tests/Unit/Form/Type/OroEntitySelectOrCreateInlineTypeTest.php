@@ -4,6 +4,7 @@ namespace Oro\Bundle\FormBundle\Tests\Unit\Form\Type;
 
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Mapping\ClassMetadata;
+use Doctrine\ORM\Mapping\ClassMetadataFactory;
 use Oro\Bundle\EntityConfigBundle\Config\ConfigInterface;
 use Oro\Bundle\EntityConfigBundle\Config\ConfigManager;
 use Oro\Bundle\EntityConfigBundle\Provider\ConfigProvider;
@@ -37,21 +38,25 @@ class OroEntitySelectOrCreateInlineTypeTest extends FormIntegrationTestCase
     /** @var OroEntitySelectOrCreateInlineType|\PHPUnit\Framework\MockObject\MockObject */
     private $formType;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->authorizationChecker = $this->createMock(AuthorizationCheckerInterface::class);
         $this->featureChecker = $this->createMock(FeatureChecker::class);
         $this->config = $this->createMock(ConfigInterface::class);
 
-        $configProvider = $this->createMock(ConfigProvider::class);
-        $configProvider->expects($this->any())
-            ->method('getConfig')
-            ->willReturn($this->config);
-
         $configManager = $this->createMock(ConfigManager::class);
         $configManager->expects($this->any())
-            ->method('getProvider')
-            ->willReturn($configProvider);
+            ->method('hasConfig')
+            ->willReturn(true);
+        $configManager->expects($this->any())
+            ->method('getEntityConfig')
+            ->willReturn($this->config);
+
+        $metadataFactory = $this->createMock(ClassMetadataFactory::class);
+        $metadataFactory->expects($this->any())
+            ->method('hasMetadataFor')
+            ->willReturn(true);
 
         $metadata = $this->createMock(ClassMetadata::class);
         $metadata->expects($this->any())
@@ -59,6 +64,9 @@ class OroEntitySelectOrCreateInlineTypeTest extends FormIntegrationTestCase
             ->willReturn('id');
 
         $this->entityManager = $this->createMock(EntityManager::class);
+        $this->entityManager->expects($this->any())
+            ->method('getMetadataFactory')
+            ->willReturn($metadataFactory);
         $this->entityManager->expects($this->any())
             ->method('getClassMetadata')
             ->willReturn($metadata);
@@ -84,9 +92,7 @@ class OroEntitySelectOrCreateInlineTypeTest extends FormIntegrationTestCase
         parent::setUp();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     protected function getExtensions(): array
     {
         $config = $this->createMock(ConfigInterface::class);
@@ -144,7 +150,7 @@ class OroEntitySelectOrCreateInlineTypeTest extends FormIntegrationTestCase
                 ->with($inputOptions['create_acl'])
                 ->willReturn($aclGranted);
         } else {
-            $this->authorizationChecker
+            $this->authorizationChecker->expects(self::any())
                 ->method('isGranted')
                 ->with('CREATE', 'entity:' . TestEntity::class)
                 ->willReturn($aclGranted);

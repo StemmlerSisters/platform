@@ -24,6 +24,7 @@ class DraftableFilterListenerTest extends \PHPUnit\Framework\TestCase
     /** @var DraftableFilterListener */
     private $listener;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->doctrineHelper = $this->createMock(DoctrineHelper::class);
@@ -244,7 +245,7 @@ class DraftableFilterListenerTest extends \PHPUnit\Framework\TestCase
     private function mockEntityManager(
         int $id,
         FilterCollection|\PHPUnit\Framework\MockObject\MockObject $filters,
-        DraftableInterface $expectedEntity = null
+        ?DraftableInterface $expectedEntity = null
     ): void {
         $repository = $this->createMock(EntityRepository::class);
         $repository->expects(self::once())

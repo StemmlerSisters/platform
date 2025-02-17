@@ -21,16 +21,14 @@ class RenameConfigSectionQuery extends ParametrizedMigrationQuery
     /** @var string|null */
     private $name;
 
-    public function __construct(string $oldSection, string $newSection, string $name = null)
+    public function __construct(string $oldSection, string $newSection, ?string $name = null)
     {
         $this->oldSection = $oldSection;
         $this->newSection = $newSection;
         $this->name = $name;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getDescription()
     {
         $logger = new ArrayLogger();
@@ -39,9 +37,7 @@ class RenameConfigSectionQuery extends ParametrizedMigrationQuery
         return $logger->getMessages();
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function execute(LoggerInterface $logger)
     {
         $this->processQueries($logger);

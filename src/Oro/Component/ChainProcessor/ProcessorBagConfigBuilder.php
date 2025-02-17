@@ -37,9 +37,7 @@ class ProcessorBagConfigBuilder implements ProcessorBagConfigProviderInterface
         ];
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getActions(): array
     {
         $this->ensureInitialized();
@@ -47,9 +45,7 @@ class ProcessorBagConfigBuilder implements ProcessorBagConfigProviderInterface
         return array_keys($this->processors);
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getGroups(string $action): array
     {
         $this->ensureInitialized();
@@ -57,9 +53,7 @@ class ProcessorBagConfigBuilder implements ProcessorBagConfigProviderInterface
         return $this->groups[$action] ?? [];
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getProcessors(string $action): array
     {
         $this->ensureInitialized();
@@ -133,8 +127,8 @@ class ProcessorBagConfigBuilder implements ProcessorBagConfigProviderInterface
     public function addProcessor(
         string $processorId,
         array $attributes,
-        string $action = null,
-        string $group = null,
+        ?string $action = null,
+        ?string $group = null,
         int $priority = 0
     ): void {
         $this->assertNotFrozen();
@@ -273,7 +267,7 @@ class ProcessorBagConfigBuilder implements ProcessorBagConfigProviderInterface
     /**
      * Calculates an internal priority of a processor based on its priority and a priority of its group.
      */
-    private static function calculatePriority(int $processorPriority, int $groupPriority = null): int
+    private static function calculatePriority(int $processorPriority, ?int $groupPriority = null): int
     {
         if (null === $groupPriority) {
             if ($processorPriority < 0) {

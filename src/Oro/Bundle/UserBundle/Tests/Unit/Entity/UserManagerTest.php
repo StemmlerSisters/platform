@@ -4,11 +4,8 @@ namespace Oro\Bundle\UserBundle\Tests\Unit\Entity;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
-use Oro\Bundle\EntityExtendBundle\Provider\EnumValueProvider;
+use Oro\Bundle\EntityExtendBundle\Provider\EnumOptionsProvider;
 use Oro\Bundle\EntityExtendBundle\Tests\Unit\Fixtures\TestEnumValue;
-use Oro\Bundle\OrganizationBundle\Entity\Organization;
-use Oro\Bundle\UserBundle\Entity\Repository\UserApiRepository;
-use Oro\Bundle\UserBundle\Entity\UserApi;
 use Oro\Bundle\UserBundle\Entity\UserManager;
 use Oro\Bundle\UserBundle\Mailer\Processor;
 use Oro\Bundle\UserBundle\Security\UserLoaderInterface;
@@ -28,8 +25,8 @@ class UserManagerTest extends \PHPUnit\Framework\TestCase
     /** @var PasswordHasherFactoryInterface|\PHPUnit\Framework\MockObject\MockObject */
     private $passwordHasherFactory;
 
-    /** @var EnumValueProvider|\PHPUnit\Framework\MockObject\MockObject */
-    private $enumValueProvider;
+    /** @var EnumOptionsProvider|\PHPUnit\Framework\MockObject\MockObject */
+    private $enumOptionsProvider;
 
     /** var Processor|\PHPUnit\Framework\MockObject\MockObject */
     private $emailProcessor;
@@ -37,23 +34,24 @@ class UserManagerTest extends \PHPUnit\Framework\TestCase
     /** @var UserManager */
     private $userManager;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->userLoader = $this->createMock(UserLoaderInterface::class);
         $this->doctrine = $this->createMock(ManagerRegistry::class);
         $this->passwordHasherFactory = $this->createMock(PasswordHasherFactoryInterface::class);
-        $this->enumValueProvider = $this->createMock(EnumValueProvider::class);
+        $this->enumOptionsProvider = $this->createMock(EnumOptionsProvider::class);
         $this->emailProcessor = $this->createMock(Processor::class);
 
         $this->userLoader->expects(self::any())
             ->method('getUserClass')
             ->willReturn(User::class);
 
-        $enumValueProvider = $this->createMock(EnumValueProvider::class);
-        $enumValueProvider->expects(self::any())
-            ->method('getEnumValueByCode')
+        $enumOptionsProvider = $this->createMock(EnumOptionsProvider::class);
+        $enumOptionsProvider->expects(self::any())
+            ->method('getEnumOptionByCode')
             ->willReturnCallback(function ($code, $id) {
-                return new TestEnumValue($id, $id);
+                return new TestEnumValue($code, 'Test', $id);
             });
 
         $emailProcessorLink = $this->createMock(ServiceLink::class);
@@ -65,7 +63,7 @@ class UserManagerTest extends \PHPUnit\Framework\TestCase
             $this->userLoader,
             $this->doctrine,
             $this->passwordHasherFactory,
-            $this->enumValueProvider,
+            $this->enumOptionsProvider,
             $emailProcessorLink
         );
     }
@@ -93,47 +91,6 @@ class UserManagerTest extends \PHPUnit\Framework\TestCase
         return $passwordHasher;
     }
 
-    public function testGetApi(): void
-    {
-        $user = new User();
-        $organization = new Organization();
-        $userApi = new UserApi();
-
-        $em = $this->expectGetEntityManager();
-        $repository = $this->createMock(UserApiRepository::class);
-        $em->expects(self::once())
-            ->method('getRepository')
-            ->with(UserApi::class)
-            ->willReturn($repository);
-
-        $repository->expects(self::once())
-            ->method('getApi')
-            ->with($user, $organization)
-            ->willReturn($userApi);
-
-        self::assertSame($userApi, $this->userManager->getApi($user, $organization));
-    }
-
-    public function testGetApiWhenApiKeyDoesNotExist(): void
-    {
-        $user = new User();
-        $organization = new Organization();
-
-        $em = $this->expectGetEntityManager();
-        $repository = $this->createMock(UserApiRepository::class);
-        $em->expects(self::once())
-            ->method('getRepository')
-            ->with(UserApi::class)
-            ->willReturn($repository);
-
-        $repository->expects(self::once())
-            ->method('getApi')
-            ->with($user, $organization)
-            ->willReturn(null);
-
-        self::assertNull($this->userManager->getApi($user, $organization));
-    }
-
     public function testUpdateUserWithPlainPassword(): void
     {
         $password = 'password';
@@ -145,8 +102,8 @@ class UserManagerTest extends \PHPUnit\Framework\TestCase
         $user->setPlainPassword($password);
         $user->setSalt($salt);
 
-        $this->enumValueProvider->expects(self::once())
-            ->method('getDefaultEnumValueByCode')
+        $this->enumOptionsProvider->expects(self::once())
+            ->method('getDefaultEnumOptionByCode')
             ->with('auth_status')
             ->willReturn(null);
 
@@ -174,8 +131,8 @@ class UserManagerTest extends \PHPUnit\Framework\TestCase
     {
         $user = new User();
 
-        $this->enumValueProvider->expects(self::once())
-            ->method('getDefaultEnumValueByCode')
+        $this->enumOptionsProvider->expects(self::once())
+            ->method('getDefaultEnumOptionByCode')
             ->with('auth_status')
             ->willReturn(null);
 
@@ -196,10 +153,10 @@ class UserManagerTest extends \PHPUnit\Framework\TestCase
     public function testUpdateUserForUserWithoutAuthStatus(): void
     {
         $user = new User();
-        $defaultAuthStatus = new TestEnumValue('auth_status_1', 'Auth Status 1');
+        $defaultAuthStatus = new TestEnumValue(UserManager::AUTH_STATUS_ENUM_CODE, 'Auth Status 1', 'auth_status_1');
 
-        $this->enumValueProvider->expects(self::once())
-            ->method('getDefaultEnumValueByCode')
+        $this->enumOptionsProvider->expects(self::once())
+            ->method('getDefaultEnumOptionByCode')
             ->with('auth_status')
             ->willReturn($defaultAuthStatus);
 
@@ -218,11 +175,11 @@ class UserManagerTest extends \PHPUnit\Framework\TestCase
     public function testUpdateUserForUserWithAuthStatus(): void
     {
         $user = new User();
-        $authStatus = new TestEnumValue('auth_status_1', 'Auth Status 1');
+        $authStatus = new TestEnumValue(UserManager::AUTH_STATUS_ENUM_CODE, 'Auth Status 1', 'auth_status_1');
         $user->setAuthStatus($authStatus);
 
-        $this->enumValueProvider->expects(self::never())
-            ->method('getDefaultEnumValueByCode');
+        $this->enumOptionsProvider->expects(self::never())
+            ->method('getDefaultEnumOptionByCode');
 
         $em = $this->expectGetEntityManager();
         $em->expects(self::once())
@@ -241,13 +198,13 @@ class UserManagerTest extends \PHPUnit\Framework\TestCase
         $user = new User();
         self::assertNull($user->getAuthStatus());
 
-        $this->enumValueProvider->expects(self::once())
-            ->method('getEnumValueByCode')
+        $this->enumOptionsProvider->expects(self::once())
+            ->method('getEnumOptionByCode')
             ->willReturnCallback(function ($code, $id) {
-                return new TestEnumValue($id, $id);
+                return new TestEnumValue(UserManager::AUTH_STATUS_ENUM_CODE, 'Test', $id);
             });
 
         $this->userManager->setAuthStatus($user, UserManager::STATUS_RESET);
-        self::assertEquals(UserManager::STATUS_RESET, $user->getAuthStatus()->getId());
+        self::assertEquals(UserManager::STATUS_RESET, $user->getAuthStatus()->getInternalId());
     }
 }

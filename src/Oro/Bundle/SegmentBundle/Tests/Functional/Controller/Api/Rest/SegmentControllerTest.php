@@ -13,9 +13,10 @@ class SegmentControllerTest extends WebTestCase
 {
     use RolePermissionExtension;
 
+    #[\Override]
     protected function setUp(): void
     {
-        $this->initClient([], $this->generateWsseAuthHeader());
+        $this->initClient([], self::generateApiAuthHeader());
 
         $this->loadFixtures([
             '@OroSegmentBundle/Tests/Functional/DataFixtures/DifferentOwnerSegments.yml',

@@ -5,7 +5,7 @@
     width: 100%;
     padding: 0;
 
-    background: $select2-container-background $select-arrow-bg-color;
+    background: $select2-container-background;
 
     font-size: $base-font-size;
     font-weight: $base-font-weight;
@@ -120,7 +120,7 @@
 
 .select2-drop {
     position: absolute;
-    z-index: z('popup') + 100;
+    z-index: z('fixed') + 3;
 
     width: auto;
     margin-top: spacing('xs');
@@ -129,6 +129,10 @@
     background-color: $select2-drop-background-color;
     border-radius: $select2-drop-border-radius;
     box-shadow: $select2-drop-box-shadow;
+
+    .modal-is-opened & {
+        z-index: z('popup') + 100;
+    }
 
     .select2-highlighted,
     .select2-result.active {
@@ -224,7 +228,11 @@
     right: 0;
     bottom: 0;
     left: 0;
-    z-index: z('popup') + 99;
+    z-index: z('fixed') + 2;
+
+    .modal-is-opened & {
+        z-index: z('popup') + 99;
+    }
 }
 
 .select2-results {
@@ -247,6 +255,12 @@
 
     .select2-selected {
         display: $select2-results-selected-disabled-display;
+    }
+
+    &:has(.select2-searching) {
+        .select2-no-results {
+            display: none;
+        }
     }
 }
 

@@ -65,6 +65,7 @@ class OwnerTreeProviderTest extends OrmTestCase
     /** @var OwnerTreeProvider */
     private $treeProvider;
 
+    #[\Override]
     protected function setUp(): void
     {
         $conn = new ConnectionMock([], new DriverMock());
@@ -982,7 +983,7 @@ class OwnerTreeProviderTest extends OrmTestCase
                     6 => 5,
                     7  => 6,
                     8 => 14,
-                    11 =>8,
+                    11 => 8,
                     12 => 11,
                     13 => 12,
                     14 => 13

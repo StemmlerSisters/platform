@@ -23,6 +23,7 @@ class CustomizeFormDataContextTest extends \PHPUnit\Framework\TestCase
 {
     private CustomizeFormDataContext $context;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->context = new CustomizeFormDataContext();
@@ -31,7 +32,7 @@ class CustomizeFormDataContextTest extends \PHPUnit\Framework\TestCase
     private function getFormConfig(
         string $name,
         bool $compound = false,
-        string $propertyPath = null
+        ?string $propertyPath = null
     ): FormConfigInterface {
         $config = $this->createMock(FormConfigInterface::class);
         $config->expects(self::any())

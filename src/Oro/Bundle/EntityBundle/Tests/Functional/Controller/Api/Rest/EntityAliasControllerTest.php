@@ -6,9 +6,10 @@ use Oro\Bundle\TestFrameworkBundle\Test\WebTestCase;
 
 class EntityAliasControllerTest extends WebTestCase
 {
+    #[\Override]
     protected function setUp(): void
     {
-        $this->initClient([], $this->generateWsseAuthHeader());
+        $this->initClient([], self::generateApiAuthHeader());
     }
 
     public function testGetAliases()

@@ -34,7 +34,7 @@ api:
                 entityName:
                     data_type: string
                 allowed:
-                    data_type: bool
+                    data_type: boolean
             filters:
                 fields:
                     allowed:
@@ -43,7 +43,7 @@ api:
                         property_path: _
             actions:
                 get_list:
-                    page_size: -1 # disable paging
+                    disable_paging: true
                     disable_sorting: true
                 get: false
                 create: false
@@ -522,6 +522,7 @@ api:
                         emailUsers:
                             form_options:
                                 mapped: false
+                update_list: true
 
         Oro\Bundle\EmailBundle\Entity\EmailUser:
             documentation_resource: '@OroEmailBundle/Resources/doc/api/email_user.md'

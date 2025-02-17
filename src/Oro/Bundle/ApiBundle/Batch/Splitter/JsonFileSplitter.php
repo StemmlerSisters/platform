@@ -9,6 +9,7 @@ use JsonStreamingParser\Listener\ListenerInterface;
 use JsonStreamingParser\Parser;
 use Oro\Bundle\ApiBundle\Batch\JsonUtil;
 use Oro\Bundle\ApiBundle\Batch\Model\ChunkFile;
+use Oro\Bundle\ApiBundle\Exception\ChunkLimitExceededFileSplitterException;
 use Oro\Bundle\ApiBundle\Exception\FileSplitterException;
 use Oro\Bundle\ApiBundle\Exception\ParsingErrorFileSplitterException;
 use Oro\Bundle\GaufretteBundle\FileManager;
@@ -17,6 +18,8 @@ use Oro\Bundle\SecurityBundle\Tools\UUIDGenerator;
 
 /**
  * Splits a JSON file to chunks.
+ * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
+ * @SuppressWarnings(PHPMD.TooManyFields)
  */
 class JsonFileSplitter implements FileSplitterInterface
 {
@@ -29,101 +32,121 @@ class JsonFileSplitter implements FileSplitterInterface
     /** @var int Internal counter of records in files that were saved during split operation */
     protected int $targetFileFirstRecordOffset = 0;
     private ?string $headerSectionName = null;
+    private ?string $primarySectionName = null;
     /** @var string[] */
     private array $sectionNamesToSplit = [];
     private int $chunkSize = 100;
     /** @var array [section name => chunk size, ...] */
     private array $chunkSizePerSection = [];
+    private ?int $chunkCountLimit = null;
+    /** @var array [section name => chunk size, ...] */
+    private array $chunkCountLimitPerSection = [];
     private ?string $chunkFileNameTemplate = null;
     private ?FileManager $destFileManager = null;
     /** @var array Internal buffer of parsed objects */
     private array $buffer = [];
     /** @var ChunkFile[] Chunk files that were saved during split operation */
     private array $targetFiles = [];
+    /** @var array [section key => the number of chunks, ...] */
+    private array $processedChunkCounts = [];
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function getChunkSize(): int
     {
         return $this->chunkSize;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function setChunkSize(int $size): void
     {
         $this->chunkSize = $size;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function getChunkSizePerSection(): array
     {
         return $this->chunkSizePerSection;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function setChunkSizePerSection(array $sizes): void
     {
         $this->chunkSizePerSection = $sizes;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
+    public function getChunkCountLimit(): ?int
+    {
+        return $this->chunkCountLimit;
+    }
+
+    #[\Override]
+    public function setChunkCountLimit(?int $limit): void
+    {
+        $this->chunkCountLimit = $limit;
+    }
+
+    #[\Override]
+    public function getChunkCountLimitPerSection(): array
+    {
+        return $this->chunkCountLimitPerSection;
+    }
+
+    #[\Override]
+    public function setChunkCountLimitPerSection(array $limits): void
+    {
+        $this->chunkCountLimitPerSection = $limits;
+    }
+
+    #[\Override]
     public function getChunkFileNameTemplate(): ?string
     {
         return $this->chunkFileNameTemplate;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function setChunkFileNameTemplate(?string $template): void
     {
         $this->chunkFileNameTemplate = $template;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function getHeaderSectionName(): ?string
     {
         return $this->headerSectionName;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function setHeaderSectionName(?string $name): void
     {
         $this->headerSectionName = $name;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
+    public function getPrimarySectionName(): ?string
+    {
+        return $this->primarySectionName;
+    }
+
+    #[\Override]
+    public function setPrimarySectionName(?string $name): void
+    {
+        $this->primarySectionName = $name;
+    }
+
+    #[\Override]
     public function getSectionNamesToSplit(): array
     {
         return $this->sectionNamesToSplit;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function setSectionNamesToSplit(array $names): void
     {
         $this->sectionNamesToSplit = $names;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function splitFile(string $fileName, FileManager $srcFileManager, FileManager $destFileManager): array
     {
         $this->destFileManager = $destFileManager;
@@ -133,6 +156,8 @@ class JsonFileSplitter implements FileSplitterInterface
             $this->parseStream($stream);
 
             return $this->targetFiles;
+        } catch (ChunkLimitExceededFileSplitterException $e) {
+            throw $e;
         } catch (ParsingException $e) {
             throw new ParsingErrorFileSplitterException(
                 $fileName,
@@ -208,6 +233,8 @@ class JsonFileSplitter implements FileSplitterInterface
 
     protected function processItem(mixed $item): void
     {
+        $this->assertChunkCountLimitNotExceeded();
+
         if ($this->sectionName
             && !empty($this->sectionNamesToSplit)
             && !\in_array($this->sectionName, $this->sectionNamesToSplit, true)
@@ -236,6 +263,19 @@ class JsonFileSplitter implements FileSplitterInterface
     }
 
     /**
+     * @return array [section key => the number of chunks, ...]
+     */
+    protected function getProcessedChunkCounts(): array
+    {
+        return $this->processedChunkCounts;
+    }
+
+    protected function setProcessedChunkCounts(array $counts): void
+    {
+        $this->processedChunkCounts = $counts;
+    }
+
+    /**
      * Saves the buffer to a new chunk file
      */
     protected function saveChunk(): void
@@ -259,6 +299,9 @@ class JsonFileSplitter implements FileSplitterInterface
         $this->buffer = [];
         $this->targetFileIndex++;
         $this->targetFileFirstRecordOffset += $this->getChunkSizeForSection();
+        $processedChunkCountSectionKey = $this->getProcessedChunkCountSectionKey();
+        $this->processedChunkCounts[$processedChunkCountSectionKey] =
+            ($this->processedChunkCounts[$processedChunkCountSectionKey] ?? 0) + 1;
     }
 
     /**
@@ -320,5 +363,33 @@ class JsonFileSplitter implements FileSplitterInterface
             },
             $chunkFiles
         );
+    }
+
+    private function assertChunkCountLimitNotExceeded(): void
+    {
+        $processedChunkCountSectionKey = $this->getProcessedChunkCountSectionKey();
+        if (!$processedChunkCountSectionKey) {
+            $chunkCountLimit = $this->getChunkCountLimit();
+        } else {
+            $chunkCountLimits = $this->getChunkCountLimitPerSection();
+            $chunkCountLimit = $chunkCountLimits[$this->sectionName] ?? null;
+        }
+        if (null !== $chunkCountLimit
+            && isset($this->processedChunkCounts[$processedChunkCountSectionKey])
+            && $this->processedChunkCounts[$processedChunkCountSectionKey] >= $chunkCountLimit
+        ) {
+            throw new ChunkLimitExceededFileSplitterException(
+                $this->sectionName && $this->getPrimarySectionName() !== $this->sectionName
+                    ? $this->sectionName
+                    : null
+            );
+        }
+    }
+
+    private function getProcessedChunkCountSectionKey(): string
+    {
+        return !$this->sectionName || $this->getPrimarySectionName() === $this->sectionName
+            ? ''
+            : $this->sectionName;
     }
 }

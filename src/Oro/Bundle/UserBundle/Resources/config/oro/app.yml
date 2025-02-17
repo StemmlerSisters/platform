@@ -10,16 +10,10 @@ security:
                 users:                      []
 
     password_hashers:
-        # a hasher used in the past for some users
-        legacy:
-            algorithm: sha512
-            encode_as_base64: false
-            iterations: 1
         Oro\Bundle\UserBundle\Entity\User:
-            # the new hasher, along with its options
             algorithm: sodium
             migrate_from:
-                - legacy # uses the "legacy" hasher configured above
+                - sha512
 
     firewalls:
         login:
@@ -94,3 +88,9 @@ oro_entity:
         Oro\Bundle\UserBundle\Entity\Role:
             full: [ label ]
             short: [ label ]
+
+oro_query_designer:
+    collapsed_associations:
+        Oro\Bundle\UserBundle\Entity\User:
+            virtual_fields: [ id ]
+            search_fields: [ firstName, lastName ]

@@ -25,6 +25,7 @@ class IdentityTranslator implements TranslatorInterface, LoggerAwareInterface
         $this->logger = new NullLogger();
     }
 
+    #[\Override]
     public function trans($id, array $parameters = [], $domain = null, $locale = null): string
     {
         try {
@@ -49,7 +50,7 @@ class IdentityTranslator implements TranslatorInterface, LoggerAwareInterface
     /**
      * The implementation of this method originates from Symfony\Contracts\Translation\TranslatorTrait
      */
-    private function transLastPluralOption(string $id, array $parameters = [], string $locale = null): string
+    private function transLastPluralOption(string $id, array $parameters = [], ?string $locale = null): string
     {
         $number = (float)$parameters['%count%'];
         $locale = (string)$locale ?: $this->getLocale();

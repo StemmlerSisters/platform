@@ -25,9 +25,7 @@ class ValidatePaging implements ProcessorInterface
         $this->maxEntitiesLimit = $maxEntitiesLimit;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function process(ContextInterface $context): void
     {
         /** @var Context $context */
@@ -45,7 +43,7 @@ class ValidatePaging implements ProcessorInterface
             return;
         }
 
-        $filterValue = $context->getFilterValues()->get($filterName);
+        $filterValue = $context->getFilterValues()->getOne($filterName);
         if (null === $filterValue) {
             // the paging is not requested
             return;

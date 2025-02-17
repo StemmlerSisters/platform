@@ -38,17 +38,13 @@ class EntityDefinitionFieldConfigLoader extends AbstractConfigLoader implements 
 
     private ConfigLoaderFactory $factory;
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function setConfigLoaderFactory(ConfigLoaderFactory $factory): void
     {
         $this->factory = $factory;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function load(array $config): mixed
     {
         $field = new EntityDefinitionFieldConfig();
@@ -71,6 +67,9 @@ class EntityDefinitionFieldConfigLoader extends AbstractConfigLoader implements 
             } elseif ($this->factory->hasLoader($key)) {
                 $this->loadTargetSection($field, $this->factory->getLoader($key), $key, $value);
             } else {
+                if (ConfigUtil::DATA_TYPE === $key) {
+                    $value = $this->resolveDataType($value);
+                }
                 $this->loadConfigValue($field, $key, $value, self::METHOD_MAP);
             }
         }

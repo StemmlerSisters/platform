@@ -2,6 +2,7 @@
 
 namespace Oro\Bundle\ApiBundle\Config\Definition;
 
+use Oro\Bundle\ApiBundle\Request\ApiAction;
 use Oro\Bundle\ApiBundle\Util\ConfigUtil;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\NodeBuilder;
@@ -11,6 +12,16 @@ use Symfony\Component\Config\Definition\Builder\NodeBuilder;
  */
 class ActionsConfiguration extends AbstractConfigurationSection
 {
+    private const CHANGE_SUBRESOURCE_ACTIONS = [
+        ApiAction::UPDATE_SUBRESOURCE,
+        ApiAction::ADD_SUBRESOURCE,
+        ApiAction::DELETE_SUBRESOURCE
+    ];
+    private const OPTIONS_ALLOWED_ONLY_FOR_CHANGE_SUBRESOURCE_ACTIONS = [
+        ConfigUtil::REQUEST_TARGET_CLASS,
+        ConfigUtil::REQUEST_DOCUMENTATION_ACTION
+    ];
+
     /** @var string[] */
     private array $permissibleActions;
     private string $sectionName;
@@ -25,9 +36,7 @@ class ActionsConfiguration extends AbstractConfigurationSection
         $this->sectionName = $sectionName;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function configure(NodeBuilder $node): void
     {
         /** @var NodeBuilder $actionNode */
@@ -65,14 +74,15 @@ class ActionsConfiguration extends AbstractConfigurationSection
         $this->configureActionNode($actionNode);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function isApplicable(string $section): bool
     {
         return 'entities.entity' === $section;
     }
 
+    /**
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
+     */
     private function configureActionNode(NodeBuilder $node): void
     {
         $sectionName = $this->sectionName;
@@ -94,6 +104,7 @@ class ActionsConfiguration extends AbstractConfigurationSection
             ->scalarNode(ConfigUtil::DOCUMENTATION)->cannotBeEmpty()->end()
             ->scalarNode(ConfigUtil::ACL_RESOURCE)->end()
             ->integerNode(ConfigUtil::MAX_RESULTS)->min(-1)->end()
+            ->booleanNode(ConfigUtil::DISABLE_PAGING)->end()
             ->integerNode(ConfigUtil::PAGE_SIZE)
                 ->min(-1)
                 ->validate()
@@ -136,7 +147,30 @@ class ActionsConfiguration extends AbstractConfigurationSection
                         throw new \InvalidArgumentException('The value must be a string or an array.');
                     })
                 ->end()
-            ->end();
+            ->end()
+            ->scalarNode(ConfigUtil::REQUEST_TARGET_CLASS)->end()
+            ->scalarNode(ConfigUtil::REQUEST_DOCUMENTATION_ACTION)->end();
+
+        $parentNode->end()->validate()
+            ->always(function ($v) {
+                foreach ($v as $action => $actionConfig) {
+                    foreach (self::OPTIONS_ALLOWED_ONLY_FOR_CHANGE_SUBRESOURCE_ACTIONS as $option) {
+                        if (\array_key_exists($option, $actionConfig)
+                            && !\in_array($action, self::CHANGE_SUBRESOURCE_ACTIONS, true)
+                        ) {
+                            throw new \InvalidArgumentException(sprintf(
+                                'The "%s" option is not allowed for the "%s" action.'
+                                . ' This option is allowed for the following actions: "%s".',
+                                $option,
+                                $action,
+                                implode('", "', self::CHANGE_SUBRESOURCE_ACTIONS)
+                            ));
+                        }
+                    }
+                }
+
+                return $v;
+            });
 
         $this->addStatusCodesNode($node);
 
@@ -166,6 +200,12 @@ class ActionsConfiguration extends AbstractConfigurationSection
      */
     private function postProcessActionConfig(array $config): array
     {
+        if (\array_key_exists(ConfigUtil::DISABLE_PAGING, $config)) {
+            if ($config[ConfigUtil::DISABLE_PAGING] && !\array_key_exists(ConfigUtil::PAGE_SIZE, $config)) {
+                $config[ConfigUtil::PAGE_SIZE] = -1;
+            }
+            unset($config[ConfigUtil::DISABLE_PAGING]);
+        }
         if (\array_key_exists(ConfigUtil::PAGE_SIZE, $config)
             && -1 === $config[ConfigUtil::PAGE_SIZE]
             && !\array_key_exists(ConfigUtil::MAX_RESULTS, $config)
@@ -208,7 +248,7 @@ class ActionsConfiguration extends AbstractConfigurationSection
         return $config;
     }
 
-    public function addStatusCodesNode(NodeBuilder $node): void
+    private function addStatusCodesNode(NodeBuilder $node): void
     {
         /** @var ArrayNodeDefinition $parentNode */
         $codeNode = $node

@@ -96,32 +96,26 @@ class ConfigProviderMock extends ConfigProvider
         return $config;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getId(
-        string $className = null,
-        string $fieldName = null,
-        string $fieldType = null
+        ?string $className = null,
+        ?string $fieldName = null,
+        ?string $fieldType = null
     ): ConfigIdInterface {
         return $fieldName
             ? new FieldConfigId($this->getScope(), $className, $fieldName, $fieldType)
             : new EntityConfigId($this->getScope(), $className);
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function hasConfig(string $className, string $fieldName = null): bool
+    #[\Override]
+    public function hasConfig(string $className, ?string $fieldName = null): bool
     {
         return $fieldName
             ? isset($this->fieldConfigs[$className][$fieldName])
             : isset($this->entityConfigs[$className]);
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function hasConfigById(ConfigIdInterface $configId): bool
     {
         return $configId instanceof FieldConfigId
@@ -129,10 +123,8 @@ class ConfigProviderMock extends ConfigProvider
             : $this->hasConfig($configId->getClassName());
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getConfig(string $className = null, string $fieldName = null): ConfigInterface
+    #[\Override]
+    public function getConfig(?string $className = null, ?string $fieldName = null): ConfigInterface
     {
         if (!$this->hasConfig($className, $fieldName)) {
             if ($fieldName) {
@@ -155,9 +147,7 @@ class ConfigProviderMock extends ConfigProvider
             : $this->entityConfigs[$className];
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getConfigById(ConfigIdInterface $configId): ConfigInterface
     {
         return $configId instanceof FieldConfigId
@@ -165,10 +155,8 @@ class ConfigProviderMock extends ConfigProvider
             : $this->getConfig($configId->getClassName());
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getIds(string $className = null, bool $withHidden = false): array
+    #[\Override]
+    public function getIds(?string $className = null, bool $withHidden = false): array
     {
         $result = [];
         if ($className) {
@@ -200,10 +188,8 @@ class ConfigProviderMock extends ConfigProvider
         return $result;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getConfigs(string $className = null, bool $withHidden = false): array
+    #[\Override]
+    public function getConfigs(?string $className = null, bool $withHidden = false): array
     {
         $result = [];
         if ($className) {

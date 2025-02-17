@@ -355,7 +355,7 @@ class Reminder implements ExtendEntityInterface
      *
      * @return Reminder
      */
-    public function setSender(User $sender = null)
+    public function setSender(?User $sender = null)
     {
         $this->sender = $sender;
 
@@ -494,6 +494,7 @@ class Reminder implements ExtendEntityInterface
     /**
      * @return string
      */
+    #[\Override]
     public function __toString()
     {
         return (string)$this->subject;

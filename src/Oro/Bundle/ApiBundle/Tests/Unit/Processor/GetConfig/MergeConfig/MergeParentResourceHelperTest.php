@@ -28,6 +28,7 @@ class MergeParentResourceHelperTest extends \PHPUnit\Framework\TestCase
     /** @var MergeParentResourceHelper */
     private $mergeParentResourceHelper;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->configProvider = $this->createMock(ConfigProvider::class);
@@ -114,6 +115,59 @@ class MergeParentResourceHelperTest extends \PHPUnit\Framework\TestCase
             [
                 'parent_resource_class' => 'Test\ParentEntity',
                 'description'           => 'entity'
+            ],
+            $parentDefinition->toArray()
+        );
+    }
+
+    public function testMergeParentDefinitionWithNullAclResource(): void
+    {
+        $parentResourceClass = 'Test\ParentEntity';
+
+        $parentDefinition = new EntityDefinitionConfig();
+        $parentDefinition->setExcludeAll();
+        $parentDefinition->setKey('parent key');
+        $parentDefinition->setAclResource('parent_entity_acl');
+
+        $definition = new EntityDefinitionConfig();
+        $definition->setKey('key');
+        $definition->setAclResource(null);
+
+        $this->context->setResult($definition);
+        $this->loadParentConfig($parentResourceClass, $this->getConfig($parentDefinition));
+        $this->mergeParentResourceHelper->mergeParentResourceConfig($this->context, $parentResourceClass);
+
+        self::assertSame($parentDefinition, $this->context->getResult());
+        self::assertFalse($parentDefinition->getUpsertConfig()->hasEnabled());
+        self::assertEquals('key', $parentDefinition->getKey());
+        self::assertEquals(
+            [
+                'parent_resource_class' => 'Test\ParentEntity',
+                'acl_resource' => null
+            ],
+            $parentDefinition->toArray()
+        );
+    }
+
+    public function testMergeParentDefinitionWhenEntityHasAnotherIdentifierField(): void
+    {
+        $parentResourceClass = 'Test\ParentEntity';
+
+        $parentDefinition = new EntityDefinitionConfig();
+        $parentDefinition->setIdentifierFieldNames(['id']);
+
+        $definition = new EntityDefinitionConfig();
+        $parentDefinition->setIdentifierFieldNames(['anotherId']);
+
+        $this->context->setResult($definition);
+        $this->loadParentConfig($parentResourceClass, $this->getConfig($parentDefinition));
+        $this->mergeParentResourceHelper->mergeParentResourceConfig($this->context, $parentResourceClass);
+
+        self::assertSame($parentDefinition, $this->context->getResult());
+        self::assertEquals(
+            [
+                'parent_resource_class' => 'Test\ParentEntity',
+                'identifier_field_names' => ['anotherId']
             ],
             $parentDefinition->toArray()
         );
@@ -599,6 +653,48 @@ class MergeParentResourceHelperTest extends \PHPUnit\Framework\TestCase
             $parentDefinition->toArray()
         );
         self::assertNull($parentDefinition->getField('association1')->getTargetEntity()->getKey());
+    }
+
+    public function testMergeParentDefinitionRenamedFields(): void
+    {
+        $parentResourceClass = 'Test\ParentEntity';
+
+        $parentDefinition = new EntityDefinitionConfig();
+        $parentDefinition->setExcludeAll();
+        $parentDefinition->addField('field1');
+        $parentAssociation1Target = $parentDefinition->addField('association1')->createAndSetTargetEntity();
+        $parentAssociation1Target->setKey('parent association1 target key');
+        $parentAssociation1Target->addField('association1field1');
+
+        $definition = new EntityDefinitionConfig();
+        $definition->addField('renamedField1')->setPropertyPath('field1');
+        $renamedAssociation1 = $definition->addField('renamedAssociation1');
+        $renamedAssociation1->setPropertyPath('association1');
+        $renamedAssociation1->createAndSetTargetEntity()->addField('association1field1');
+
+        $this->context->setResult($definition);
+        $this->loadParentConfig($parentResourceClass, $this->getConfig($parentDefinition));
+        $this->mergeParentResourceHelper->mergeParentResourceConfig($this->context, $parentResourceClass);
+
+        self::assertSame($parentDefinition, $this->context->getResult());
+        self::assertEquals(
+            [
+                'parent_resource_class' => 'Test\ParentEntity',
+                'fields' => [
+                    'renamedField1' => [
+                        'property_path' => 'field1'
+                    ],
+                    'renamedAssociation1' => [
+                        'property_path' => 'association1',
+                        'fields' => [
+                            'association1field1' => null
+                        ]
+                    ]
+                ]
+            ],
+            $parentDefinition->toArray()
+        );
+        self::assertNull($parentDefinition->getField('renamedAssociation1')->getTargetEntity()->getKey());
     }
 
     public function testMergeParentFiltersWhenEntityFiltersAreEmpty(): void

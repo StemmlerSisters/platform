@@ -85,16 +85,11 @@ class TargetConfigExtraBuilder
         string $associationName
     ): array {
         $result = [];
-        $hasExpandExtra = false;
         $hasCustomizeExtra = false;
         $hasTransformExtra = false;
-        $fieldsExtraKey = null;
         foreach ($configExtras as $extra) {
             if ($extra instanceof ExpandRelatedEntitiesConfigExtra) {
                 $extra = self::buildParentExpandRelatedEntitiesConfigExtra($extra, $associationName);
-                $hasExpandExtra = true;
-            } elseif ($extra instanceof FilterFieldsConfigExtra) {
-                $fieldsExtraKey = \count($result);
             } elseif ($extra instanceof RootPathConfigExtra
                 || $extra instanceof FilterIdentifierFieldsConfigExtra
             ) {
@@ -106,14 +101,6 @@ class TargetConfigExtraBuilder
             }
             if (null !== $extra) {
                 $result[] = $extra;
-            }
-        }
-        if (!$hasExpandExtra) {
-            $fieldsExtra = new FilterFieldsConfigExtra([$parentClassName => [$associationName]]);
-            if (null === $fieldsExtraKey) {
-                $configExtras[] = $fieldsExtra;
-            } else {
-                $configExtras[$fieldsExtraKey] = $fieldsExtra;
             }
         }
         if (!$hasCustomizeExtra) {
@@ -215,7 +202,7 @@ class TargetConfigExtraBuilder
     public static function normalizeParentConfig(
         EntityDefinitionConfig $parentConfig,
         string $associationName,
-        array $parentConfigExtras = null
+        ?array $parentConfigExtras = null
     ): void {
         $isNormalizationRequired = true;
         if (null !== $parentConfigExtras) {

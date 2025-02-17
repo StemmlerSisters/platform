@@ -36,29 +36,46 @@ class LoadLanguageDemoData extends AbstractFixture
         self::LANG_FR_CA => 'fr_CA'
     ];
 
-    /**
-     * {@inheritdoc}
-     */
-    public function load(ObjectManager $manager)
+    #[\Override]
+    public function load(ObjectManager $manager): void
     {
         /** @var EntityManager $manager */
         $user = $this->getFirstUser($manager);
         $organization = $user->getOrganization();
         $languageRepository = $manager->getRepository(Language::class);
 
+        $qb = $languageRepository
+            ->createQueryBuilder('l')
+            ->select('l');
+        $qb->where($qb->expr()->in('l.code', ':codes'))
+            ->setParameter('codes', array_values(self::$languages));
+        /** @var Language[] $languages */
+        $languages = $qb->getQuery()->getResult();
+
+        $existingLanguages = [];
+        foreach ($languages as $language) {
+            $existingLanguages[$language->getCode()] = $language;
+        }
+
+        $flushRequired = false;
         foreach (self::$languages as $reference => $code) {
-            $language = $languageRepository->findOneBy(['code' => $code]);
-            if (!$language) {
-                $language = new Language();
-                $language->setCode($code)
+            if (isset($existingLanguages[$code])) {
+                $language = $existingLanguages[$code];
+            } else {
+                $language = (new Language())
+                    ->setCode($code)
                     ->setEnabled(true)
                     ->setOrganization($organization);
 
                 $manager->persist($language);
+                $flushRequired = true;
             }
+
             $this->addReference($reference, $language);
         }
 
-        $manager->flush();
+        if ($flushRequired) {
+            $manager->flush();
+        }
     }
 }

@@ -14,7 +14,22 @@ class SegmentRepository extends EntityRepository
     /**
      * @param AclHelper $aclHelper
      * @param string $entityClass
-     * @return string[]
+     *
+     * @return array<int,Segment>
+     */
+    public function findSegmentsByEntity(AclHelper $aclHelper, string $entityClass): array
+    {
+        $qb = $this->createQueryBuilder('s', 's.id')
+            ->where('s.entity = :entity')
+            ->setParameter('entity', $entityClass);
+
+        return $aclHelper->apply($qb)->getResult();
+    }
+
+    /**
+     * @param AclHelper $aclHelper
+     * @param string $entityClass
+     * @return array<string,int>
      */
     public function findByEntity(AclHelper $aclHelper, string $entityClass): array
     {
@@ -36,7 +51,7 @@ class SegmentRepository extends EntityRepository
     /**
      * @return Segment[]
      */
-    public function findByNameStartsWith(string $nameStartsWith, string $entityClass = null): array
+    public function findByNameStartsWith(string $nameStartsWith, ?string $entityClass = null): array
     {
         $qb = $this->createQueryBuilder('s');
         $qb->andWhere($qb->expr()->like('s.name', ':name'))

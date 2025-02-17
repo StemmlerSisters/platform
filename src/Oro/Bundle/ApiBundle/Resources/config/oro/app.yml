@@ -24,15 +24,11 @@ security:
             methods: [OPTIONS]
             security: false
             stateless: true
-        api_wsse_secured:
+        api_secured:
             pattern: '%oro_api.rest.pattern%'
             provider: oro_user
             stateless: true
-            wsse:
-                lifetime: 3600
-                realm:    "Secured API"
-                profile:  "UsernameToken"
-            entry_point: wsse
+            entry_point: oro_api.security.http.entry_point.api
             context: main
             organization-remember-me: # should be the same as for "main" firewall except "csrf_protected_mode" option
                 token_provider:             oro_security.token.provider.rememberme
@@ -41,7 +37,13 @@ security:
                 lifetime:                   1209600   # stay logged for two weeks
                 httponly:                   true
                 csrf_protected_mode:        true
-            custom_authenticator: oro_user.impersonation_authenticator
+            custom_authenticators:
+                - oro_user.impersonation_authenticator
+        public_openapi_specifications:
+            pattern: '^/public-openapi-specification($|/.*)'
+            methods: [GET,OPTIONS]
+            security: false
+            stateless: true
 
 knp_gaufrette:
     adapters:
@@ -61,17 +63,16 @@ knp_gaufrette:
         api:
             adapter: api
             alias: api_filesystem
-
 oro_api:
     api_firewalls:
-        api_wsse_secured:
+        api_secured:
             feature_name: web_api
             feature_firewall_authenticators: # FeatureDependAuthenticatorChecker
-                - Oro\Bundle\WsseAuthenticationBundle\Security\Core\Authentication\WsseAuthenticator
-        wsse_secured:
+                - Oro\Bundle\TestFrameworkBundle\Security\Core\Authentication\TestApiAuthenticator
+        old_api_secured:
             feature_name: web_api
             feature_firewall_authenticators: # FeatureDependAuthenticatorChecker
-                - Oro\Bundle\WsseAuthenticationBundle\Security\Core\Authentication\WsseAuthenticator
+                - Oro\Bundle\TestFrameworkBundle\Security\Core\Authentication\TestApiAuthenticator
         api_options:
             feature_name: web_api
 
@@ -109,6 +110,7 @@ oro_api:
                             - get_list
                             - create
                             - update
+                            - update_list
                             - get_relationship
                             - get_subresource
                             - add_subresource
@@ -120,6 +122,10 @@ oro_api:
                     -
                         value: deletedCount
                         actions: [delete_list]
+                X-Mode:
+                    -
+                        value: ~
+                        actions: [update_list]
             request_type: ['rest', 'json_api']
         rest_plain:
             request_type: ['rest']
@@ -134,10 +140,19 @@ oro_api:
 
     # default data-type mapping for all views
     api_doc_data_types:
+        entityType: string
+        entityType[]: array of strings
+        entityClass: string
+        entityClass[]: array of strings
+        nestedObject: object
         unsignedInteger: integer
         unsignedInteger[]: array of integers
+        smallint[]: array of smallints
+        scalar[]: array of scalars
         text: string
         text[]: array of strings
+        ascii_string: string
+        ascii_string[]: array of string
         guid: string
         guid[]: array of strings
         json: object
@@ -149,31 +164,116 @@ oro_api:
         percent_100[]: array of floats
         currency: string
         currency[]: array of strings
+        money[]: array of moneys
         money_value: money
         money_value[]: array of moneys
         duration: integer
         duration[]: array of integers
-        entityType: string
-        entityType[]: array of strings
+        decimal[]: array of decimals
         objects: array of objects
         object[]: array of objects
         strings: array of strings
         string[]: array of strings
         integer[]: array of integers
-        smallint[]: array of smallints
         bigint[]: array of bigints
         boolean[]: array of booleans
-        decimal[]: array of decimals
         float[]: array of floats
         datetime[]: array of datetimes
         date[]: array of dates
         time[]: array of times
-        money[]: array of moneys
-        scalar[]: array of scalars
-        nestedObject: object
+        dateinterval: string
+        dateinterval[]: array of string
+        datetimetz: datetime
+        datetimetz[]: array of datetimes
+        datetimetz_immutable: datetime
+        datetimetz_immutable[]: array of datetimes
+        datetime_immutable: datetime
+        datetime_immutable[]: array of datetimes
+        date_immutable: date
+        date_immutable[]: array of dates
+        time_immutable: time
+        time_immutable[]: array of times
+        config_object: object
+        crypted_string: string
+        crypted_string[]: array of strings
+        crypted_text: string
+        crypted_text[]: array of strings
 
     api_doc_cache:
         excluded_features: [ web_api ]
+
+    open_api:
+        data_types:
+            entityType: [string, {format: entityType, pattern: !php/const Oro\Bundle\ApiBundle\Processor\NormalizeValue\NormalizeEntityType::REQUIREMENT}]
+            entityClass: [string, {format: entityClass, pattern: !php/const Oro\Bundle\ApiBundle\Processor\NormalizeValue\NormalizeEntityClass::REQUIREMENT}]
+            orderBy: [string, {format: orderBy, pattern: !php/const Oro\Bundle\ApiBundle\Processor\NormalizeValue\Rest\NormalizeOrderBy::REQUIREMENT}]
+            unsignedInteger: [integer, {'minimum': 0}]
+            smallint: [integer]
+            text: [string, {format: text}]
+            ascii_string: [string, {format: ascii}]
+            guid: [string, {format: guid, pattern: !php/const Oro\Bundle\ApiBundle\Processor\NormalizeValue\NormalizeGuid::REQUIREMENT}]
+            percent: [number]
+            percent_100: [number]
+            currency: [string, {format: currency}]
+            money: [number]
+            duration: [integer]
+            decimal: [number]
+            bigint: [string, {format: bigint, pattern: !php/const Oro\Bundle\ApiBundle\Processor\NormalizeValue\NormalizeBigint::REQUIREMENT}]
+            float: [number]
+            binary: [string, {format: binary}]
+            datetime: [string, {format: datetime, pattern: !php/const Oro\Bundle\ApiBundle\Processor\NormalizeValue\Rest\NormalizeDateTime::REQUIREMENT}]
+            date: [string, {format: date, pattern: !php/const Oro\Bundle\ApiBundle\Processor\NormalizeValue\Rest\NormalizeDate::REQUIREMENT}]
+            time: [string, {format: time, pattern: !php/const Oro\Bundle\ApiBundle\Processor\NormalizeValue\Rest\NormalizeTime::REQUIREMENT}]
+            dateinterval: [string, {format: dateinterval}]
+            crypted_string: [string, {format: crypted}]
+            crypted_text: [string, {format: crypted}]
+        data_type_aliases:
+            nestedObject: object
+            json: object
+            json_array: object
+            config_object: object
+            money_value: money
+            blob: binary
+            simple_array: 'scalar[]'
+            datetimetz: datetime
+            datetimetz_immutable: datetime
+            datetime_immutable: datetime
+            date_immutable: date
+            time_immutable: time
+        data_type_plural_map:
+            scalars: scalar
+            strings: string
+            booleans: boolean
+            integers: integer
+            smallints: smallint
+            bigints: bigint
+            floats: float
+            decimals: decimal
+            moneys: money
+            datetimes: datetime
+            dates: date
+            times: time
+            objects: object
+        data_type_pattern_map:
+            !php/const Oro\Bundle\ApiBundle\Processor\NormalizeValue\NormalizeEntityType::REQUIREMENT: entityType
+            !php/const Oro\Bundle\ApiBundle\Processor\NormalizeValue\NormalizeEntityClass::REQUIREMENT: entityClass
+            !php/const Oro\Bundle\ApiBundle\Processor\NormalizeValue\NormalizeInteger::REQUIREMENT: integer
+            !php/const Oro\Bundle\ApiBundle\Processor\NormalizeValue\NormalizeUnsignedInteger::REQUIREMENT: unsignedInteger
+            !php/const Oro\Bundle\ApiBundle\Processor\NormalizeValue\Rest\NormalizeOrderBy::REQUIREMENT: orderBy
+        data_type_range_value_patterns:
+            integer: !php/const Oro\Bundle\ApiBundle\Processor\NormalizeValue\NormalizeInteger::REQUIREMENT
+            smallint: !php/const Oro\Bundle\ApiBundle\Processor\NormalizeValue\NormalizeInteger::REQUIREMENT
+            duration: !php/const Oro\Bundle\ApiBundle\Processor\NormalizeValue\NormalizeInteger::REQUIREMENT
+            bigint: !php/const Oro\Bundle\ApiBundle\Processor\NormalizeValue\NormalizeBigint::REQUIREMENT
+            unsignedInteger: !php/const Oro\Bundle\ApiBundle\Processor\NormalizeValue\NormalizeUnsignedInteger::REQUIREMENT
+            decimal: !php/const Oro\Bundle\ApiBundle\Processor\NormalizeValue\NormalizeDecimal::REQUIREMENT
+            money: !php/const Oro\Bundle\ApiBundle\Processor\NormalizeValue\NormalizeDecimal::REQUIREMENT
+            float: !php/const Oro\Bundle\ApiBundle\Processor\NormalizeValue\NormalizeNumber::REQUIREMENT
+            percent: !php/const Oro\Bundle\ApiBundle\Processor\NormalizeValue\NormalizeNumber::REQUIREMENT
+            percent_100: !php/const Oro\Bundle\ApiBundle\Processor\NormalizeValue\NormalizePercent100::REQUIREMENT
+            datetime: !php/const Oro\Bundle\ApiBundle\Processor\NormalizeValue\Rest\NormalizeDateTime::REQUIREMENT
+            date: !php/const Oro\Bundle\ApiBundle\Processor\NormalizeValue\Rest\NormalizeDate::REQUIREMENT
+            time: !php/const Oro\Bundle\ApiBundle\Processor\NormalizeValue\Rest\NormalizeTime::REQUIREMENT
 
     config_extensions:
         - oro_api.config_extension.filters
@@ -285,11 +385,25 @@ oro_api:
             supported_operators: ['=', '!=']
         association:
             factory: ['@oro_api.filter_factory.extended_association', 'createFilter']
+        nestedAssociation:
+            factory: [ '@oro_api.filter_factory.nested_association', 'createFilter' ]
         primaryField:
             class: Oro\Bundle\ApiBundle\Filter\PrimaryFieldFilter
         nestedTree:
             class: Oro\Bundle\ApiBundle\Filter\NestedTreeFilter
             supported_operators: ['>', '>=']
+
+    filter_disallow_array_data_types:
+        - string
+        - text
+        - boolean
+
+    filter_disallow_range_data_types:
+        - string
+        - text
+        - boolean
+        - guid
+        - currency
 
     error_title_overrides:
         'percent range constraint': 'range constraint'
@@ -770,3 +884,8 @@ oro_api:
                 initialize: ~
                 transform_data: ~
                 normalize_result: ~
+
+oro_test_framework:
+    test_auth_firewalls:
+        - api_secured
+        - old_api_secured

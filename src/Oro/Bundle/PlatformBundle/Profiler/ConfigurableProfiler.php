@@ -18,9 +18,7 @@ class ConfigurableProfiler extends Profiler
 
     private array $fetchedCollectors;
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function add(DataCollectorInterface $collector): void
     {
         if ($collector instanceof PlatformCollector) {
@@ -33,7 +31,8 @@ class ConfigurableProfiler extends Profiler
         }
     }
 
-    public function collect(Request $request, Response $response, \Throwable $exception = null): ?Profile
+    #[\Override]
+    public function collect(Request $request, Response $response, ?\Throwable $exception = null): ?Profile
     {
         if ($this->platformCollector) {
             $this->platformCollector->setCollectors($this->fetchedCollectors);

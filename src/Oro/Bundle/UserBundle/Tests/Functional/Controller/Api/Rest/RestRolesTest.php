@@ -6,9 +6,10 @@ use Oro\Bundle\TestFrameworkBundle\Test\WebTestCase;
 
 class RestRolesTest extends WebTestCase
 {
+    #[\Override]
     protected function setUp(): void
     {
-        $this->initClient([], self::generateWsseAuthHeader());
+        $this->initClient([], self::generateApiAuthHeader());
     }
 
     public function testCreateRole(): array

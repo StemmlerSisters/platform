@@ -20,9 +20,7 @@ class RemoveMetaPropertyFilter implements ProcessorInterface
         $this->filterNamesRegistry = $filterNamesRegistry;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function process(ContextInterface $context): void
     {
         /** @var Context $context */
@@ -36,9 +34,9 @@ class RemoveMetaPropertyFilter implements ProcessorInterface
         $filterName = $this->filterNamesRegistry
             ->getFilterNames($context->getRequestType())
             ->getMetaPropertyFilterName();
-        $filters = $context->getFilters();
-        if ($filters->has($filterName)) {
-            $filters->remove($filterName);
+        $filterCollection = $context->getFilters();
+        if ($filterCollection->has($filterName)) {
+            $filterCollection->remove($filterName);
         }
     }
 }

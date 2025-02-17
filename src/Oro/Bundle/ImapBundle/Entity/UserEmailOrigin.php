@@ -329,6 +329,7 @@ class UserEmailOrigin extends EmailOrigin
      *
      * @return string
      */
+    #[\Override]
     public function __toString()
     {
         $host = '';
@@ -402,7 +403,7 @@ class UserEmailOrigin extends EmailOrigin
      *
      * @return UserEmailOrigin
      */
-    public function setAccessTokenExpiresAt(\DateTime $datetime = null)
+    public function setAccessTokenExpiresAt(?\DateTime $datetime = null)
     {
         $this->accessTokenExpiresAt = $datetime;
 

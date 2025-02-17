@@ -11,6 +11,7 @@ class DecimalTypeCastTest extends \PHPUnit\Framework\TestCase
     /** @var DecimalTypeCast */
     private $handler;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->handler = new DecimalTypeCast();
@@ -38,6 +39,10 @@ class DecimalTypeCastTest extends \PHPUnit\Framework\TestCase
                 'value' => 1.1,
                 'expected' => 1.1
             ],
+            'numeric' => [
+                'value' => '123.123000000',
+                'expected' => 123.123
+            ]
         ];
     }
 
@@ -59,6 +64,12 @@ class DecimalTypeCastTest extends \PHPUnit\Framework\TestCase
             ],
             'datetime' => [
                 'value' => new \DateTime('now')
+            ],
+            'numeric' => [
+                'value' => '123,123000000'
+            ],
+            'numeric with symbol' => [
+                'value' => 'E123.123000000'
             ],
         ];
     }

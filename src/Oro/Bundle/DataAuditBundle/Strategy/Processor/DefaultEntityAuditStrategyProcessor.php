@@ -29,6 +29,7 @@ class DefaultEntityAuditStrategyProcessor implements EntityAuditStrategyProcesso
     /**
      * @throws MappingException
      */
+    #[\Override]
     public function processInverseCollections(array $sourceEntityData): array
     {
         $fieldData = [];
@@ -54,8 +55,8 @@ class DefaultEntityAuditStrategyProcessor implements EntityAuditStrategyProcesso
      */
     private function processEntityAssociationsFromCollection(
         ClassMetadata $sourceEntityMeta,
-        object        $sourceEntity,
-        array         $sourceEntityData
+        object $sourceEntity,
+        array $sourceEntityData
     ): ?array {
         $fieldsData = [];
 
@@ -167,11 +168,13 @@ class DefaultEntityAuditStrategyProcessor implements EntityAuditStrategyProcesso
             ?->getValue($entity);
     }
 
+    #[\Override]
     public function processChangedEntities(array $sourceEntityData): array
     {
         return $sourceEntityData;
     }
 
+    #[\Override]
     public function processInverseRelations(array $sourceEntityData): array
     {
         return $sourceEntityData;

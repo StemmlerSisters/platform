@@ -25,6 +25,7 @@ class EntityFieldFilteringHelperTest extends \PHPUnit\Framework\TestCase
     /** @var EntityFieldFilteringHelper */
     private $helper;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->configManager = $this->createMock(ConfigManager::class);
@@ -43,7 +44,7 @@ class EntityFieldFilteringHelperTest extends \PHPUnit\Framework\TestCase
     private function getFieldConfig(string $fieldName, array $config): ConfigInterface
     {
         return new Config(
-            new FieldConfigId('extend', self::TEST_CLASS_NAME, $fieldName, 'int'),
+            new FieldConfigId('extend', self::TEST_CLASS_NAME, $fieldName, 'integer'),
             $config
         );
     }

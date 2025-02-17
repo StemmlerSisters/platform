@@ -27,6 +27,7 @@ class CumulativeWriterTest extends WebTestCase
     /** @var CumulativeWriter */
     private $writer;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->initClient();
@@ -141,7 +142,7 @@ class CumulativeWriterTest extends WebTestCase
                     'context' => [
                         'ScheduledEntityDeletions' => [
                             LocalizedFallbackValue::class => 2,
-                            AttributeGroupRelation::class => 2,
+                            AttributeGroupRelation::class => 3,
                             AttributeGroup::class => 2,
                         ],
                     ],

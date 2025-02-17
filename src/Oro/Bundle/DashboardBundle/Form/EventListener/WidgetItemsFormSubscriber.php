@@ -25,9 +25,7 @@ class WidgetItemsFormSubscriber implements EventSubscriberInterface
         $this->translator    = $translator;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public static function getSubscribedEvents(): array
     {
         return [
@@ -69,7 +67,7 @@ class WidgetItemsFormSubscriber implements EventSubscriberInterface
      *
      * @return array
      */
-    protected function getIndexedData(array $data = null)
+    protected function getIndexedData(?array $data = null)
     {
         $result = [];
 

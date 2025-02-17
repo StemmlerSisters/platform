@@ -22,11 +22,12 @@ use Oro\Bundle\EmailBundle\Entity\EmailUser;
 use Oro\Bundle\EmailBundle\Entity\Manager\EmailManager;
 use Oro\Bundle\EmailBundle\Entity\Manager\MailboxManager;
 use Oro\Bundle\EmailBundle\Entity\Provider\EmailThreadProvider;
+use Oro\Bundle\EmailBundle\Exception\EmailAttachmentNotFoundException;
+use Oro\Bundle\EmailBundle\Exception\EmailBodyNotFoundException;
 use Oro\Bundle\EmailBundle\Exception\LoadEmailBodyException;
 use Oro\Bundle\EmailBundle\Form\Handler\EmailHandler;
 use Oro\Bundle\EmailBundle\Form\Model\Email as EmailModel;
 use Oro\Bundle\EmailBundle\Form\Model\SmtpSettingsFactory;
-use Oro\Bundle\EmailBundle\Form\Type\EmailType;
 use Oro\Bundle\EmailBundle\Mailer\Checker\SmtpSettingsChecker;
 use Oro\Bundle\EmailBundle\Manager\EmailAttachmentManager;
 use Oro\Bundle\EmailBundle\Manager\EmailNotificationManager;
@@ -38,6 +39,7 @@ use Oro\Bundle\EntityBundle\ORM\DoctrineHelper;
 use Oro\Bundle\EntityBundle\Tools\EntityRoutingHelper;
 use Oro\Bundle\EntityConfigBundle\Provider\ConfigProvider;
 use Oro\Bundle\FilterBundle\Filter\FilterBag;
+use Oro\Bundle\ImapBundle\Provider\ImapEmailAttachmentLoader;
 use Oro\Bundle\OrganizationBundle\Entity\Organization;
 use Oro\Bundle\SecurityBundle\Acl\Extension\EntityAclExtension;
 use Oro\Bundle\SecurityBundle\Acl\Extension\ObjectIdentityHelper;
@@ -154,7 +156,7 @@ class EmailController extends AbstractController
                     $maxEmailsDisplay,
                     null
                 )),
-                'count'=> $emailNotificationManager->getCountNewEmails($this->getUser(), $currentOrganization)
+                'count' => $emailNotificationManager->getCountNewEmails($this->getUser(), $currentOrganization)
             ];
         }
 
@@ -497,6 +499,17 @@ class EmailController extends AbstractController
     #[AclAncestor('oro_email_email_attachment_view')]
     public function attachmentAction(EmailAttachment $entity)
     {
+        if ($entity->getContent() === null) {
+            try {
+                $entity = $this->getImapEmailAttachmentLoader()->loadEmailAttachment(
+                    $entity->getEmailBody(),
+                    $entity->getFileName()
+                );
+            } catch (EmailBodyNotFoundException|EmailAttachmentNotFoundException) {
+                return new Response('', Response::HTTP_NOT_FOUND);
+            }
+        }
+
         $response = new Response();
         $response->headers->set('Content-Type', $entity->getContentType());
         $response->headers->set('Content-Disposition', sprintf('attachment; filename="%s"', $entity->getFileName()));
@@ -559,7 +572,7 @@ class EmailController extends AbstractController
      *
      *
      * @param EmailBody $entity
-     * @return BinaryFileResponse
+     * @return Response
      */
     #[Route(path: '/attachments/{id}', name: 'oro_email_body_attachments', requirements: ['id' => '\d+'])]
     #[AclAncestor('oro_email_email_body_view')]
@@ -570,6 +583,19 @@ class EmailController extends AbstractController
             $zip = new \ZipArchive();
             $zipName = $this->getFileManager()->getTemporaryFileName('attachments-' . time() . '.zip');
             $zip->open($zipName, \ZipArchive::CREATE);
+
+            $attachmentWithoutContent = array_filter(iterator_to_array($attachments), function ($attachment) {
+                return $attachment->getContent() === null;
+            });
+
+            if (count($attachmentWithoutContent) > 0) {
+                try {
+                    $attachments = $this->getImapEmailAttachmentLoader()->loadEmailAttachments($entity);
+                } catch (EmailBodyNotFoundException|EmailAttachmentNotFoundException) {
+                    return new Response('', Response::HTTP_NOT_FOUND);
+                }
+            }
+
             foreach ($attachments as $attachment) {
                 $content = ContentDecoder::decode(
                     $attachment->getContent()->getContent(),
@@ -930,9 +956,19 @@ class EmailController extends AbstractController
         return $this->container->get(SmtpSettingsChecker::class);
     }
 
+    private function getImapEmailAttachmentLoader(): ImapEmailAttachmentLoader
+    {
+        return $this->container->get(ImapEmailAttachmentLoader::class);
+    }
+
     private function getSmtpSettingsProvider(): SmtpSettingsProviderInterface
     {
         return $this->container->get(SmtpSettingsProviderInterface::class);
+    }
+
+    private function getEmailHandler(): EmailHandler
+    {
+        return $this->container->get(EmailHandler::class);
     }
 
     protected function process(EmailModel $emailModel): array
@@ -942,10 +978,17 @@ class EmailController extends AbstractController
             'saved' => false,
             'appendSignature' => (bool)$this->getUserConfigManager()->get('oro_email.append_signature')
         ];
-        if ($this->container->get(EmailHandler::class)->process($emailModel)) {
+
+        $emailHandler = $this->getEmailHandler();
+
+        $form = $emailHandler->createForm($emailModel);
+        $emailHandler->handleRequest($form, $this->getRequestStack()->getCurrentRequest());
+
+        if ($emailHandler->handleFormSubmit($form)) {
             $responseData['saved'] = true;
         }
-        $responseData['form'] = $this->container->get(EmailType::class)->createView();
+
+        $responseData['form'] = $form->createView();
 
         return $responseData;
     }
@@ -1058,9 +1101,7 @@ class EmailController extends AbstractController
         return $this->container->get(DoctrineHelper::class)->getEntity($scopeClass, $scopeId);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public static function getSubscribedServices(): array
     {
         return array_merge(
@@ -1074,7 +1115,6 @@ class EmailController extends AbstractController
                 EmailThreadProvider::class,
                 ActivityListManager::class,
                 EmailHandler::class,
-                EmailType::class,
                 EntityRoutingHelper::class,
                 EmailModelBuilder::class,
                 FileManager::class,
@@ -1091,6 +1131,7 @@ class EmailController extends AbstractController
                 EmailRecipientsProvider::class,
                 EmailCacheManager::class,
                 EmailManager::class,
+                ImapEmailAttachmentLoader::class,
                 'oro_config.user' => ConfigManager::class,
                 'oro_entity_config.provider.attachment' => ConfigProvider::class,
                 'doctrine' => ManagerRegistry::class,

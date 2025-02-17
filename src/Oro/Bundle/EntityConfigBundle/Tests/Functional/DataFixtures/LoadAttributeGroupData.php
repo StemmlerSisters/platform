@@ -35,6 +35,7 @@ class LoadAttributeGroupData extends AbstractFixture implements DependentFixture
         'regular' => [
             self::REGULAR_ATTRIBUTE_GROUP_1 => [
                 LoadAttributeData::REGULAR_ATTRIBUTE_1,
+                LoadAttributeData::BOOL_ATTRIBUTE_1,
             ],
             self::REGULAR_ATTRIBUTE_GROUP_2 => [
                 LoadAttributeData::REGULAR_ATTRIBUTE_2,
@@ -43,9 +44,7 @@ class LoadAttributeGroupData extends AbstractFixture implements DependentFixture
         ],
     ];
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getDependencies()
     {
         return [
@@ -53,6 +52,7 @@ class LoadAttributeGroupData extends AbstractFixture implements DependentFixture
         ];
     }
 
+    #[\Override]
     public function load(ObjectManager $manager)
     {
         $configManager = $this->container->get('oro_entity_config.config_manager');

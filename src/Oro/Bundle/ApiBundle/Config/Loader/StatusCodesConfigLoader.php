@@ -16,9 +16,7 @@ class StatusCodesConfigLoader extends AbstractConfigLoader
         ConfigUtil::EXCLUDE     => 'setExcluded'
     ];
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function load(array $config): mixed
     {
         $codes = new StatusCodesConfig();
@@ -29,7 +27,7 @@ class StatusCodesConfigLoader extends AbstractConfigLoader
         return $codes;
     }
 
-    private function loadCode(array $config = null): StatusCodeConfig
+    private function loadCode(?array $config = null): StatusCodeConfig
     {
         $code = new StatusCodeConfig();
         if (!empty($config)) {

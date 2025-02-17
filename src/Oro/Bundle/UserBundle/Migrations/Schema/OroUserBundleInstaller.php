@@ -4,7 +4,6 @@ namespace Oro\Bundle\UserBundle\Migrations\Schema;
 
 use Doctrine\DBAL\Platforms\PostgreSqlPlatform;
 use Doctrine\DBAL\Schema\Schema;
-use Doctrine\DBAL\Types\Types;
 use Oro\Bundle\ActivityBundle\Migration\Extension\ActivityExtensionAwareInterface;
 use Oro\Bundle\ActivityBundle\Migration\Extension\ActivityExtensionAwareTrait;
 use Oro\Bundle\AttachmentBundle\Migration\Extension\AttachmentExtensionAwareInterface;
@@ -13,14 +12,11 @@ use Oro\Bundle\EntityBundle\EntityConfig\DatagridScope;
 use Oro\Bundle\EntityExtendBundle\EntityConfig\ExtendScope;
 use Oro\Bundle\EntityExtendBundle\Migration\Extension\ExtendExtensionAwareInterface;
 use Oro\Bundle\EntityExtendBundle\Migration\Extension\ExtendExtensionAwareTrait;
-use Oro\Bundle\EntityExtendBundle\Migration\OroOptions;
-use Oro\Bundle\EntityExtendBundle\Migration\Query\EnumDataValue;
-use Oro\Bundle\EntityExtendBundle\Migration\Query\InsertEnumValuesQuery;
+use Oro\Bundle\EntityExtendBundle\Tools\ExtendHelper;
 use Oro\Bundle\FormBundle\Form\Type\OroResizeableRichTextType;
 use Oro\Bundle\MigrationBundle\Migration\Extension\DatabasePlatformAwareInterface;
 use Oro\Bundle\MigrationBundle\Migration\Extension\DatabasePlatformAwareTrait;
 use Oro\Bundle\MigrationBundle\Migration\Installation;
-use Oro\Bundle\MigrationBundle\Migration\ParametrizedSqlMigrationQuery;
 use Oro\Bundle\MigrationBundle\Migration\QueryBag;
 use Oro\Bundle\MigrationBundle\Migration\SqlMigrationQuery;
 use Oro\Bundle\UserBundle\Entity\UserManager;
@@ -41,22 +37,17 @@ class OroUserBundleInstaller implements
     use ExtendExtensionAwareTrait;
     use ActivityExtensionAwareTrait;
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function getMigrationVersion(): string
     {
-        return 'v2_11';
+        return 'v2_14';
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function up(Schema $schema, QueryBag $queries): void
     {
         /** Tables generation **/
         $this->createOroUserEmailTable($schema, $queries);
-        $this->createOroUserApiTable($schema);
         $this->createOroUserTable($schema);
         $this->createOroUserOrganizationTable($schema);
         $this->createOroUserImpersonationTable($schema);
@@ -73,7 +64,6 @@ class OroUserBundleInstaller implements
 
         /** Foreign keys generation **/
         $this->addOroUserEmailForeignKeys($schema);
-        $this->addOroUserApiForeignKeys($schema);
         $this->addOroUserForeignKeys($schema);
         $this->addOroUserOrganizationForeignKeys($schema);
         $this->addOroUserImpersonationForeignKeys($schema);
@@ -98,7 +88,7 @@ class OroUserBundleInstaller implements
 
         $this->updateOroEmailUserTable($schema);
 
-        $this->addOroUserAuthStatusField($schema, $queries);
+        $this->addOroUserAuthStatusField($schema);
         $this->addOroUserRelationToScope($schema);
     }
 
@@ -120,22 +110,6 @@ class OroUserBundleInstaller implements
                 'CREATE INDEX idx_user_email_ci ON oro_user_email (LOWER(email))'
             ));
         }
-    }
-
-    /**
-     * Create oro_user_api table
-     */
-    private function createOroUserApiTable(Schema $schema): void
-    {
-        $table = $schema->createTable('oro_user_api');
-        $table->addColumn('id', 'integer', ['precision' => 0, 'autoincrement' => true]);
-        $table->addColumn('organization_id', 'integer', ['notnull' => false]);
-        $table->addColumn('user_id', 'integer');
-        $table->addColumn('api_key', 'crypted_string', ['length' => 255]);
-        $table->setPrimaryKey(['id']);
-        $table->addUniqueIndex(['api_key'], 'UNIQ_296B6993C912ED9D');
-        $table->addIndex(['user_id'], 'IDX_296B6993A76ED395');
-        $table->addIndex(['organization_id'], 'IDX_296B699332C8A3DE');
     }
 
     /**
@@ -338,7 +312,7 @@ class OroUserBundleInstaller implements
         $table->addColumn('username', 'string', ['length' => 255, 'notnull' => false]);
         $table->addColumn('user_id', 'integer', ['notnull' => false]);
         $table->addColumn('ip', 'string', ['length' => 255, 'notnull' => false]);
-        $table->addColumn('user_agent', 'string', ['length' => 255, 'notnull' => false]);
+        $table->addColumn('user_agent', 'text', ['notnull' => false, 'default' => '']);
         $table->addColumn('context', 'json', ['notnull' => true, 'comment' => '(DC2Type:json)']);
         $table->setPrimaryKey(['id']);
         $table->addIndex(['user_id'], 'idx_aa4c6465a76ed395');
@@ -394,26 +368,6 @@ class OroUserBundleInstaller implements
             $schema->getTable('oro_user'),
             ['user_id'],
             ['id']
-        );
-    }
-
-    /**
-     * Add oro_user_api foreign keys.
-     */
-    private function addOroUserApiForeignKeys(Schema $schema): void
-    {
-        $table = $schema->getTable('oro_user_api');
-        $table->addForeignKeyConstraint(
-            $schema->getTable('oro_organization'),
-            ['organization_id'],
-            ['id'],
-            ['onDelete' => 'SET NULL', 'onUpdate' => null]
-        );
-        $table->addForeignKeyConstraint(
-            $schema->getTable('oro_user'),
-            ['user_id'],
-            ['id'],
-            ['onDelete' => 'CASCADE', 'onUpdate' => null]
         );
     }
 
@@ -755,29 +709,24 @@ class OroUserBundleInstaller implements
         );
     }
 
-    private function addOroUserAuthStatusField(Schema $schema, QueryBag $queries): void
+    private function addOroUserAuthStatusField(Schema $schema): void
     {
-        $enumTable = $this->extendExtension->addEnumField(
+        $this->extendExtension->addEnumField(
             $schema,
             'oro_user',
             'auth_status',
             'auth_status'
         );
-
-        $options = new OroOptions();
-        $options->set('enum', 'immutable_codes', [UserManager::STATUS_ACTIVE, UserManager::STATUS_RESET]);
-        $enumTable->addOption(OroOptions::KEY, $options);
-
-        $queries->addPostQuery(new InsertEnumValuesQuery($this->extendExtension, 'auth_status', [
-            new EnumDataValue(UserManager::STATUS_ACTIVE, 'Active', 1, true),
-            new EnumDataValue(UserManager::STATUS_RESET, 'Reset', 2)
-        ]));
-
-        $queries->addPostQuery(new ParametrizedSqlMigrationQuery(
-            'UPDATE oro_user SET auth_status_id = :default_status',
-            ['default_status' => UserManager::STATUS_ACTIVE],
-            ['default_status' => Types::STRING]
-        ));
+        $enumOptionIds = [
+            ExtendHelper::buildEnumOptionId('auth_status', UserManager::STATUS_ACTIVE),
+            ExtendHelper::buildEnumOptionId('auth_status', UserManager::STATUS_RESET),
+        ];
+        $schema->getTable('oro_user')->addExtendColumnOption(
+            'auth_status',
+            'enum',
+            'immutable_codes',
+            $enumOptionIds
+        );
     }
 
     private function addOroUserRelationToScope(Schema $schema): void

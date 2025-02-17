@@ -18,6 +18,7 @@ class CustomizeLoadedDataContextTest extends \PHPUnit\Framework\TestCase
 {
     private CustomizeLoadedDataContext $context;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->context = new CustomizeLoadedDataContext();
@@ -240,6 +241,38 @@ class CustomizeLoadedDataContextTest extends \PHPUnit\Framework\TestCase
         $config->addField($fieldName)->setPropertyPath($propertyName);
         $this->context->setConfig($config);
         self::assertNull($this->context->getResultFieldValue($propertyName, $data));
+    }
+
+    public function testGetResultFieldNameForSpecifiedConfigWhenFieldDoesNotExist()
+    {
+        $propertyPath = 'test';
+        $config = new EntityDefinitionConfig();
+        self::assertEquals($propertyPath, $this->context->getResultFieldName($propertyPath, $config));
+    }
+
+    public function testGetResultFieldNameForSpecifiedConfigForNotRenamedField()
+    {
+        $propertyPath = 'test';
+        $config = new EntityDefinitionConfig();
+        $config->addField($propertyPath);
+        self::assertEquals($propertyPath, $this->context->getResultFieldName($propertyPath, $config));
+    }
+
+    public function testGetResultFieldNameForSpecifiedConfigForRenamedField()
+    {
+        $fieldName = 'renamedTest';
+        $propertyPath = 'test';
+        $config = new EntityDefinitionConfig();
+        $config->addField($fieldName)->setPropertyPath($propertyPath);
+        self::assertEquals($fieldName, $this->context->getResultFieldName($propertyPath, $config));
+    }
+
+    public function testGetResultFieldNameForSpecifiedConfigForComputedField()
+    {
+        $fieldName = 'test';
+        $config = new EntityDefinitionConfig();
+        $config->addField($fieldName)->setPropertyPath(ConfigUtil::IGNORE_PROPERTY_PATH);
+        self::assertEquals($fieldName, $this->context->getResultFieldName($fieldName, $config));
     }
 
     public function testGetResultFieldValueByPropertyPathWithoutConfig()

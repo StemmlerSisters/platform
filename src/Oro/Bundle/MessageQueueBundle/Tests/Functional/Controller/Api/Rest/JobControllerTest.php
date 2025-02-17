@@ -10,9 +10,10 @@ use Oro\Bundle\TestFrameworkBundle\Test\WebTestCase;
 
 class JobControllerTest extends WebTestCase
 {
+    #[\Override]
     protected function setUp(): void
     {
-        $this->initClient([], $this->generateWsseAuthHeader());
+        $this->initClient([], self::generateApiAuthHeader());
         $this->loadFixtures([LoadJobData::class]);
     }
 
@@ -50,9 +51,7 @@ class JobControllerTest extends WebTestCase
         $this->assertSame(Job::STATUS_CANCELLED, $childJob->getStatus());
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     protected function getDataFixturesExecutorEntityManager(): EntityManagerInterface
     {
         return $this->getJobEntityManager();

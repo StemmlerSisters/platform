@@ -25,10 +25,8 @@ class MessageQueueCollector extends DataCollector
         $this->reset();
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function collect(Request $request, Response $response, \Throwable $exception = null)
+    #[\Override]
+    public function collect(Request $request, Response $response, ?\Throwable $exception = null)
     {
         if ($this->messageProducer instanceof TraceableMessageProducer) {
             $this->data['sent_messages'] = $this->messageProducer->getTraces();
@@ -77,17 +75,13 @@ class MessageQueueCollector extends DataCollector
         );
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getName(): string
     {
         return 'message_queue';
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function reset()
     {
         $this->data = [

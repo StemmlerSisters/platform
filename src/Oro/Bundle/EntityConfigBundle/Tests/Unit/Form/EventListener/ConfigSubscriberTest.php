@@ -37,6 +37,7 @@ class ConfigSubscriberTest extends \PHPUnit\Framework\TestCase
     /** @var ConfigSubscriber */
     private $subscriber;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->configManager = $this->createMock(ConfigManager::class);
@@ -64,7 +65,7 @@ class ConfigSubscriberTest extends \PHPUnit\Framework\TestCase
     /**
      * @dataProvider preSetDataProvider
      */
-    public function testPreSetData(array $data, ConfigModel $model, array $trans, array $expectedData = null): void
+    public function testPreSetData(array $data, ConfigModel $model, array $trans, ?array $expectedData = null): void
     {
         $provider1 = $this->getConfigProvider(
             'entity',
@@ -791,7 +792,7 @@ class ConfigSubscriberTest extends \PHPUnit\Framework\TestCase
     private function getFormEvent(
         array $data,
         ConfigModel $model,
-        FormInterface|Form $form = null
+        FormInterface|Form|null $form = null
     ): \PHPUnit\Framework\MockObject\MockObject|FormEvent {
         $fieldName = '';
         if ($model instanceof FieldConfigModel && !$model->getId()) {

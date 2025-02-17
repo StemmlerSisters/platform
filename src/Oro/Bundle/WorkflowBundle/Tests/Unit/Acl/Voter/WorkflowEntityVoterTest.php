@@ -35,6 +35,7 @@ class WorkflowEntityVoterTest extends TestCase
     /** @var WorkflowEntityVoter */
     private $voter;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->doctrineHelper = $this->createMock(DoctrineHelper::class);
@@ -206,7 +207,7 @@ class WorkflowEntityVoterTest extends TestCase
         ?int $entityIdentifier = null,
         array $aclIdentities = []
     ) {
-        $entityAclRepository =$this->createMock(WorkflowEntityAclRepository::class);
+        $entityAclRepository = $this->createMock(WorkflowEntityAclRepository::class);
         $entityAclRepository->expects($this->any())
             ->method('getWorkflowEntityAcls')
             ->willReturn($entityAcls);

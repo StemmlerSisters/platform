@@ -10,6 +10,7 @@ class UpdateListContextTest extends \PHPUnit\Framework\TestCase
 {
     private UpdateListContext $context;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->context = new UpdateListContext(
@@ -18,7 +19,7 @@ class UpdateListContextTest extends \PHPUnit\Framework\TestCase
         );
     }
 
-    public function testRequestData()
+    public function testRequestData(): void
     {
         self::assertNull($this->context->getRequestData());
 
@@ -34,7 +35,7 @@ class UpdateListContextTest extends \PHPUnit\Framework\TestCase
         self::assertNull($this->context->getRequestData());
     }
 
-    public function testTargetFileName()
+    public function testTargetFileName(): void
     {
         self::assertNull($this->context->getTargetFileName());
 
@@ -46,7 +47,7 @@ class UpdateListContextTest extends \PHPUnit\Framework\TestCase
         self::assertNull($this->context->getTargetFileName());
     }
 
-    public function testOperationId()
+    public function testOperationId(): void
     {
         self::assertNull($this->context->getOperationId());
 
@@ -56,5 +57,23 @@ class UpdateListContextTest extends \PHPUnit\Framework\TestCase
 
         $this->context->setOperationId(null);
         self::assertNull($this->context->getOperationId());
+    }
+
+    public function testSynchronousMode(): void
+    {
+        self::assertFalse($this->context->hasSynchronousMode());
+        self::assertFalse($this->context->isSynchronousMode());
+
+        $this->context->setSynchronousMode(true);
+        self::assertTrue($this->context->hasSynchronousMode());
+        self::assertTrue($this->context->isSynchronousMode());
+
+        $this->context->setSynchronousMode(false);
+        self::assertTrue($this->context->hasSynchronousMode());
+        self::assertFalse($this->context->isSynchronousMode());
+
+        $this->context->setSynchronousMode(null);
+        self::assertFalse($this->context->hasSynchronousMode());
+        self::assertFalse($this->context->isSynchronousMode());
     }
 }

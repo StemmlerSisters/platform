@@ -43,17 +43,13 @@ class CleanupCommand extends Command implements
         $this->nativeQueryExecutorHelper = $nativeQueryExecutorHelper;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function getDefaultDefinition(): string
     {
         return '0 1 * * *';
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function isActive(): bool
     {
         $completedInterval = new \DateTime('now', new \DateTimeZone('UTC'));
@@ -67,10 +63,11 @@ class CleanupCommand extends Command implements
 
         $count = $qb->getQuery()->getSingleScalarResult();
 
-        return ($count>0);
+        return ($count > 0);
     }
 
     /** @noinspection PhpMissingParentCallCommonInspection */
+    #[\Override]
     protected function configure()
     {
         $this
@@ -103,6 +100,7 @@ HELP
     }
 
     /** @noinspection PhpMissingParentCallCommonInspection */
+    #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $interval = $input->getOption('interval');

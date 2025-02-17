@@ -38,10 +38,8 @@ class PlatformCollector extends DataCollector
         return ProfilerConfig::trackContainerChanges();
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function collect(Request $request, Response $response, \Throwable $exception = null): void
+    #[\Override]
+    public function collect(Request $request, Response $response, ?\Throwable $exception = null): void
     {
         $response->headers->setCookie(
             Cookie::create(
@@ -53,17 +51,13 @@ class PlatformCollector extends DataCollector
         );
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function reset(): void
     {
         $this->data = [];
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getName(): string
     {
         return 'oro_platform';

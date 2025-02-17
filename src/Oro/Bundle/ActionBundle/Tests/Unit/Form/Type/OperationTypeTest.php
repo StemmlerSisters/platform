@@ -22,6 +22,7 @@ class OperationTypeTest extends FormIntegrationTestCase
     /** @var OperationType */
     private $formType;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->formType = new OperationType(
@@ -31,9 +32,7 @@ class OperationTypeTest extends FormIntegrationTestCase
         parent::setUp();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     protected function getExtensions(): array
     {
         return [
@@ -50,7 +49,7 @@ class OperationTypeTest extends FormIntegrationTestCase
         array $submittedData,
         ActionData $expectedData,
         array $expectedChildrenOptions = [],
-        ActionData $expectedDefaultData = null
+        ?ActionData $expectedDefaultData = null
     ) {
         $form = $this->factory->create(OperationType::class, $defaultData, $inputOptions);
 
@@ -225,7 +224,7 @@ class OperationTypeTest extends FormIntegrationTestCase
     /**
      * @dataProvider exceptionDataProvider
      */
-    public function testException(array $options, string $exception, string $message, ActionData $data = null)
+    public function testException(array $options, string $exception, string $message, ?ActionData $data = null)
     {
         $this->expectException($exception);
         $this->expectExceptionMessage($message);
@@ -275,6 +274,26 @@ class OperationTypeTest extends FormIntegrationTestCase
                 'context' => $this->createOperationData()
             ]
         ];
+    }
+
+    public function testHasOperationNameBlockPrefix(): void
+    {
+        $operation = $this->createOperation([
+            'field1' => [],
+            'field2' => [],
+            'field3' => ['property_path' => 'entity.property1'],
+        ]);
+        $operationData = $this->createOperationData([
+            'field1' => 'data1',
+            'field2' => 'data2',
+            'data' => (object)['property1' => 'data3'],
+        ]);
+
+        $form = $this->factory->create(OperationType::class, $operationData, ['operation' => $operation]);
+        self::assertEquals($operation->getName(), $form->getConfig()->getOption('block_prefix'));
+
+        $formView = $form->createView();
+        self::assertContainsEquals($operation->getName(), $formView->vars['block_prefixes']);
     }
 
     private function createOperationData(array $data = [], bool $modified = false): ActionData

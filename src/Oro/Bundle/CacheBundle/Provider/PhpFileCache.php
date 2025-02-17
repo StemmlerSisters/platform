@@ -14,7 +14,7 @@ class PhpFileCache extends BasePhpFileCache implements DirectoryAwareFileCacheIn
     public function __construct(
         string $namespace = '',
         int $defaultLifetime = 0,
-        string $directory = null,
+        ?string $directory = null,
         bool $appendOnly = false
     ) {
         if ($directory) {

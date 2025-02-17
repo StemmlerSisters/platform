@@ -24,7 +24,7 @@ class GetterMetadata extends MemberMetadata
 
     private int $methodType = self::METHOD_NOT_EXISTS;
 
-    public function __construct(string $class, string $property, string $method = null)
+    public function __construct(string $class, string $property, ?string $method = null)
     {
         if (null === $method) {
             $getMethod = 'get' . ucfirst($property);
@@ -62,15 +62,13 @@ class GetterMetadata extends MemberMetadata
         parent::__construct($class, $method, $property);
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function __sleep(): array
     {
         return array_merge(parent::__sleep(), ['methodType']);
     }
 
-    protected function getExtendEntityMethod(string $class, string $property, string $method = null): ?string
+    protected function getExtendEntityMethod(string $class, string $property, ?string $method = null): ?string
     {
         if (is_subclass_of($class, ExtendEntityInterface::class)) {
             $transport = new EntityFieldProcessTransport();
@@ -102,9 +100,7 @@ class GetterMetadata extends MemberMetadata
         return null;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[\Override]
     protected function newReflectionMember($objectOrClassName): \ReflectionMethod|\ReflectionProperty
     {
         if ($this->methodType === self::METHOD_REAL) {
@@ -114,9 +110,7 @@ class GetterMetadata extends MemberMetadata
         return ReflectionVirtualProperty::create($this->getPropertyName());
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[\Override]
     public function getPropertyValue($containingValue): mixed
     {
         if ($this->methodType === self::METHOD_REAL) {

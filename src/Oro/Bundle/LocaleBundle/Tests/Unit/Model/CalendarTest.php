@@ -11,6 +11,7 @@ class CalendarTest extends TestCase
     private Calendar $calendar;
     private string $defaultLocale;
 
+    #[\Override]
     protected function setUp(): void
     {
         IntlTestHelper::requireIntl($this);
@@ -20,6 +21,7 @@ class CalendarTest extends TestCase
         $this->defaultLocale = \Locale::getDefault();
     }
 
+    #[\Override]
     protected function tearDown(): void
     {
         \Locale::setDefault($this->defaultLocale);
@@ -28,7 +30,7 @@ class CalendarTest extends TestCase
     /**
      * @dataProvider getFirstDayOfWeekDataProvider
      */
-    public function testGetFirstDayOfWeek(?string $locale, int $expected, string $defaultLocale = null)
+    public function testGetFirstDayOfWeek(?string $locale, int $expected, ?string $defaultLocale = null)
     {
         $this->calendar->setLocale($locale);
         if (null !== $defaultLocale) {
@@ -112,7 +114,7 @@ class CalendarTest extends TestCase
     /**
      * @dataProvider getDayOfWeekNamesDataProvider
      */
-    public function testGetDayOfWeekNames(?string $width, ?string $locale, string $defaultLocale = null)
+    public function testGetDayOfWeekNames(?string $width, ?string $locale, ?string $defaultLocale = null)
     {
         $this->calendar->setLocale($locale);
         if (null !== $defaultLocale) {

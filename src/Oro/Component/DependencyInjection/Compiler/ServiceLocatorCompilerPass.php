@@ -28,7 +28,7 @@ class ServiceLocatorCompilerPass implements CompilerPassInterface
     public function __construct(
         string $serviceLocatorServiceId,
         string $tagName,
-        string $nameAttribute = null,
+        ?string $nameAttribute = null,
         bool $isServiceLocatorOptional = false
     ) {
         $this->serviceLocatorServiceId = $serviceLocatorServiceId;
@@ -37,9 +37,7 @@ class ServiceLocatorCompilerPass implements CompilerPassInterface
         $this->isServiceLocatorOptional = $isServiceLocatorOptional;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function process(ContainerBuilder $container)
     {
         if ($this->isServiceLocatorOptional && !$container->hasDefinition($this->serviceLocatorServiceId)) {

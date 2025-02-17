@@ -6,6 +6,7 @@ use Oro\Bundle\ApiBundle\Config\EntityDefinitionConfig;
 use Oro\Bundle\ApiBundle\Config\EntityDefinitionFieldConfig;
 use Oro\Bundle\ApiBundle\Config\UpsertConfig;
 use Oro\Bundle\ApiBundle\Util\ConfigUtil;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\NotNull;
 
@@ -13,7 +14,7 @@ use Symfony\Component\Validator\Constraints\NotNull;
  * @SuppressWarnings(PHPMD.TooManyMethods)
  * @SuppressWarnings(PHPMD.TooManyPublicMethods)
  */
-class EntityDefinitionConfigTest extends \PHPUnit\Framework\TestCase
+class EntityDefinitionConfigTest extends TestCase
 {
     public function testKey()
     {
@@ -37,7 +38,7 @@ class EntityDefinitionConfigTest extends \PHPUnit\Framework\TestCase
         $objValue = new \stdClass();
         $objValue->someProp = 123;
         $config->set('test_object', $objValue);
-        $config->addField('field1')->setDataType('int');
+        $config->addField('field1')->setDataType('integer');
 
         $configClone = clone $config;
 
@@ -85,6 +86,25 @@ class EntityDefinitionConfigTest extends \PHPUnit\Framework\TestCase
         self::assertSame([], $config->keys());
     }
 
+    public function testResourceClass()
+    {
+        $config = new EntityDefinitionConfig();
+        self::assertNull($config->getResourceClass());
+
+        $config->setResourceClass('Test\Class');
+        self::assertEquals('Test\Class', $config->getResourceClass());
+        self::assertEquals(['resource_class' => 'Test\Class'], $config->toArray());
+
+        $config->setResourceClass(null);
+        self::assertNull($config->getResourceClass());
+        self::assertEquals([], $config->toArray());
+
+        $config->setResourceClass('Test\Class');
+        $config->setResourceClass('');
+        self::assertNull($config->getResourceClass());
+        self::assertEquals([], $config->toArray());
+    }
+
     public function testParentResourceClass()
     {
         $config = new EntityDefinitionConfig();
@@ -99,7 +119,7 @@ class EntityDefinitionConfigTest extends \PHPUnit\Framework\TestCase
         self::assertEquals([], $config->toArray());
 
         $config->setParentResourceClass('Test\Class');
-        $config->setParentResourceClass(null);
+        $config->setParentResourceClass('');
         self::assertNull($config->getParentResourceClass());
         self::assertEquals([], $config->toArray());
     }
@@ -849,5 +869,22 @@ class EntityDefinitionConfigTest extends \PHPUnit\Framework\TestCase
 
         $config->getUpsertConfig()->setEnabled(false);
         self::assertSame([], $config->toArray());
+    }
+
+    public function testValidateFlag(): void
+    {
+        $config = new EntityDefinitionConfig();
+        self::assertFalse($config->hasEnableValidation());
+        self::assertFalse($config->isValidationEnabled());
+
+        $config->enableValidation();
+        self::assertTrue($config->hasEnableValidation());
+        self::assertTrue($config->isValidationEnabled());
+        self::assertEquals(['enable_validation' => true], $config->toArray());
+
+        $config->disableValidation();
+        self::assertTrue($config->hasEnableValidation());
+        self::assertFalse($config->isValidationEnabled());
+        self::assertEquals([], $config->toArray());
     }
 }

@@ -11,6 +11,7 @@ class PushBatchLogHandlerPassTest extends \PHPUnit\Framework\TestCase
 {
     private PushBatchLogHandlerPass $pushBatchLogHandlerPass;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->pushBatchLogHandlerPass = new PushBatchLogHandlerPass();
@@ -44,7 +45,7 @@ class PushBatchLogHandlerPassTest extends \PHPUnit\Framework\TestCase
     }
 
     private function getContainerBuilderMock(
-        Definition $logger = null
+        ?Definition $logger = null
     ): ContainerBuilder|\PHPUnit\Framework\MockObject\MockObject {
         $container = $this->createMock(ContainerBuilder::class);
 

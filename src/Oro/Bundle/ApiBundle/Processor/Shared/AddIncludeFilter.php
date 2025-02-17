@@ -26,9 +26,7 @@ class AddIncludeFilter implements ProcessorInterface
         $this->filterNamesRegistry = $filterNamesRegistry;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function process(ContextInterface $context): void
     {
         /** @var Context $context */
@@ -47,14 +45,14 @@ class AddIncludeFilter implements ProcessorInterface
             return;
         }
 
-        $filters = $context->getFilters();
-        if ($filters->has($filterName)) {
+        $filterCollection = $context->getFilters();
+        if ($filterCollection->has($filterName)) {
             // the "include" filter is already added
             return;
         }
 
         $filter = new IncludeFilter(DataType::STRING, self::FILTER_DESCRIPTION);
         $filter->setArrayAllowed(true);
-        $filters->add($filterName, $filter, false);
+        $filterCollection->add($filterName, $filter, false);
     }
 }

@@ -19,9 +19,7 @@ class BusinessUnitOwnerSearchHandler extends SearchHandler
         $this->doctrine = $doctrine;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function convertItem($item)
     {
         $result = parent::convertItem($item);
@@ -43,7 +41,7 @@ class BusinessUnitOwnerSearchHandler extends SearchHandler
      */
     protected function getPath($businessUnit, $path)
     {
-        array_unshift($path, ['name'=> $businessUnit->getName()]);
+        array_unshift($path, ['name' => $businessUnit->getName()]);
 
         $owner = $businessUnit->getOwner();
         if ($owner) {

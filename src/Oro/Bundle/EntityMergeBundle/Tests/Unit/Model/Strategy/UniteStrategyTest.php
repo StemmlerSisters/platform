@@ -193,8 +193,8 @@ class UniteStrategyTest extends \PHPUnit\Framework\TestCase
     }
 
     private function createEntityData(
-        object $masterEntity = null,
-        object $sourceEntity = null,
+        ?object $masterEntity = null,
+        ?object $sourceEntity = null,
         array $doctrineMetadata = []
     ): EntityData {
         $doctrineMetadata = new DoctrineMetadata($doctrineMetadata);

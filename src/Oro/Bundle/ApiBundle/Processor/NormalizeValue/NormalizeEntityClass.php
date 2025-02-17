@@ -11,7 +11,7 @@ use Oro\Bundle\EntityBundle\ORM\EntityAliasResolver;
  */
 class NormalizeEntityClass extends AbstractProcessor
 {
-    private const REQUIREMENT = '[a-zA-Z]\w+';
+    public const REQUIREMENT = '[a-zA-Z]\w+';
 
     private EntityAliasResolverRegistry $entityAliasResolverRegistry;
     private ?EntityAliasResolver $entityAliasResolver = null;
@@ -21,41 +21,31 @@ class NormalizeEntityClass extends AbstractProcessor
         $this->entityAliasResolverRegistry = $entityAliasResolverRegistry;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     protected function getDataTypeString(): string
     {
         return 'entity type';
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     protected function getDataTypePluralString(): string
     {
         return 'entity types';
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     protected function getRequirement(): string
     {
         return self::REQUIREMENT;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     protected function isValueNormalizationRequired(mixed $value): bool
     {
         return !str_contains($value, '\\');
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     protected function processNormalization(NormalizeValueContext $context): void
     {
         $this->entityAliasResolver = $this->entityAliasResolverRegistry
@@ -67,9 +57,7 @@ class NormalizeEntityClass extends AbstractProcessor
         }
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     protected function normalizeValue(mixed $value): mixed
     {
         return $this->entityAliasResolver->getClassByPluralAlias($value);

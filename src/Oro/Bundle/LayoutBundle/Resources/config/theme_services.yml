@@ -72,6 +72,13 @@ services:
         tags:
             - { name: layout.context_configurator }
 
+    oro_layout.layout_context_configurator.svg_icons_support:
+        class: Oro\Bundle\LayoutBundle\Layout\Extension\SvgIconsSupportContextConfigurator
+        arguments:
+            - '@oro_layout.provider.svg_icons_support'
+        tags:
+            - { name: layout.context_configurator }
+
     oro_layout.theme_extension:
         class: Oro\Component\Layout\Extension\Theme\ThemeExtension
         arguments:
@@ -118,6 +125,8 @@ services:
 
     oro_layout.theme_extension.configuration:
         class: Oro\Bundle\LayoutBundle\Layout\Extension\ThemeConfiguration
+        arguments:
+            - '@oro_theme.form.configuration_child_provider'
 
     oro_layout.theme_extension.visitor.import:
         class: Oro\Component\Layout\Extension\Theme\Visitor\ImportVisitor
@@ -132,8 +141,12 @@ services:
         arguments:
             - '@oro_layout.theme_manager'
             - '@oro_locale.provider.current_localization'
+            - '@oro_distribution.provider.public_directory_provider'
+        calls:
+            - ['setLogger', ['@logger']]
         tags:
             - { name: layout.data_provider, alias: theme }
+            - { name: monolog.logger, channel: oro_layout }
 
     oro_layout.expression_language.compiled_cache_warmer:
         class: Oro\Component\Layout\ExpressionLanguage\ExpressionLanguageCacheWarmer

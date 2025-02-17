@@ -7,9 +7,10 @@ use Oro\Bundle\WorkflowBundle\Entity\ProcessDefinition;
 
 class ProcessControllerTest extends WebTestCase
 {
+    #[\Override]
     protected function setUp(): void
     {
-        $this->initClient([], $this->generateWsseAuthHeader());
+        $this->initClient([], self::generateApiAuthHeader());
     }
 
     public function testActivateDeactivate()

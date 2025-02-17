@@ -24,6 +24,7 @@ class ExtendConfigProcessorTest extends \PHPUnit\Framework\TestCase
     /** @var ExtendConfigProcessor */
     private $generator;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->configManager = $this->createMock(ConfigManager::class);
@@ -578,8 +579,8 @@ class ExtendConfigProcessorTest extends \PHPUnit\Framework\TestCase
     private function createConfig(
         string $scope,
         string $className,
-        string $fieldName = null,
-        string $fieldType = null
+        ?string $fieldName = null,
+        ?string $fieldType = null
     ): Config {
         $configId = $fieldName
             ? new FieldConfigId($scope, $className, $fieldName, $fieldType)

@@ -21,6 +21,7 @@ class EntityToIdTransformerTest extends \PHPUnit\Framework\TestCase
     /** @var EntityManager|\PHPUnit\Framework\MockObject\MockObject */
     private $entityManager;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->entityManager = $this->createMock(EntityManager::class);
@@ -113,7 +114,7 @@ class EntityToIdTransformerTest extends \PHPUnit\Framework\TestCase
 
         $repository = $this->createMock(EntityRepository::class);
 
-        $self= $this;
+        $self = $this;
         $callback = function ($pRepository, $pId) use ($self, $repository, $entity) {
             $self->assertEquals($repository, $pRepository);
             $self->assertEquals(1, $pId);

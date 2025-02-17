@@ -16,18 +16,14 @@ class FixSkipNullValuesArrayNormalizer implements NormalizerInterface, Serialize
 {
     private ?SerializerInterface $serializer = null;
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function setSerializer(SerializerInterface $serializer)
     {
         $this->serializer = $serializer;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function normalize($object, string $format = null, array $context = [])
+    #[\Override]
+    public function normalize($object, ?string $format = null, array $context = [])
     {
         if (!($context[AbstractObjectNormalizer::SKIP_NULL_VALUES] ?? false)) {
             return $object;
@@ -40,10 +36,8 @@ class FixSkipNullValuesArrayNormalizer implements NormalizerInterface, Serialize
         return self::removeNullValues($object, $format, $context, $normalizer);
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function supportsNormalization($data, string $format = null): bool
+    #[\Override]
+    public function supportsNormalization($data, ?string $format = null): bool
     {
         return \is_array($data) && !empty($data);
     }

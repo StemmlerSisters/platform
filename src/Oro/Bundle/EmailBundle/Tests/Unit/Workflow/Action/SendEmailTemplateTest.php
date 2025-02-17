@@ -7,7 +7,7 @@ use Oro\Bundle\EmailBundle\Entity\EmailUser;
 use Oro\Bundle\EmailBundle\Model\EmailHolderInterface;
 use Oro\Bundle\EmailBundle\Model\From;
 use Oro\Bundle\EmailBundle\Model\Recipient;
-use Oro\Bundle\EmailBundle\Tools\AggregatedEmailTemplatesSender;
+use Oro\Bundle\EmailBundle\Sender\EmailTemplateSender;
 use Oro\Bundle\EmailBundle\Tools\EmailAddressHelper;
 use Oro\Bundle\EmailBundle\Workflow\Action\SendEmailTemplate;
 use Oro\Bundle\EntityBundle\Provider\EntityNameResolver;
@@ -17,34 +17,33 @@ use Oro\Bundle\TestFrameworkBundle\Test\Logger\LoggerAwareTraitTestTrait;
 use Oro\Component\Action\Exception\InvalidParameterException;
 use Oro\Component\ConfigExpression\ContextAccessor;
 use Oro\Component\Testing\ReflectionUtil;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\PropertyAccess\PropertyPath;
+use Symfony\Component\PropertyAccess\PropertyPathInterface;
 use Symfony\Component\Validator\ConstraintViolationInterface;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
 use Symfony\Component\Validator\Exception\ValidatorException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-class SendEmailTemplateTest extends \PHPUnit\Framework\TestCase
+class SendEmailTemplateTest extends TestCase
 {
     use LoggerAwareTraitTestTrait;
 
-    private ContextAccessor|\PHPUnit\Framework\MockObject\MockObject $contextAccessor;
-
-    private ValidatorInterface|\PHPUnit\Framework\MockObject\MockObject $validator;
-
-    private AggregatedEmailTemplatesSender|\PHPUnit\Framework\MockObject\MockObject $aggregatedEmailTemplatesSender;
+    private ContextAccessor|MockObject $contextAccessor;
+    private ValidatorInterface|MockObject $validator;
+    private EmailTemplateSender|MockObject $emailTemplateSender;
 
     private SendEmailTemplate $action;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->contextAccessor = $this->createMock(ContextAccessor::class);
-        $this->contextAccessor->expects(self::any())
-            ->method('getValue')
-            ->willReturnArgument(1);
-
         $this->validator = $this->createMock(ValidatorInterface::class);
         $entityNameResolver = $this->createMock(EntityNameResolver::class);
-        $this->aggregatedEmailTemplatesSender = $this->createMock(AggregatedEmailTemplatesSender::class);
+        $this->emailTemplateSender = $this->createMock(EmailTemplateSender::class);
         $dispatcher = $this->createMock(EventDispatcher::class);
 
         $this->action = new SendEmailTemplate(
@@ -52,7 +51,7 @@ class SendEmailTemplateTest extends \PHPUnit\Framework\TestCase
             $this->validator,
             new EmailAddressHelper(),
             $entityNameResolver,
-            $this->aggregatedEmailTemplatesSender
+            $this->emailTemplateSender
         );
         $this->action->setDispatcher($dispatcher);
 
@@ -264,6 +263,22 @@ class SendEmailTemplateTest extends \PHPUnit\Framework\TestCase
                     'entity' => new \stdClass(),
                 ],
             ],
+            'with recipients as PropertyPath' => [
+                [
+                    'from' => 'test@example.com',
+                    'to' => 'test2@example.com',
+                    'recipients' => $this->createMock(PropertyPathInterface::class),
+                    'template' => 'test',
+                    'entity' => new \stdClass(),
+                ],
+                [
+                    'from' => 'test@example.com',
+                    'to' => ['test2@example.com'],
+                    'recipients' => $this->createMock(PropertyPathInterface::class),
+                    'template' => 'test',
+                    'entity' => new \stdClass(),
+                ],
+            ],
         ];
     }
 
@@ -287,7 +302,11 @@ class SendEmailTemplateTest extends \PHPUnit\Framework\TestCase
 
     public function testExecuteWithInvalidEmail(): void
     {
-        $this->aggregatedEmailTemplatesSender->expects(self::never())
+        $this->contextAccessor->expects(self::any())
+            ->method('getValue')
+            ->willReturnArgument(1);
+
+        $this->emailTemplateSender->expects(self::never())
             ->method(self::anything());
 
         $this->action->initialize(
@@ -314,6 +333,10 @@ class SendEmailTemplateTest extends \PHPUnit\Framework\TestCase
      */
     public function testExecute(array $options, string|object $recipient, array $expected): void
     {
+        $this->contextAccessor->expects(self::any())
+            ->method('getValue')
+            ->willReturnArgument(1);
+
         $context = [];
         if (!$recipient instanceof EmailHolderInterface) {
             $recipient = new Recipient($recipient);
@@ -326,10 +349,10 @@ class SendEmailTemplateTest extends \PHPUnit\Framework\TestCase
             ->method('getEmail')
             ->willReturn($emailEntity);
 
-        $this->aggregatedEmailTemplatesSender->expects(self::once())
-            ->method('send')
-            ->with(new \stdClass(), [$recipient], $expected['from'], 'test')
-            ->willReturn([$emailUserEntity]);
+        $this->emailTemplateSender->expects(self::once())
+            ->method('sendEmailTemplate')
+            ->with($expected['from'], $recipient, 'test', ['entity' => new \stdClass()])
+            ->willReturn($emailUserEntity);
 
         if (array_key_exists('attribute', $options)) {
             $this->contextAccessor->expects(self::once())
@@ -444,7 +467,62 @@ class SendEmailTemplateTest extends \PHPUnit\Framework\TestCase
                     'body' => 'Test body',
                 ],
                 'de',
-            ],
+            ]
         ];
+    }
+
+    public function testExecuteWithPropertyPath(): void
+    {
+        $context = [
+            'from' => 'from@example.com',
+            'to' => ['email' => 'to@example.com'],
+            'recipients' => [new Recipient('recipient1@example.com')],
+            'template' => 'test',
+            'entity' => new \stdClass(),
+        ];
+
+        $this->contextAccessor->expects(self::any())
+            ->method('getValue')
+            ->willReturnCallback(function ($context, $data) {
+                if (!$data instanceof PropertyPathInterface) {
+                    return $data;
+                }
+
+                return $context[(string)$data];
+            });
+
+        $emailEntity = $this->createMock(Email::class);
+
+        $emailUserEntity = $this->createMock(EmailUser::class);
+        $emailUserEntity->expects(self::any())
+            ->method('getEmail')
+            ->willReturn($emailEntity);
+
+        $this->emailTemplateSender->expects(self::exactly(2))
+            ->method('sendEmailTemplate')
+            ->withConsecutive(
+                [
+                    From::emailAddress($context['from']),
+                    new Recipient($context['to']['email']),
+                    $context['template'],
+                    ['entity' => $context['entity']]
+                ],
+                [
+                    From::emailAddress($context['from']),
+                    $context['recipients'][0],
+                    $context['template'],
+                    ['entity' => $context['entity']]
+                ]
+            )
+            ->willReturn($emailUserEntity);
+
+        $this->action->initialize([
+            'from' => new PropertyPath('from'),
+            'to' => new PropertyPath('to'),
+            'recipients' => new PropertyPath('recipients'),
+            'template' => new PropertyPath('template'),
+            'entity' => new PropertyPath('entity')
+        ]);
+        $this->action->execute($context);
     }
 }

@@ -13,9 +13,7 @@ abstract class AbstractProcessor implements ProcessorInterface
 {
     private array $options = [];
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function process(ContextInterface $context): void
     {
         /** @var NormalizeValueContext $context */
@@ -82,7 +80,7 @@ abstract class AbstractProcessor implements ProcessorInterface
      */
     protected function getRangeRequirement(string $rangeDelimiter): string
     {
-        return sprintf('%1$s%2$s%1$s', $this->getRequirement(), $rangeDelimiter);
+        return sprintf('%1$s%2$s%1$s', $this->getRequirement(), preg_quote($rangeDelimiter, '/'));
     }
 
     /**

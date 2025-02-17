@@ -54,6 +54,7 @@ class NotificationAlertsListenerTest extends \PHPUnit\Framework\TestCase
     /** @var NotificationAlertsListener */
     private $listener;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->router = $this->createMock(RouterInterface::class);
@@ -88,7 +89,7 @@ class NotificationAlertsListenerTest extends \PHPUnit\Framework\TestCase
         );
     }
 
-    public function testOnRequestOnNonMasterRequest(): void
+    public function testOnRequestOnNonMainRequest(): void
     {
         $event = new RequestEvent(
             $this->createMock(HttpKernelInterface::class),

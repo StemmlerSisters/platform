@@ -63,7 +63,7 @@ class ObjectNormalizer
 
     public function normalizeObjects(
         array $objects,
-        EntityDefinitionConfig $config = null,
+        ?EntityDefinitionConfig $config = null,
         array $context = [],
         bool $skipPostSerializationForPrimaryObjects = false
     ): array {
@@ -315,7 +315,7 @@ class ObjectNormalizer
         mixed $value,
         int $level,
         array $context,
-        EntityDefinitionConfig $config = null
+        ?EntityDefinitionConfig $config = null
     ): mixed {
         if (\is_array($value)) {
             $nextLevel = $level + 1;

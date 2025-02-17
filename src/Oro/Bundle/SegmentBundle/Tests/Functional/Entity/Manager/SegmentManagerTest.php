@@ -48,6 +48,7 @@ class SegmentManagerTest extends WebTestCase
     /** @var SegmentManager */
     private $manager;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->initClient();
@@ -60,6 +61,7 @@ class SegmentManagerTest extends WebTestCase
         $this->clearSegmentQueryConverterCache();
     }
 
+    #[\Override]
     protected function tearDown(): void
     {
         if ($this->getFilterExecutionContext()->isValidationEnabled()) {
@@ -111,9 +113,9 @@ class SegmentManagerTest extends WebTestCase
 
     private function assertGetSegmentQueryBuilder(
         Segment $segment,
-        string $expectedSql = null,
-        array $firstTryCacheStats = null,
-        array $secondTryCacheStats = null
+        ?string $expectedSql = null,
+        ?array $firstTryCacheStats = null,
+        ?array $secondTryCacheStats = null
     ): void {
         $this->clearSegmentQueryConverterCache();
         if ($firstTryCacheStats) {

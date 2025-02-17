@@ -19,9 +19,7 @@ class LoadEmailContextEntities implements ProcessorInterface
         $this->repository = $repository;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function process(ContextInterface $context): void
     {
         /** @var ListContext $context */
@@ -35,7 +33,7 @@ class LoadEmailContextEntities implements ProcessorInterface
             $this->repository->getEntities(
                 $context->getVersion(),
                 $context->getRequestType(),
-                $context->getFilterValues()->get('allowed')?->getValue()
+                $context->getFilterValues()->getOne('allowed')?->getValue()
             )
         );
     }

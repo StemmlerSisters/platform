@@ -10,44 +10,50 @@ use Symfony\Component\HttpFoundation\Response;
  */
 abstract class RestPlainApiTestCase extends RestApiTestCase
 {
+    protected const JSON_MEDIA_TYPE = 'application/json';
     protected const JSON_CONTENT_TYPE = 'application/json';
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->initClient();
         parent::setUp();
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     protected function getRequestType(): RequestType
     {
         return new RequestType([RequestType::REST]);
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     protected function getResponseContentType(): string
     {
         return self::JSON_CONTENT_TYPE;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     protected function request(
         string $method,
         string $uri,
         array $parameters = [],
         array $server = [],
-        string $content = null
+        ?string $content = null
     ): Response {
+        $contentTypeHeaderValue = $server['CONTENT_TYPE'] ?? null;
         $this->checkTwigState();
         $this->checkHateoasHeader($server);
-        $this->checkWsseAuthHeader($server);
+        $this->checkApiAuthHeader($server);
         $this->checkCsrfHeader($server);
+
+        if (!\array_key_exists('HTTP_ACCEPT', $server)) {
+            $server['HTTP_ACCEPT'] = self::JSON_MEDIA_TYPE;
+        }
+        if ('POST' === $method || 'PATCH' === $method || 'DELETE' === $method) {
+            $server['CONTENT_TYPE'] = $contentTypeHeaderValue ?? self::JSON_CONTENT_TYPE;
+        } elseif (isset($server['CONTENT_TYPE'])) {
+            unset($server['CONTENT_TYPE']);
+        }
 
         $this->client->request(
             $method,
@@ -69,12 +75,12 @@ abstract class RestPlainApiTestCase extends RestApiTestCase
      *
      * @param array|string $expectedContent The file name or full file path to YAML template file or array
      * @param Response     $response
-     * @param object|null  $entity          If not null, object will set as entity reference
+     * @param object|null $entity          If not null, object will set as entity reference
      */
     protected function assertResponseContains(
         array|string $expectedContent,
         Response $response,
-        object $entity = null
+        ?object $entity = null
     ): void {
         if ($entity) {
             $this->getReferenceRepository()->addReference('entity', $entity);

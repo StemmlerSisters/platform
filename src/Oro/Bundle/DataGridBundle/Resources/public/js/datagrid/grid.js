@@ -27,6 +27,7 @@ define(function(require) {
     const GridRowsCounter = require('./grid-rows-counter').default;
     const util = require('./util');
     const tools = require('oroui/js/tools');
+    const localeSettings = require('orolocale/js/locale-settings');
 
     /**
      * Basic grid class.
@@ -114,6 +115,11 @@ define(function(require) {
         noColumnsFlag: false,
 
         selectState: null,
+
+        /**
+         * @property {Array[string]}
+         */
+        resettableFields: ['filters', 'gridView', 'pageSize'],
 
         /**
          * Generates default properties
@@ -469,11 +475,9 @@ define(function(require) {
          * @returns {boolean} TRUE if values are not equal, otherwise - FALSE
          */
         stateIsResettable: function(previousState, state) {
-            const fields = ['filters', 'gridView', 'pageSize'];
-
             return !tools.isEqualsLoosely(
-                _.pick(previousState, fields),
-                _.pick(state, fields)
+                _.pick(previousState, this.resettableFields),
+                _.pick(state, this.resettableFields)
             );
         },
 
@@ -830,7 +834,7 @@ define(function(require) {
             if (!this.refreshAction) {
                 this.refreshAction = new RefreshCollectionAction({
                     datagrid: this,
-                    launcherOptions: this.actionOptions.refreshAction.launcherOptions,
+                    ...this.actionOptions.refreshAction,
                     order: 100
                 });
 
@@ -866,12 +870,12 @@ define(function(require) {
             if (!this.resetAction) {
                 this.resetAction = new ResetCollectionAction({
                     datagrid: this,
-                    launcherOptions: this.actionOptions.resetAction.launcherOptions,
+                    ...this.actionOptions.resetAction,
                     order: 200
                 });
 
-                this.listenTo(mediator, 'datagrid:doReset:' + this.name, _.debounce(function() {
-                    if (this.$el.is(':visible')) {
+                this.listenTo(mediator, 'datagrid:doReset:' + this.name, _.debounce(function(ignoreVisibility) {
+                    if (ignoreVisibility || this.$el.is(':visible')) {
                         this.resetAction.execute();
                     }
                 }, 100, true));
@@ -1165,7 +1169,11 @@ define(function(require) {
                 return this.toolbars[placement];
             }
 
-            const toolbarOptions = _.extend(this.toolbarOptions, {el: this.$(this.selectors.toolbars[placement])});
+            const toolbarOptions = _.extend(this.toolbarOptions, {
+                el: this.$(this.selectors.toolbars[placement]),
+                position: placement
+
+            });
             this.toolbars[placement] = this._createToolbar(toolbarOptions);
 
             return this.toolbars[placement];
@@ -1198,8 +1206,12 @@ define(function(require) {
          */
         _defineNoDataBlock: function() {
             let messageHTML;
+            let noDataEntityHint = (this.entityHint || __(this.noDataTranslations.entityHint));
+            noDataEntityHint = localeSettings.isNotLowercaseNounLocales()
+                ? noDataEntityHint
+                : noDataEntityHint.toLowerCase();
             const placeholders = {
-                entityHint: (this.entityHint || __(this.noDataTranslations.entityHint)).toLowerCase()
+                entityHint: noDataEntityHint
             };
 
             if (this.noColumnsFlag || _.isEmpty(this.collection.state.filters)) {
@@ -1311,7 +1323,9 @@ define(function(require) {
                  * @event grid_load:complete
                  */
                 mediator.trigger('grid_load:complete', this.collection, this.$el);
-                this.initLayout();
+                this.initLayout({
+                    datagrid: this
+                });
                 this.trigger('content:update');
             }
         },

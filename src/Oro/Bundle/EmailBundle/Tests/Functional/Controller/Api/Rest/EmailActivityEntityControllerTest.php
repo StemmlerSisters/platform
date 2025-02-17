@@ -6,9 +6,10 @@ use Oro\Bundle\TestFrameworkBundle\Test\WebTestCase;
 
 class EmailActivityEntityControllerTest extends WebTestCase
 {
+    #[\Override]
     protected function setUp(): void
     {
-        $this->initClient([], $this->generateWsseAuthHeader());
+        $this->initClient([], self::generateApiAuthHeader());
         $this->loadFixtures(
             [
                 'Oro\Bundle\EmailBundle\Tests\Functional\DataFixtures\LoadEmailActivityData'

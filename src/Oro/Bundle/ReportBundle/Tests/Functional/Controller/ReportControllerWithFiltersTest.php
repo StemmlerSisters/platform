@@ -46,6 +46,7 @@ class ReportControllerWithFiltersTest extends WebTestCase
     /** @var ConfigManager */
     private $configManager;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->initClient([], $this->generateBasicAuthHeader());
@@ -55,6 +56,7 @@ class ReportControllerWithFiltersTest extends WebTestCase
         $this->configManager = $this->getContainer()->get('oro_config.manager');
     }
 
+    #[\Override]
     protected function tearDown(): void
     {
         $this->removeEntities(self::ENTITY_NOTE);
@@ -309,7 +311,7 @@ class ReportControllerWithFiltersTest extends WebTestCase
         ];
     }
 
-    private function buildFilter(int $type, string $start = null, string $end = null, bool $isVariable = false): array
+    private function buildFilter(int $type, ?string $start = null, ?string $end = null, bool $isVariable = false): array
     {
         if ($isVariable) {
             $start = $start ?: '';

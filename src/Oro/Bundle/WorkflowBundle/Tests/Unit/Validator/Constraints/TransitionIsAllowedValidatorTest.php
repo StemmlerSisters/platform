@@ -11,23 +11,27 @@ use Oro\Bundle\WorkflowBundle\Model\WorkflowData;
 use Oro\Bundle\WorkflowBundle\Model\WorkflowRegistry;
 use Oro\Bundle\WorkflowBundle\Validator\Constraints\TransitionIsAllowed;
 use Oro\Bundle\WorkflowBundle\Validator\Constraints\TransitionIsAllowedValidator;
+use PHPUnit\Framework\MockObject\MockObject;
 use Symfony\Component\Validator\Test\ConstraintValidatorTestCase;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 class TransitionIsAllowedValidatorTest extends ConstraintValidatorTestCase
 {
-    /** @var WorkflowRegistry|\PHPUnit\Framework\MockObject\MockObject */
-    private $registry;
+    private WorkflowRegistry|MockObject $workflowRegistry;
+    private TranslatorInterface|MockObject $translator;
 
+    #[\Override]
     protected function setUp(): void
     {
-        $this->registry = $this->createMock(WorkflowRegistry::class);
-
+        $this->workflowRegistry = $this->createMock(WorkflowRegistry::class);
+        $this->translator = $this->createMock(TranslatorInterface::class);
         parent::setUp();
     }
 
-    protected function createValidator()
+    #[\Override]
+    protected function createValidator(): TransitionIsAllowedValidator
     {
-        return new TransitionIsAllowedValidator($this->registry);
+        return new TransitionIsAllowedValidator($this->workflowRegistry, $this->translator);
     }
 
     private function getWorkflowStep(string $name): WorkflowStep
@@ -41,10 +45,10 @@ class TransitionIsAllowedValidatorTest extends ConstraintValidatorTestCase
     private function getWorkflowItem(string $workflowName, WorkflowStep $currentStep): WorkflowItem
     {
         $item = $this->createMock(WorkflowItem::class);
-        $item->expects($this->any())
+        $item->expects(self::any())
             ->method('getWorkflowName')
             ->willReturn($workflowName);
-        $item->expects($this->any())
+        $item->expects(self::any())
             ->method('getCurrentStep')
             ->willReturn($currentStep);
 
@@ -60,12 +64,12 @@ class TransitionIsAllowedValidatorTest extends ConstraintValidatorTestCase
         $workflowItem = $this->getWorkflowItem($workflowName, $currentStep);
 
         $workflow = $this->createMock(Workflow::class);
-        $workflow->expects($this->once())
+        $workflow->expects(self::once())
             ->method('isTransitionAllowed')
             ->with($workflowItem, $transitionName, $this->isInstanceOf(Collection::class), true)
             ->willReturn(true);
 
-        $this->registry->expects($this->once())
+        $this->workflowRegistry->expects(self::once())
             ->method('getWorkflow')
             ->with($workflowName)
             ->willReturn($workflow);
@@ -93,24 +97,37 @@ class TransitionIsAllowedValidatorTest extends ConstraintValidatorTestCase
         $workflowItem = $this->getWorkflowItem($workflowName, $currentStep);
 
         $workflow = $this->createMock(Workflow::class);
-        $workflow->expects($this->once())
+        $workflow->expects(self::once())
             ->method('isTransitionAllowed')
-            ->with($workflowItem, $transitionName, $this->isInstanceOf(Collection::class), true)
+            ->with($workflowItem, $transitionName, self::isInstanceOf(Collection::class), true)
             ->willThrowException($workflowException);
 
-        $this->registry->expects($this->once())
+        $this->workflowRegistry->expects(self::once())
             ->method('getWorkflow')
             ->with($workflowName)
             ->willReturn($workflow);
+        $this->translator->expects(self::any())
+            ->method('trans')
+            ->with($expectedMessage, $expectedMessageParameters)
+            ->willReturn($expectedMessage . ' TR');
 
         $value = new WorkflowData();
 
         $constraint = new TransitionIsAllowed($workflowItem, $transitionName);
         $this->validator->validate($value, $constraint);
 
-        $this->buildViolation($expectedMessage)
-            ->setParameters($expectedMessageParameters)
-            ->assertRaised();
+        $expectedTranslatedMessage = $expectedMessage === $constraint->someConditionsNotMetMessage
+            ? $expectedMessage
+            : $expectedMessage . ' TR';
+
+        if ($expectedMessage !== $constraint->someConditionsNotMetMessage) {
+            $this->buildViolation($constraint->someConditionsNotMetMessage)
+                ->buildNextViolation($expectedTranslatedMessage)
+                ->assertRaised();
+        } else {
+            $this->buildViolation($expectedTranslatedMessage)
+                ->assertRaised();
+        }
     }
 
     public function validateExceptionsDataProvider(): array
@@ -144,7 +161,7 @@ class TransitionIsAllowedValidatorTest extends ConstraintValidatorTestCase
                 'workflowException' => new InvalidTransitionException(),
                 'expectedMessage' => $constraint->someConditionsNotMetMessage,
                 'expectedMessageParameters' => []
-            ],
+            ]
         ];
     }
 }

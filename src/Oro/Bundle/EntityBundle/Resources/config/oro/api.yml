@@ -44,6 +44,8 @@ api:
                             data_type: string
                         name:
                             data_type: string
+                        normalizedName:
+                            data_type: string
                         type:
                             data_type: string
                         relationType:
@@ -60,7 +62,7 @@ api:
                     data_type: object
             actions:
                 get_list:
-                    page_size: -1 # disable paging
+                    disable_paging: true
                     disable_sorting: true
                 create: false
                 update: false

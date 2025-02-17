@@ -9,16 +9,10 @@ use Oro\Component\ChainProcessor\ProcessorInterface;
 
 class AssertSharedDataExistInContext implements ProcessorInterface
 {
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function process(ContextInterface $context): void
     {
         /** @var Context $context */
-
-        if ($context->isMainRequest()) {
-            return;
-        }
 
         if (!$context->getSharedData()->has('test')) {
             throw new RuntimeException(sprintf(

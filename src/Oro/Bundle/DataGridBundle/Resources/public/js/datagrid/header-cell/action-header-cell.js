@@ -3,7 +3,7 @@ define(function(require) {
 
     const __ = require('orotranslation/js/translator');
     const Backgrid = require('backgrid');
-    const ActionsPanel = require('../actions-panel');
+    const ActionsPanel = require('orodatagrid/js/datagrid/actions-panel');
     const BaseView = require('oroui/js/app/views/base/view');
     const template = require('tpl-loader!orodatagrid/templates/datagrid/action-header-cell.html');
 
@@ -44,6 +44,11 @@ define(function(require) {
             controls: '[data-toggle=dropdown]'
         },
 
+        /** @property {Number} */
+        minWordsToAbbreviate: 4,
+
+        isLabelAbbreviated: false,
+
         /**
          * @inheritdoc
          */
@@ -83,15 +88,18 @@ define(function(require) {
             const actions = [];
             const datagrid = this.column.get('datagrid');
 
-            this.column.get('massActions').each(function(Action) {
-                const ActionModule = Action.get('module');
+            // Avoiding showing mass actions twice
+            if (datagrid.themeOptions.showMassActionOnToolbar !== true) {
+                this.column.get('massActions').each(Action => {
+                    const ActionModule = Action.get('module');
 
-                actions.push(
-                    new ActionModule({
-                        datagrid: datagrid
-                    })
-                );
-            });
+                    actions.push(
+                        new ActionModule({
+                            datagrid: datagrid
+                        })
+                    );
+                });
+            }
 
             this.subview('actionsPanel', new this.actionsPanel({actions: actions}));
         },
@@ -105,6 +113,7 @@ define(function(require) {
                 panel.render();
                 panel.$el.children().wrap('<li/>');
             }
+
             return this;
         },
 

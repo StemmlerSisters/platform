@@ -9,6 +9,7 @@ class WindowsStateControllerTest extends WebTestCase
 {
     private static array $entity = [];
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->initClient();
@@ -29,7 +30,7 @@ class WindowsStateControllerTest extends WebTestCase
             $this->getUrl('oro_api_post_windows'),
             self::$entity,
             [],
-            $this->generateWsseAuthHeader()
+            self::generateApiAuthHeader()
         );
 
         $result = $this->client->getResponse();
@@ -58,7 +59,7 @@ class WindowsStateControllerTest extends WebTestCase
             $this->getUrl('oro_api_put_windows', ['windowId' => self::$entity['id']]),
             self::$entity,
             [],
-            $this->generateWsseAuthHeader()
+            self::generateApiAuthHeader()
         );
 
         $result = $this->client->getResponse();
@@ -82,7 +83,7 @@ class WindowsStateControllerTest extends WebTestCase
             $this->getUrl('oro_api_get_windows'),
             [],
             [],
-            $this->generateWsseAuthHeader()
+            self::generateApiAuthHeader()
         );
 
         $result = $this->client->getResponse();
@@ -123,7 +124,7 @@ class WindowsStateControllerTest extends WebTestCase
             $this->getUrl('oro_api_delete_windows', ['windowId' => self::$entity['id']]),
             [],
             [],
-            $this->generateWsseAuthHeader()
+            self::generateApiAuthHeader()
         );
 
         $result = $this->client->getResponse();
@@ -143,7 +144,7 @@ class WindowsStateControllerTest extends WebTestCase
             $this->getUrl('oro_api_put_windows', ['windowId' => self::$entity['id']]),
             self::$entity,
             [],
-            $this->generateWsseAuthHeader()
+            self::generateApiAuthHeader()
         );
 
         $result = $this->client->getResponse();
@@ -156,7 +157,7 @@ class WindowsStateControllerTest extends WebTestCase
             $this->getUrl('oro_api_delete_windows', ['windowId' => self::$entity['id']]),
             [],
             [],
-            $this->generateWsseAuthHeader()
+            self::generateApiAuthHeader()
         );
 
         $result = $this->client->getResponse();
@@ -207,7 +208,7 @@ class WindowsStateControllerTest extends WebTestCase
                 $url,
                 [],
                 [],
-                $this->generateWsseAuthHeader()
+                self::generateApiAuthHeader()
             );
 
             $response = $this->client->getResponse();
@@ -232,7 +233,7 @@ class WindowsStateControllerTest extends WebTestCase
             $this->getUrl('oro_api_post_windows'),
             [],
             [],
-            $this->generateWsseAuthHeader(),
+            self::generateApiAuthHeader(),
             ''
         );
         $response = $this->client->getResponse();
@@ -251,7 +252,7 @@ class WindowsStateControllerTest extends WebTestCase
             $this->getUrl('oro_api_post_windows'),
             [],
             [],
-            $this->generateWsseAuthHeader(),
+            self::generateApiAuthHeader(),
             '{"data": {"type": test"}}'
         );
         $response = $this->client->getResponse();

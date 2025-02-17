@@ -164,6 +164,7 @@ services:
             - [setVirtualFieldProvider, ['@oro_entity.virtual_field_provider']]
             - [setVirtualRelationProvider, ['@oro_entity.virtual_relation_provider']]
             - [setExclusionProvider, ['@oro_entity.exclusion_provider']]
+            - [setEnumVirtualFieldProvider, ['@oro_entity.virtual_field_provider.enum']]
 
     oro_entity.exclusion_provider:
         class: Oro\Bundle\EntityBundle\Provider\ChainExclusionProvider
@@ -454,7 +455,6 @@ services:
 
     oro_entity.dictionary_value_list_provider.default:
         class: Oro\Bundle\EntityBundle\Provider\DictionaryValueListProvider
-        public: false
         arguments:
             - '@oro_entity_config.config_manager'
             - '@doctrine'
@@ -492,8 +492,16 @@ services:
         tags:
             - { name: nelmio_api_doc.extractor.handler }
 
-    Oro\Bundle\EntityBundle\Entity\Manager\DictionaryApiEntityManager:
-        alias: oro_entity.manager.dictionary.api
+    oro_entity.dictionary_entity_data_provider:
+        class: Oro\Bundle\EntityBundle\Provider\DictionaryEntityDataProvider
+        arguments:
+            - '@doctrine'
+            - '@oro_entity.dictionary_value_list_provider'
+            - '@oro_entity_config.config_manager'
+            - '@oro_entity.entity_class_name_helper'
+            - '@oro_entity.entity_name_resolver'
+            - '@oro_security.acl_helper'
+            - '@oro_entity.query_hint_resolver'
 
     oro_entity.manager.dictionary.api:
         class: Oro\Bundle\EntityBundle\Entity\Manager\DictionaryApiEntityManager
@@ -502,9 +510,6 @@ services:
         arguments:
             - '@doctrine.orm.entity_manager'
             - '@oro_entity.dictionary_value_list_provider'
-            - '@oro_entity_config.config_manager'
-            - '@oro_entity.entity_name_resolver'
-            - '@oro_security.acl_helper'
 
     oro_entity.manager.entity_field_manager:
         class: Oro\Bundle\EntityBundle\Entity\Manager\Field\EntityFieldManager
@@ -521,6 +526,7 @@ services:
             arguments:
                 - '@form.factory'
                 - '@doctrine'
+                - '@oro_entity_extend.enum_type_helper'
 
     oro_entity.form.entity_field.handler.base_handler:
         class: Oro\Bundle\EntityBundle\Form\EntityField\Handler\EntityApiBaseHandler
@@ -545,6 +551,7 @@ services:
         arguments:
             - '@doctrine'
             - '@translator'
+            - '@oro_entity.helper.field_helper'
 
     oro_entity.helper.field_helper:
         class: Oro\Bundle\EntityBundle\Helper\FieldHelper
@@ -553,6 +560,7 @@ services:
             - '@oro_entity_config.provider.importexport'
             - '@oro_entity_extend.extend.field_type_helper'
             - '@property_accessor'
+            - '@oro_entity_extend.enum_options_provider'
 
     oro_entity.helper.relation_helper:
         class: 'Oro\Bundle\EntityBundle\Helper\RelationHelper'

@@ -21,9 +21,7 @@ class EnsureInitialized implements ProcessorInterface
         $this->configLoaderFactory = $configLoaderFactory;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function process(ContextInterface $context): void
     {
         /** @var ConfigContext $context */
@@ -34,6 +32,7 @@ class EnsureInitialized implements ProcessorInterface
             );
         }
         $definition = $context->getResult();
+        $definition->setResourceClass($context->getClassName());
         $context->setRequestedExclusionPolicy($definition->getExclusionPolicy());
         $context->setExplicitlyConfiguredFieldNames(array_keys($definition->getFields()));
 

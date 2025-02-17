@@ -2,7 +2,23 @@
 
 [data-blank-content] {
     &::after {
+        display: inline-flex;
+        vertical-align: $datagrid-blank-content-vertical-align;
+        content: '';
+        height: $datagrid-blank-content-height;
+        width: $datagrid-blank-content-width;
+        border-radius: $datagrid-blank-content-radius;
+        background-color: $datagrid-blank-content-color;
+    }
+}
+
+.blank-content-text {
+    [data-blank-content]::after {
         content: attr(data-blank-content);
         color: $datagrid-blank-content-color;
+        height: unset;
+        width: unset;
+        border-radius: unset;
+        background-color: unset;
     }
 }

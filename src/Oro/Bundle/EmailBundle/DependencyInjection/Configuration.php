@@ -8,9 +8,7 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
 
 class Configuration implements ConfigurationInterface
 {
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function getConfigTreeBuilder(): TreeBuilder
     {
         $treeBuilder = new TreeBuilder('oro_email');
@@ -56,6 +54,7 @@ class Configuration implements ConfigurationInterface
                 'attachment_max_size' => ['value' => 10],
                 'attachment_preview_limit' => ['value' => 8],
                 'sanitize_html' => ['value' => false],
+                'email_template_wysiwyg_enabled' => ['value' => false],
                 'threads_grouping' => ['value' => true],
                 'smtp_settings_host' => ['value' => ''],
                 'smtp_settings_port' => ['value' => null, 'type' => 'integer'],

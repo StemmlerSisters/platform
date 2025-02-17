@@ -8,11 +8,12 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 
+/**
+ * Oro FormBundle DI Extension
+ */
 class OroFormExtension extends Extension
 {
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function load(array $configs, ContainerBuilder $container): void
     {
         $config = $this->processConfiguration($this->getConfiguration($configs, $container), $configs);
@@ -23,6 +24,7 @@ class OroFormExtension extends Extension
         $loader->load('form_type.yml');
         $loader->load('importexport.yml');
         $loader->load('services.yml');
+        $loader->load('services_captcha.yml');
         $loader->load('controllers.yml');
         $loader->load('controllers_api.yml');
         $loader->load('commands.yml');
@@ -30,6 +32,10 @@ class OroFormExtension extends Extension
         if (isset($config['html_purifier_modes'])) {
             $container->getDefinition('oro_form.provider.html_tag_provider')
                 ->replaceArgument(0, $config['html_purifier_modes']);
+        }
+
+        if ('test' === $container->getParameter('kernel.environment')) {
+            $loader->load('services_test.yml');
         }
     }
 }

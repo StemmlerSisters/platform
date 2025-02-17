@@ -19,6 +19,7 @@ class ValidateRequestDataTest extends UpdateProcessorTestCase
     /** @var ValidateRequestData */
     private $processor;
 
+    #[\Override]
     protected function setUp(): void
     {
         parent::setUp();
@@ -54,7 +55,9 @@ class ValidateRequestDataTest extends UpdateProcessorTestCase
 
     public function testProcessWithInvalidRequestDataForResourceWithoutIdentifier()
     {
-        $requestData = [];
+        $requestData = [
+            'meta' => null
+        ];
 
         $metadata = new EntityMetadata('Test\Entity');
 
@@ -64,7 +67,7 @@ class ValidateRequestDataTest extends UpdateProcessorTestCase
 
         $error = Error::createValidationError(
             Constraint::REQUEST_DATA,
-            'The primary meta object should exist'
+            'The primary meta object should not be empty'
         );
         $error->setSource(ErrorSource::createByPointer('/meta'));
         self::assertEquals(

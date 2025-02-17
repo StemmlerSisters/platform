@@ -35,10 +35,8 @@ class DbalStateDriver implements StateDriverInterface
         $this->logger = $logger;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function setChangeStateDate(\DateTime $date = null)
+    #[\Override]
+    public function setChangeStateDate(?\DateTime $date = null)
     {
         try {
             $this->saveChangeStateDate($date);
@@ -52,9 +50,7 @@ class DbalStateDriver implements StateDriverInterface
         }
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getChangeStateDate()
     {
         try {
@@ -71,9 +67,7 @@ class DbalStateDriver implements StateDriverInterface
         }
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function setChangeStateDateWithTimeGap(\DateTime $date, $gapPeriod = 5)
     {
         try {
@@ -115,7 +109,7 @@ class DbalStateDriver implements StateDriverInterface
         return $this->doctrine->getConnection('message_queue');
     }
 
-    private function saveChangeStateDate(\DateTime $date = null)
+    private function saveChangeStateDate(?\DateTime $date = null)
     {
         $this->getConnection()->update(
             'oro_message_queue_state',

@@ -58,9 +58,7 @@ class OwnershipConditionDataBuilder implements AclConditionDataBuilderInterface
         $this->aclGroupProvider = $aclGroupProvider;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function getAclConditionData(
         string $entityClassName,
         string|array $permissions = 'VIEW',
@@ -203,7 +201,7 @@ class OwnershipConditionDataBuilder implements AclConditionDataBuilderInterface
 
     protected function getOrganizationId(
         array|string $permissions,
-        OwnershipMetadataInterface $metadata = null
+        ?OwnershipMetadataInterface $metadata = null
     ): array|int|string|null {
         $token = $this->tokenStorage->getToken();
         if ($token instanceof OrganizationAwareTokenInterface) {

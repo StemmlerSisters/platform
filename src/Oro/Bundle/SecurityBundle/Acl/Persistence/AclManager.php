@@ -55,8 +55,8 @@ class AclManager extends AbstractAclManager
     public function __construct(
         ObjectIdentityFactory $objectIdentityFactory,
         AclExtensionSelector $extensionSelector,
-        MutableAclProvider $aclProvider = null,
-        AceManipulationHelper $aceProvider = null
+        ?MutableAclProvider $aclProvider = null,
+        ?AceManipulationHelper $aceProvider = null
     ) {
         $this->objectIdentityFactory = $objectIdentityFactory;
         $this->extensionSelector = $extensionSelector;

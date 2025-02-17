@@ -20,9 +20,9 @@ abstract class RestApiTestCase extends ApiTestCase
 {
     protected const API_TEST_STATEFUL_REQUEST = '_api_test_stateful';
 
-    protected function getWsseAuthHeader(): array
+    protected function getAuthHeader(): array
     {
-        return self::generateWsseAuthHeader(static::USER_NAME, static::USER_PASSWORD);
+        return self::generateApiAuthHeader(static::USER_NAME);
     }
 
     protected function getItemRouteName(): string
@@ -63,15 +63,15 @@ abstract class RestApiTestCase extends ApiTestCase
         string $uri,
         array $parameters = [],
         array $server = [],
-        string $content = null
+        ?string $content = null
     ): Response;
 
-    protected function checkWsseAuthHeader(array &$server): void
+    protected function checkApiAuthHeader(array &$server): void
     {
-        if (!array_key_exists('HTTP_X-WSSE', $server)) {
-            $server = array_replace($server, $this->getWsseAuthHeader());
-        } elseif (!$server['HTTP_X-WSSE']) {
-            unset($server['HTTP_X-WSSE']);
+        if (!array_key_exists('HTTP_X-API-TEST', $server)) {
+            $server = array_replace($server, $this->getAuthHeader());
+        } elseif (!$server['HTTP_X-API-TEST']) {
+            unset($server['HTTP_X-API-TEST']);
         }
     }
 
@@ -245,7 +245,7 @@ abstract class RestApiTestCase extends ApiTestCase
             $entityType = self::extractEntityType($routeParameters);
             self::assertApiResponseStatusCodeEquals(
                 $response,
-                Response::HTTP_ACCEPTED,
+                [Response::HTTP_ACCEPTED, Response::HTTP_OK],
                 $entityType,
                 'patch list'
             );
@@ -631,9 +631,9 @@ abstract class RestApiTestCase extends ApiTestCase
         array $server = [],
         bool $assertValid = true
     ): Response {
-        if (!array_key_exists('HTTP_X-WSSE', $server)) {
+        if (!array_key_exists('HTTP_X-API-TEST', $server)) {
             // disables authentication because OPTIONS requests must not require it
-            $server['HTTP_X-WSSE'] = null;
+            $server['HTTP_X-API-TEST'] = null;
         }
 
         $response = $this->request(
@@ -650,7 +650,7 @@ abstract class RestApiTestCase extends ApiTestCase
             $this->assertOptionsResponseCacheHeader($response);
         }
 
-        if (!$server['HTTP_X-WSSE']) {
+        if (!$server['HTTP_X-API-TEST']) {
             self::assertTrue(
                 null === self::getContainer()->get('security.token_storage')->getToken(),
                 'The security token must not be initialized for OPTIONS request'
@@ -684,7 +684,7 @@ abstract class RestApiTestCase extends ApiTestCase
 
     protected function getApiConfig(
         string $entityClass,
-        string $action = null,
+        ?string $action = null,
         bool $idOnly = false
     ): ?EntityDefinitionConfig {
         $configExtras = [new EntityDefinitionConfigExtra($action)];
@@ -706,7 +706,7 @@ abstract class RestApiTestCase extends ApiTestCase
 
     protected function getApiMetadata(
         string $entityClass,
-        string $action = null,
+        ?string $action = null,
         bool $idOnly = false
     ): ?EntityMetadata {
         $config = $this->getApiConfig($entityClass, $action, $idOnly);

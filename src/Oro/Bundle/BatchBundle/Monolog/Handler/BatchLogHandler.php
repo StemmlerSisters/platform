@@ -23,6 +23,7 @@ class BatchLogHandler extends StreamHandler
         $this->filePermission = null;
         $this->useLocking = false;
         $this->bubble = true;
+        $this->fileOpenMode = 'a';
 
         $this->setupStringChunkSize();
         $this->setLevel(Logger::DEBUG);
@@ -53,9 +54,7 @@ class BatchLogHandler extends StreamHandler
         return sprintf('%s/%s', $this->logDir, $filename);
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function write(array $record): void
     {
         if (!$this->isActive) {

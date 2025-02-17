@@ -13,7 +13,7 @@ use Oro\Bundle\EmailBundle\Entity\EmailOwnerInterface;
 use Oro\Bundle\EmailBundle\Model\EmailHolderInterface;
 use Oro\Bundle\EntityConfigBundle\Metadata\Attribute\Config;
 use Oro\Bundle\EntityConfigBundle\Metadata\Attribute\ConfigField;
-use Oro\Bundle\EntityExtendBundle\Entity\AbstractEnumValue;
+use Oro\Bundle\EntityExtendBundle\Entity\EnumOptionInterface;
 use Oro\Bundle\EntityExtendBundle\Entity\ExtendEntityInterface;
 use Oro\Bundle\EntityExtendBundle\Entity\ExtendEntityTrait;
 use Oro\Bundle\ImapBundle\Entity\UserEmailOrigin;
@@ -24,7 +24,6 @@ use Oro\Bundle\OrganizationBundle\Entity\Organization;
 use Oro\Bundle\OrganizationBundle\Entity\OrganizationInterface;
 use Oro\Bundle\UserBundle\Entity\Repository\UserRepository;
 use Oro\Bundle\UserBundle\Form\Type\UserSelectType;
-use Oro\Bundle\UserBundle\Security\AdvancedApiUserInterface;
 
 /**
  * This entity represents a user of a system
@@ -35,8 +34,8 @@ use Oro\Bundle\UserBundle\Security\AdvancedApiUserInterface;
  * @SuppressWarnings(PHPMD.TooManyFields)
  * @SuppressWarnings(PHPMD.TooManyPublicMethods)
  *
- * @method setAuthStatus(AbstractEnumValue $enum)
- * @method AbstractEnumValue getAuthStatus()
+ * @method setAuthStatus(EnumOptionInterface $enum)
+ * @method EnumOptionInterface getAuthStatus()
  * @mixin OroUserBundle_Entity_User
  */
 #[ORM\Entity(repositoryClass: UserRepository::class)]
@@ -50,13 +49,6 @@ use Oro\Bundle\UserBundle\Security\AdvancedApiUserInterface;
     routeView: 'oro_user_view',
     defaultValues: [
         'entity' => ['icon' => 'fa-user'],
-        'grouping' => ['groups' => ['dictionary']],
-        'dictionary' => [
-            'virtual_fields' => ['id'],
-            'search_fields' => ['firstName', 'lastName'],
-            'representation_field' => 'fullName',
-            'activity_support' => true
-        ],
         'ownership' => [
             'owner_type' => 'BUSINESS_UNIT',
             'owner_field_name' => 'owner',
@@ -75,7 +67,6 @@ class User extends AbstractUser implements
     EmailOwnerInterface,
     EmailHolderInterface,
     FullNameInterface,
-    AdvancedApiUserInterface,
     ExtendEntityInterface
 {
     use ExtendEntityTrait;
@@ -159,21 +150,6 @@ class User extends AbstractUser implements
     protected ?BusinessUnit $owner = null;
 
     /**
-     * @var Collection<int, UserApi>
-     */
-    #[ORM\OneToMany(
-        mappedBy: 'user',
-        targetEntity: UserApi::class,
-        cascade: ['persist', 'remove'],
-        fetch: 'EXTRA_LAZY',
-        orphanRemoval: true
-    )]
-    #[ConfigField(
-        defaultValues: ['importexport' => ['excluded' => true], 'email' => ['available_in_template' => false]]
-    )]
-    protected ?Collection $apiKeys = null;
-
-    /**
      * @var Collection<int, Email>
      */
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: Email::class, cascade: ['persist'], orphanRemoval: true)]
@@ -234,21 +210,16 @@ class User extends AbstractUser implements
         $this->organizations = new ArrayCollection();
         $this->businessUnits = new ArrayCollection();
         $this->emailOrigins = new ArrayCollection();
-        $this->apiKeys = new ArrayCollection();
         $this->groups = new ArrayCollection();
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getEmailFields()
     {
         return ['email'];
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function setUsername($username): static
     {
         parent::setUsername($username);
@@ -264,9 +235,7 @@ class User extends AbstractUser implements
         return $this->usernameLowercase;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getFirstName()
     {
         return $this->firstName;
@@ -284,9 +253,7 @@ class User extends AbstractUser implements
         return $this;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getLastName()
     {
         return $this->lastName;
@@ -304,9 +271,7 @@ class User extends AbstractUser implements
         return $this;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getMiddleName()
     {
         return $this->middleName;
@@ -326,9 +291,7 @@ class User extends AbstractUser implements
         return $this;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getNamePrefix()
     {
         return $this->namePrefix;
@@ -348,9 +311,7 @@ class User extends AbstractUser implements
         return $this;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getNameSuffix()
     {
         return $this->nameSuffix;
@@ -385,7 +346,7 @@ class User extends AbstractUser implements
      *
      * @return User
      */
-    public function setBirthday(\DateTime $birthday = null)
+    public function setBirthday(?\DateTime $birthday = null)
     {
         $this->birthday = $birthday;
 
@@ -407,7 +368,7 @@ class User extends AbstractUser implements
      *
      * @return User
      */
-    public function setCreatedAt(\DateTime $createdAt = null)
+    public function setCreatedAt(?\DateTime $createdAt = null)
     {
         $this->createdAt = $createdAt;
 
@@ -429,50 +390,9 @@ class User extends AbstractUser implements
      *
      * @return User
      */
-    public function setUpdatedAt(\DateTime $updatedAt = null)
+    public function setUpdatedAt(?\DateTime $updatedAt = null)
     {
         $this->updatedAt = $updatedAt;
-
-        return $this;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getApiKeys()
-    {
-        return $this->apiKeys;
-    }
-
-    /**
-     * Add UserApi to User
-     *
-     * @param UserApi $api
-     *
-     * @return User
-     */
-    public function addApiKey(UserApi $api)
-    {
-        if (!$this->apiKeys->contains($api)) {
-            $this->apiKeys->add($api);
-            $api->setUser($this);
-        }
-
-        return $this;
-    }
-
-    /**
-     * Delete UserApi from User
-     *
-     * @param UserApi $api
-     *
-     * @return User
-     */
-    public function removeApiKey(UserApi $api)
-    {
-        if ($this->apiKeys->contains($api)) {
-            $this->apiKeys->removeElement($api);
-        }
 
         return $this;
     }
@@ -631,9 +551,7 @@ class User extends AbstractUser implements
         return $this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function getEmail()
     {
         return $this->email;
@@ -705,7 +623,7 @@ class User extends AbstractUser implements
             : $items->first();
     }
 
-    public function setImapAccountType(AccountTypeModel $accountTypeModel = null)
+    public function setImapAccountType(?AccountTypeModel $accountTypeModel = null)
     {
         $this->imapAccountType = $accountTypeModel;
         if ($accountTypeModel instanceof AccountTypeModel) {
@@ -854,9 +772,7 @@ class User extends AbstractUser implements
         return $this;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getUserRoles(): array
     {
         $roles[] = parent::getUserRoles();
@@ -923,9 +839,7 @@ class User extends AbstractUser implements
         return $this->organizations->contains($organization);
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getOrganizations(bool $onlyEnabled = false)
     {
         if ($onlyEnabled) {
@@ -969,9 +883,7 @@ class User extends AbstractUser implements
         return $this;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function __unserialize(array $serialized): void
     {
         parent::__unserialize($serialized);

@@ -36,6 +36,7 @@ class AttributeGuesserTest extends \PHPUnit\Framework\TestCase
     /* @var AttributeGuesser */
     private $guesser;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->formRegistry = $this->createMock(FormRegistry::class);
@@ -173,7 +174,7 @@ class AttributeGuesserTest extends \PHPUnit\Framework\TestCase
         ];
     }
 
-    private function createAttribute(string $type, string $propertyPath = null, array $options = []): Attribute
+    private function createAttribute(string $type, ?string $propertyPath = null, array $options = []): Attribute
     {
         $attribute = new Attribute();
         $attribute->setType($type)

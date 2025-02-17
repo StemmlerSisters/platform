@@ -30,10 +30,10 @@ class DatagridPreExportTopic extends AbstractTopic implements JobAwareTopicInter
     private ConfigurationProviderInterface $provider;
 
     public function __construct(
-        int                            $batchSize,
-        TokenAccessorInterface         $tokenAccessor,
+        int $batchSize,
+        TokenAccessorInterface $tokenAccessor,
         ConfigurationProviderInterface $provider,
-        array                          $outputFormats = ['csv', 'xlsx'],
+        array $outputFormats = ['csv', 'xlsx']
     ) {
         $this->batchSize = $batchSize;
         $this->tokenAccessor = $tokenAccessor;
@@ -41,16 +41,19 @@ class DatagridPreExportTopic extends AbstractTopic implements JobAwareTopicInter
         $this->outputFormats = $outputFormats;
     }
 
+    #[\Override]
     public static function getName(): string
     {
         return 'oro.datagrid.pre_export';
     }
 
+    #[\Override]
     public static function getDescription(): string
     {
         return 'Initializes the datagrid data export.';
     }
 
+    #[\Override]
     public function configureMessageBody(OptionsResolver $resolver): void
     {
         $resolver
@@ -118,6 +121,7 @@ class DatagridPreExportTopic extends AbstractTopic implements JobAwareTopicInter
             });
     }
 
+    #[\Override]
     public function createJobName($messageBody): string
     {
         $gridName = $messageBody['contextParameters']['gridName'];

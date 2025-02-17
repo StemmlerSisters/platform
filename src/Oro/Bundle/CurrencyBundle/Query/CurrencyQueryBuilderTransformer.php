@@ -7,12 +7,10 @@ use Oro\Component\DoctrineUtils\ORM\QueryBuilderUtil;
 
 class CurrencyQueryBuilderTransformer implements CurrencyQueryBuilderTransformerInterface
 {
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getTransformSelectQuery(
         $originalFieldName,
-        QueryBuilder $qb = null,
+        ?QueryBuilder $qb = null,
         $rootAlias = null,
         $newFieldName = null
     ) {
@@ -31,9 +29,7 @@ class CurrencyQueryBuilderTransformer implements CurrencyQueryBuilderTransformer
         return QueryBuilderUtil::sprintf('%s.%sValue', $rootAlias, $originalFieldName);
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getTransformSelectQueryForDataGrid($originalFieldName, $rootAlias)
     {
         return $this->getTransformSelectQuery($originalFieldName, null, $rootAlias);

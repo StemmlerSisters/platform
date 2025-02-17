@@ -13,6 +13,7 @@ class AbstractTwigSandboxConfigurationPassTest extends \PHPUnit\Framework\TestCa
     /** @var CompilerPassInterface */
     private $compiler;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->compiler = new TwigSandboxConfigurationPassStub();
@@ -33,7 +34,7 @@ class AbstractTwigSandboxConfigurationPassTest extends \PHPUnit\Framework\TestCa
     public function testProcessWithoutEmailRendererService()
     {
         $this->expectException(ServiceNotFoundException::class);
-        $this->expectExceptionMessage('You have requested a non-existent service "oro_email.email_renderer"');
+        $this->expectExceptionMessage('You have requested a non-existent service "oro_email.twig.email_environment"');
 
         $container = new ContainerBuilder();
         $container->register('oro_email.twig.email_security_policy')
@@ -47,7 +48,7 @@ class AbstractTwigSandboxConfigurationPassTest extends \PHPUnit\Framework\TestCa
         $container = new ContainerBuilder();
         $securityPolicyDef = $container->register('oro_email.twig.email_security_policy')
             ->setArguments([['some_existing_tag'], ['some_existing_filter'], [], [], ['some_existing_function']]);
-        $rendererDef = $container->register('oro_email.email_renderer');
+        $rendererDef = $container->register('oro_email.twig.email_environment');
 
         $this->compiler->process($container);
 

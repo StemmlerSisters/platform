@@ -14,9 +14,7 @@ class BrowserTabContext extends OroFeatureContext implements BrowserTabManagerAw
     /** @var BrowserTabManager */
     private $browserTabManager;
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function setBrowserTabManager(BrowserTabManager $browserTabManager)
     {
         $this->browserTabManager = $browserTabManager;
@@ -106,9 +104,9 @@ class BrowserTabContext extends OroFeatureContext implements BrowserTabManagerAw
      *
      * Example: And I close the current browser tab
      * @When /^(?:|I )close (?:|the )current browser tab$/
-     * @When /^(?:|I )close (?:|the ) browser tab "(?P<alias>[^"]+)"$/
+     * @When /^(?:|I )close (?:|the )browser tab "(?P<alias>[^"]+)"$/
      */
-    public function iCloseTheCurrentWindow(string $alias = null)
+    public function iCloseTheCurrentWindow(?string $alias = null)
     {
         $this->browserTabManager->closeTab($this->getMink(), $alias);
     }

@@ -41,9 +41,7 @@ class NormalizeFilterValues implements ProcessorInterface
         $this->entityIdTransformerRegistry = $entityIdTransformerRegistry;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function process(ContextInterface $context): void
     {
         /** @var Context $context */
@@ -66,30 +64,32 @@ class NormalizeFilterValues implements ProcessorInterface
         $requestType = $this->context->getRequestType();
         $metadata = $this->context->getMetadata();
         $filters = $this->context->getFilters();
-        $filterValues = $this->context->getFilterValues()->getAll();
-        foreach ($filterValues as $filterKey => $filterValue) {
+        $allFilterValues = $this->context->getFilterValues()->getAll();
+        foreach ($allFilterValues as $filterKey => $filterValues) {
             if ($filters->has($filterKey)) {
                 $filter = $filters->get($filterKey);
                 if ($filter instanceof StandaloneFilter && !$filter instanceof SpecialHandlingFilterInterface) {
-                    try {
-                        $value = $this->normalizeFilterValue(
-                            $requestType,
-                            $filter,
-                            $filterKey,
-                            $filterValue->getValue(),
-                            $filterValue->getOperator(),
-                            $metadata
-                        );
-                        $filterValue->setValue($value);
-                    } catch (\Exception $e) {
-                        $this->context->addError(
-                            $this->createFilterError($filterKey, $filterValue)->setInnerException($e)
-                        );
+                    foreach ($filterValues as $filterValue) {
+                        try {
+                            $value = $this->normalizeFilterValue(
+                                $requestType,
+                                $filter,
+                                $filterKey,
+                                $filterValue->getValue(),
+                                $filterValue->getOperator(),
+                                $metadata
+                            );
+                            $filterValue->setValue($value);
+                        } catch (\Exception $e) {
+                            $this->context->addError(
+                                $this->createFilterError($filterKey, $filterValue)->setInnerException($e)
+                            );
+                        }
                     }
                 }
             } else {
                 $this->context->addError(
-                    $this->createFilterError($filterKey, $filterValue)->setDetail('The filter is not supported.')
+                    $this->createFilterError($filterKey, $filterValues[0])->setDetail('The filter is not supported.')
                 );
             }
         }
@@ -114,8 +114,10 @@ class NormalizeFilterValues implements ProcessorInterface
             $isArrayAllowed = false;
             $isRangeAllowed = false;
         } elseif (null !== $metadata && $filter instanceof ComparisonFilter) {
-            $fieldName = $filter->getField();
-            if ($fieldName) {
+            $propertyPath = $filter->getField();
+            if ($propertyPath) {
+                $property = $metadata->getPropertyByPropertyPath($propertyPath);
+                $fieldName = $property?->getName() ?? $propertyPath;
                 if ($metadata->hasAssociation($fieldName)) {
                     return $this->normalizeIdentifierValue(
                         $path,
@@ -126,10 +128,9 @@ class NormalizeFilterValues implements ProcessorInterface
                         $metadata->getAssociation($fieldName)->getTargetMetadata()
                     );
                 }
-                $idFieldNames = $metadata->getIdentifierFieldNames();
-                if (\count($idFieldNames) === 1) {
-                    $property = $metadata->getPropertyByPropertyPath($fieldName);
-                    if (null !== $property && $property->getName() === $idFieldNames[0]) {
+                if (null !== $property) {
+                    $idFieldNames = $metadata->getIdentifierFieldNames();
+                    if (\count($idFieldNames) === 1 && $property->getName() === $idFieldNames[0]) {
                         return $this->normalizeIdentifierValue(
                             $path,
                             $value,

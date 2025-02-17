@@ -11,9 +11,9 @@ use Oro\Bundle\FilterBundle\Form\Type\Filter\AbstractDateFilterType;
 class PreviousFilterDateRangeConverter extends FilterDateRangeConverter
 {
     /**
-     * {@inheritdoc}
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
+    #[\Override]
     public function getConvertedValue(array $widgetConfig, $value = null, array $config = [], array $options = [])
     {
         $result = [];
@@ -65,7 +65,7 @@ class PreviousFilterDateRangeConverter extends FilterDateRangeConverter
                 } else {
                     // shift to previous range
                     $interval = $start->diff($end);
-                    $start= $start->sub($interval);
+                    $start = $start->sub($interval);
                     $end = $end->sub($interval);
                 }
 
@@ -82,9 +82,7 @@ class PreviousFilterDateRangeConverter extends FilterDateRangeConverter
         return $result;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getViewValue($value)
     {
         if (!empty($value)) {
@@ -94,9 +92,7 @@ class PreviousFilterDateRangeConverter extends FilterDateRangeConverter
         return [];
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getFormValue(array $config, $value)
     {
         if ($value === null && $config['converter_attributes']['default_checked'] === true) {

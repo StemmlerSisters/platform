@@ -4,7 +4,7 @@ namespace Oro\Bundle\DataGridBundle\Tests\Unit\Extension\MassAction;
 
 use Oro\Bundle\DataGridBundle\Datagrid\Common\DatagridConfiguration;
 use Oro\Bundle\DataGridBundle\Datagrid\DatagridInterface;
-use Oro\Bundle\DataGridBundle\Datagrid\Manager;
+use Oro\Bundle\DataGridBundle\Datagrid\ManagerInterface;
 use Oro\Bundle\DataGridBundle\Datagrid\ParameterBag;
 use Oro\Bundle\DataGridBundle\Datasource\ArrayDatasource\ArrayDatasource;
 use Oro\Bundle\DataGridBundle\Datasource\DatasourceInterface;
@@ -37,7 +37,7 @@ class MassActionDispatcherTest extends \PHPUnit\Framework\TestCase
     /** @var MassActionHelper|\PHPUnit\Framework\MockObject\MockObject */
     private $massActionHelper;
 
-    /** @var Manager|\PHPUnit\Framework\MockObject\MockObject */
+    /** @var ManagerInterface|\PHPUnit\Framework\MockObject\MockObject */
     private $manager;
 
     /** @var MassActionParametersParser|\PHPUnit\Framework\MockObject\MockObject */
@@ -49,9 +49,10 @@ class MassActionDispatcherTest extends \PHPUnit\Framework\TestCase
     /** @var MassActionDispatcher */
     private $massActionDispatcher;
 
+    #[\Override]
     protected function setUp(): void
     {
-        $this->manager = $this->createMock(Manager::class);
+        $this->manager = $this->createMock(ManagerInterface::class);
         $this->massActionParametersParser = $this->createMock(MassActionParametersParser::class);
         $this->massActionHelper = $this->createMock(MassActionHelper::class);
         $this->iterableResultFactoryRegistry = $this->createMock(IterableResultFactoryRegistry::class);
@@ -114,8 +115,8 @@ class MassActionDispatcherTest extends \PHPUnit\Framework\TestCase
     }
 
     private function createDatagrid(
-        DatasourceInterface $datasource = null,
-        DatagridConfiguration $gridConfig = null
+        ?DatasourceInterface $datasource = null,
+        ?DatagridConfiguration $gridConfig = null
     ): DatagridInterface {
         $gridParameters = $this->createMock(ParameterBag::class);
         $gridParameters->expects($this->once())
@@ -143,7 +144,7 @@ class MassActionDispatcherTest extends \PHPUnit\Framework\TestCase
         return $datagrid;
     }
 
-    private function createMassAction(ActionConfiguration $actionConfiguration = null): MassActionInterface
+    private function createMassAction(?ActionConfiguration $actionConfiguration = null): MassActionInterface
     {
         $massAction = $this->createMock(MassActionInterface::class);
         $massAction->expects($this->any())

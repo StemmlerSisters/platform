@@ -25,7 +25,6 @@ use Oro\Bundle\ApiBundle\Request\RequestType;
 use Oro\Bundle\ApiBundle\Request\ValueNormalizer;
 use Oro\Bundle\ApiBundle\Util\AclProtectedEntityLoader;
 use Oro\Bundle\ApiBundle\Util\DoctrineHelper;
-use Oro\Bundle\ApiBundle\Util\EntityIdHelper;
 use Oro\Bundle\ApiBundle\Util\EntityInstantiator;
 use Oro\Bundle\ApiBundle\Util\MetaOperationParser;
 use Oro\Bundle\ApiBundle\Util\UpsertCriteriaBuilder;
@@ -40,6 +39,8 @@ use Symfony\Component\Security\Core\Exception\AccessDeniedException;
  */
 class NormalizeIncludedData implements ProcessorInterface
 {
+    private const string CALLBACKS = '_normalize_included_data_callbacks';
+
     private DoctrineHelper $doctrineHelper;
     private EntityInstantiator $entityInstantiator;
     private AclProtectedEntityLoader $entityLoader;
@@ -48,7 +49,6 @@ class NormalizeIncludedData implements ProcessorInterface
     private ConfigProvider $configProvider;
     private MetadataProvider $metadataProvider;
     private UpsertCriteriaBuilder $upsertCriteriaBuilder;
-    private EntityIdHelper $entityIdHelper;
     private ?FormContext $context = null;
     /** @var EntityDefinitionConfig[] */
     private array $entityConfig = [];
@@ -63,8 +63,7 @@ class NormalizeIncludedData implements ProcessorInterface
         EntityIdTransformerRegistry $entityIdTransformerRegistry,
         ConfigProvider $configProvider,
         MetadataProvider $metadataProvider,
-        UpsertCriteriaBuilder $upsertCriteriaBuilder,
-        EntityIdHelper $entityIdHelper
+        UpsertCriteriaBuilder $upsertCriteriaBuilder
     ) {
         $this->doctrineHelper = $doctrineHelper;
         $this->entityInstantiator = $entityInstantiator;
@@ -74,15 +73,31 @@ class NormalizeIncludedData implements ProcessorInterface
         $this->configProvider = $configProvider;
         $this->metadataProvider = $metadataProvider;
         $this->upsertCriteriaBuilder = $upsertCriteriaBuilder;
-        $this->entityIdHelper = $entityIdHelper;
     }
 
     /**
-     * {@inheritDoc}
+     * Registers a callback function that should be used to normalize the given entity type.
+     * The callback function should have the following signature:
+     * function (
+     *     mixed $entityIdOrCriteria,
+     *     EntityDefinitionConfig $config,
+     *     EntityIdMetadataInterface $metadata
+     * ): ?object
      */
+    public static function registerNormalizeIncludedDataCallback(
+        FormContext $context,
+        string $entityClass,
+        callable $callback
+    ): void {
+        $callbacks = $context->get(self::CALLBACKS) ?? [];
+        $callbacks[$entityClass] = $callback;
+        $context->set(self::CALLBACKS, $callbacks);
+    }
+
+    #[\Override]
     public function process(ContextInterface $context): void
     {
-        /** @var FormContext|SingleItemContext $context */
+        /** @var FormContext&SingleItemContext $context */
 
         $includedData = $context->getIncludedData();
         if (null === $includedData) {
@@ -128,6 +143,7 @@ class NormalizeIncludedData implements ProcessorInterface
 
     private function loadIncludedEntities(array $includedData): ?IncludedEntityCollection
     {
+        $callbacks = $this->context->get(self::CALLBACKS) ?? [];
         $includedEntities = new IncludedEntityCollection();
         $includedPointer = $this->buildPointer('', JsonApiDoc::INCLUDED);
         foreach ($includedData as $index => $data) {
@@ -142,20 +158,17 @@ class NormalizeIncludedData implements ProcessorInterface
                 continue;
             }
             [$updateFlag, $upsertFlag] = $operationFlags;
-            $entityId = $data[JsonApiDoc::ID] ?? null;
-            if (null !== $entityId) {
-                $entityId = $this->resolveEntityId($entityClass, $entityId, $pointer, $updateFlag, $upsertFlag);
-            }
 
             $this->loadIncludedEntity(
                 $includedEntities,
                 $entityClass,
-                $entityId,
+                $data[JsonApiDoc::ID] ?? null,
                 $updateFlag,
                 $upsertFlag,
                 $data,
                 $index,
-                $pointer
+                $pointer,
+                $callbacks[$entityClass] ?? null
             );
         }
 
@@ -172,13 +185,19 @@ class NormalizeIncludedData implements ProcessorInterface
     private function loadIncludedEntity(
         IncludedEntityCollection $includedEntities,
         string $entityClass,
-        mixed $entityId,
+        mixed $entityIncludeId,
         ?bool $updateFlag,
         bool|array|null $upsertFlag,
         array $data,
         int $index,
-        string $pointer
+        string $pointer,
+        ?callable $callback
     ): void {
+        $entityId = $entityIncludeId;
+        if (null !== $entityId) {
+            $entityId = $this->resolveEntityId($entityClass, $entityId, $pointer, $updateFlag, $upsertFlag);
+        }
+
         $entity = null;
         $isExistingEntity = false;
         $targetAction = null;
@@ -190,7 +209,7 @@ class NormalizeIncludedData implements ProcessorInterface
             } else {
                 $hasErrors = false;
                 $resolvedEntityClass = $this->doctrineHelper->resolveManageableEntityClass($entityClass);
-                if ($resolvedEntityClass) {
+                if ($resolvedEntityClass || null !== $callback) {
                     if ($upsertConfig->isAllowedFields($upsertFlag)) {
                         $metadata = $this->getEntityMetadata($entityClass, true);
                         $criteria = $this->getUpsertFindEntityCriteria($metadata, $upsertFlag, $data, $pointer);
@@ -198,13 +217,15 @@ class NormalizeIncludedData implements ProcessorInterface
                             $hasErrors = true;
                         } else {
                             try {
-                                $entity = $this->entityLoader->findEntityBy(
-                                    $resolvedEntityClass,
-                                    $criteria,
-                                    $config,
-                                    $metadata,
-                                    $this->context->getRequestType()
-                                );
+                                $entity = null !== $callback
+                                    ? $callback($criteria, $config, $metadata)
+                                    : $this->entityLoader->findEntityBy(
+                                        $resolvedEntityClass,
+                                        $criteria,
+                                        $config,
+                                        $metadata,
+                                        $this->context->getRequestType()
+                                    );
                             } catch (AccessDeniedException $e) {
                                 $hasErrors = true;
                                 $this->addAccessDeniedValidationError($e, $pointer);
@@ -215,9 +236,6 @@ class NormalizeIncludedData implements ProcessorInterface
                             if (null !== $entity) {
                                 $isExistingEntity = true;
                                 $targetAction = ApiAction::CREATE;
-                                if (null === $entityId) {
-                                    $entityId = $this->entityIdHelper->getEntityIdentifier($entity, $metadata);
-                                }
                             }
                         }
                     } else {
@@ -253,15 +271,19 @@ class NormalizeIncludedData implements ProcessorInterface
                 }
                 if (!$hasErrors) {
                     $resolvedEntityClass = $this->doctrineHelper->resolveManageableEntityClass($entityClass);
-                    if ($resolvedEntityClass) {
+                    if ($resolvedEntityClass || null !== $callback) {
+                        $entityConfig = $this->getEntityConfig($entityClass);
+                        $entityMetadata = $this->getEntityMetadata($resolvedEntityClass ?? $entityClass);
                         try {
-                            $entity = $this->entityLoader->findEntity(
-                                $resolvedEntityClass,
-                                $entityId,
-                                $this->getEntityConfig($entityClass),
-                                $this->getEntityMetadata($resolvedEntityClass),
-                                $this->context->getRequestType()
-                            );
+                            $entity = null !== $callback
+                                ? $callback($entityId, $entityConfig, $entityMetadata)
+                                : $this->entityLoader->findEntity(
+                                    $resolvedEntityClass,
+                                    $entityId,
+                                    $entityConfig,
+                                    $entityMetadata,
+                                    $this->context->getRequestType()
+                                );
                         } catch (AccessDeniedException $e) {
                             $hasErrors = true;
                             $this->addAccessDeniedValidationError($e, $pointer);
@@ -291,7 +313,7 @@ class NormalizeIncludedData implements ProcessorInterface
             $includedEntities->add(
                 $entity,
                 $entityClass,
-                $entityId,
+                $entityIncludeId,
                 new IncludedEntityData($pointer, $index, $isExistingEntity, $targetAction)
             );
         }
@@ -331,6 +353,7 @@ class NormalizeIncludedData implements ProcessorInterface
             $meta,
             JsonApiDoc::META_UPDATE,
             JsonApiDoc::META_UPSERT,
+            JsonApiDoc::META_VALIDATE,
             $this->buildPointer($pointer, JsonApiDoc::META),
             $this->context
         );
@@ -439,7 +462,7 @@ class NormalizeIncludedData implements ProcessorInterface
     private function getEntityConfig(
         string $entityClass,
         bool $full = false,
-        string $action = null
+        ?string $action = null
     ): EntityDefinitionConfig {
         if (null === $action) {
             $action = $this->context->getAction();

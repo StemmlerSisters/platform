@@ -41,9 +41,7 @@ class PlatformRequirementsProvider extends AbstractRequirementsProvider
         $this->processorHelper = $processorHelper;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[\Override]
     public function getMandatoryRequirements(): ?RequirementCollection
     {
         $collection = new RequirementCollection();
@@ -73,9 +71,7 @@ class PlatformRequirementsProvider extends AbstractRequirementsProvider
         return $collection;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[\Override]
     public function getPhpIniRequirements(): ?RequirementCollection
     {
         $collection = new RequirementCollection();
@@ -97,9 +93,7 @@ class PlatformRequirementsProvider extends AbstractRequirementsProvider
         return $collection;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[\Override]
     public function getOroRequirements(): ?RequirementCollection
     {
         $collection = new RequirementCollection();
@@ -116,7 +110,6 @@ class PlatformRequirementsProvider extends AbstractRequirementsProvider
         $this->addImageProcessorsRequirement($collection, ProcessorHelper::JPEGOPTIM);
         $this->addImageProcessorsRequirement($collection, ProcessorHelper::PNGQUANT);
 
-        $this->addPathWritableRequirement($collection, 'public/media');
         $this->addPathWritableRequirement($collection, 'var/data');
 
         if (function_exists('iconv')) {
@@ -126,9 +119,7 @@ class PlatformRequirementsProvider extends AbstractRequirementsProvider
         return $collection;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[\Override]
     public function getRecommendations(): ?RequirementCollection
     {
         $collection = new RequirementCollection();

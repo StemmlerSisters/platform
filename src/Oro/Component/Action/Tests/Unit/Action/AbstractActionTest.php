@@ -19,6 +19,7 @@ class AbstractActionTest extends \PHPUnit\Framework\TestCase
     /** @var AbstractAction|\PHPUnit\Framework\MockObject\MockObject */
     private $action;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->dispatcher = $this->createMock(EventDispatcherInterface::class);
@@ -39,7 +40,7 @@ class AbstractActionTest extends \PHPUnit\Framework\TestCase
     /**
      * @dataProvider executeDataProvider
      */
-    public function testExecute(bool $expectedAllowed, bool $conditionAllowed = null)
+    public function testExecute(bool $expectedAllowed, ?bool $conditionAllowed = null)
     {
         $context = ['key' => 'value'];
 

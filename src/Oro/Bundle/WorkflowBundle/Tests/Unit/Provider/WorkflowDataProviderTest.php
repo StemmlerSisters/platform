@@ -28,6 +28,7 @@ class WorkflowDataProviderTest extends \PHPUnit\Framework\TestCase
     /** @var WorkflowManager|\PHPUnit\Framework\MockObject\MockObject */
     private $systemWorkflowManager;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->transitionDataProvider = $this->createMock(TransitionDataProvider::class);
@@ -172,8 +173,8 @@ class WorkflowDataProviderTest extends \PHPUnit\Framework\TestCase
      * @return Workflow|\PHPUnit\Framework\MockObject\MockObject
      */
     private function getWorkflow(
-        WorkflowDefinition $workflowDefinition = null,
-        StepManager $stepManager = null
+        ?WorkflowDefinition $workflowDefinition = null,
+        ?StepManager $stepManager = null
     ) {
         if ($workflowDefinition === null) {
             $workflowDefinition = $this->createMock(WorkflowDefinition::class);

@@ -28,6 +28,7 @@ class DumpThemeResourcesConfigCommand extends Command
     }
 
     /** @noinspection PhpMissingParentCallCommonInspection */
+    #[\Override]
     protected function configure()
     {
         $this
@@ -43,11 +44,12 @@ HELP
             );
     }
 
+    #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $output = new SymfonyStyle($input, $output);
 
-        $config = $this->themeConfiguration->loadAndGetConfig(new ResourcesContainer());
+        $config = $this->themeConfiguration->loadConfig(new ResourcesContainer());
         $output->writeln(json_encode($config));
 
         return Command::SUCCESS;

@@ -20,6 +20,7 @@ class ActionGroupExecutorTest extends \PHPUnit\Framework\TestCase
     /** @var ActionGroupExecutor */
     private $actionGroupExecutor;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->actionGroupRegistry = $this->createMock(ActionGroupRegistry::class);
@@ -73,6 +74,8 @@ class ActionGroupExecutorTest extends \PHPUnit\Framework\TestCase
             ->willReturnCallback(function ($data, $errors) {
                 /** @var ArrayCollection $errors */
                 $errors->add(['message' => 'some_error', 'parameters' => []]);
+
+                return $data;
             });
 
         self::assertFalse(
@@ -101,6 +104,8 @@ class ActionGroupExecutorTest extends \PHPUnit\Framework\TestCase
             ->willReturnCallback(function ($data, $errors) {
                 /** @var ArrayCollection $errors */
                 $errors->add(['message' => 'some_error', 'parameters' => []]);
+
+                return $data;
             });
 
         self::assertFalse(

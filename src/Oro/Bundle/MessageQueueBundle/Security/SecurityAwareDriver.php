@@ -36,9 +36,7 @@ class SecurityAwareDriver implements DriverInterface
         $this->tokenSerializer = $tokenSerializer;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function send(QueueInterface $queue, Message $message): void
     {
         // add the current security token to the message
@@ -57,9 +55,10 @@ class SecurityAwareDriver implements DriverInterface
                 $token = $properties[self::PARAMETER_SECURITY_TOKEN];
                 if ($token instanceof TokenInterface) {
                     unset($properties[self::PARAMETER_SECURITY_TOKEN]);
-                    $serializedToken = $this->tokenSerializer->serialize($token);
-                    if (null !== $serializedToken) {
+                    try {
+                        $serializedToken = $this->tokenSerializer->serialize($token);
                         $properties[self::PARAMETER_SECURITY_TOKEN] = $serializedToken;
+                    } catch (\Exception $exception) {
                     }
                     $message->setProperties($properties);
                 }
@@ -68,10 +67,11 @@ class SecurityAwareDriver implements DriverInterface
             // add the current token if it exists
             $token = $this->tokenProvider->getToken();
             if ($token instanceof TokenInterface) {
-                $serializedToken = $this->tokenSerializer->serialize($token);
-                if (null !== $serializedToken) {
+                try {
+                    $serializedToken = $this->tokenSerializer->serialize($token);
                     $properties[self::PARAMETER_SECURITY_TOKEN] = $serializedToken;
                     $message->setProperties($properties);
+                } catch (\Exception $exception) {
                 }
             }
         }
@@ -79,25 +79,19 @@ class SecurityAwareDriver implements DriverInterface
         $this->driver->send($queue, $message);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function createTransportMessage(): MessageInterface
     {
         return $this->driver->createTransportMessage();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function createQueue(string $queueName): QueueInterface
     {
         return $this->driver->createQueue($queueName);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function getConfig(): Config
     {
         return $this->driver->getConfig();

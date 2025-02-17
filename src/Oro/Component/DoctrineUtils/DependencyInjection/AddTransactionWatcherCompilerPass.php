@@ -29,15 +29,13 @@ class AddTransactionWatcherCompilerPass implements CompilerPassInterface
     /** @var string|null */
     private $connectionName;
 
-    public function __construct(string $transactionWatcherTag, string $connectionName = null)
+    public function __construct(string $transactionWatcherTag, ?string $connectionName = null)
     {
         $this->transactionWatcherTag = $transactionWatcherTag;
         $this->connectionName = $connectionName;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function process(ContainerBuilder $container)
     {
         $watchers = $this->findTransactionWatchers($container);

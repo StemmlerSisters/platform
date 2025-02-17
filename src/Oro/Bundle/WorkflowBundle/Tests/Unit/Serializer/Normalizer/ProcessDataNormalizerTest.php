@@ -21,6 +21,7 @@ class ProcessDataNormalizerTest extends \PHPUnit\Framework\TestCase
     /** @var ProcessDataNormalizer */
     private $normalizer;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->doctrineHelper = $this->createMock(DoctrineHelper::class);
@@ -174,7 +175,7 @@ class ProcessDataNormalizerTest extends \PHPUnit\Framework\TestCase
         ];
     }
 
-    private function createProcessJob(string $event = null): ProcessJob
+    private function createProcessJob(?string $event = null): ProcessJob
     {
         $definition = new ProcessDefinition();
         $definition->setRelatedEntity('Test\Entity');

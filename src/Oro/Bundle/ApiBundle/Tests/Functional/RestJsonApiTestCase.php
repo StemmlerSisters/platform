@@ -20,43 +20,41 @@ abstract class RestJsonApiTestCase extends RestApiTestCase
     protected const JSON_API_MEDIA_TYPE = 'application/vnd.api+json';
     protected const JSON_API_CONTENT_TYPE = 'application/vnd.api+json';
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->initClient();
         parent::setUp();
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     protected function getRequestType(): RequestType
     {
         return new RequestType([RequestType::REST, RequestType::JSON_API]);
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     protected function getResponseContentType(): string
     {
         return self::JSON_API_CONTENT_TYPE;
     }
 
     /**
-     * {@inheritdoc}
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      * @SuppressWarnings(PHPMD.NPathComplexity)
      */
+    #[\Override]
     protected function request(
         string $method,
         string $uri,
         array $parameters = [],
         array $server = [],
-        string $content = null
+        ?string $content = null
     ): Response {
+        $contentTypeHeaderValue = $server['CONTENT_TYPE'] ?? null;
         $this->checkTwigState();
         $this->checkHateoasHeader($server);
-        $this->checkWsseAuthHeader($server);
+        $this->checkApiAuthHeader($server);
         $this->checkCsrfHeader($server);
 
         if (!empty($parameters['filter'])) {
@@ -87,18 +85,16 @@ abstract class RestJsonApiTestCase extends RestApiTestCase
         if (array_key_exists('filters', $parameters)) {
             $filters = $parameters['filters'];
             if ($filters) {
-                $separator = '?';
-                if (str_contains($uri, '?')) {
-                    $separator = '&';
-                }
-                $uri .= $separator . $filters;
+                $uri .= (str_contains($uri, '?') ? '&' : '?') . $filters;
             }
             unset($parameters['filters']);
         }
 
-        $server['HTTP_ACCEPT'] = self::JSON_API_MEDIA_TYPE;
+        if (!\array_key_exists('HTTP_ACCEPT', $server)) {
+            $server['HTTP_ACCEPT'] = self::JSON_API_MEDIA_TYPE;
+        }
         if ('POST' === $method || 'PATCH' === $method || 'DELETE' === $method) {
-            $server['CONTENT_TYPE'] = self::JSON_API_CONTENT_TYPE;
+            $server['CONTENT_TYPE'] = $contentTypeHeaderValue ?? self::JSON_API_CONTENT_TYPE;
         } elseif (isset($server['CONTENT_TYPE'])) {
             unset($server['CONTENT_TYPE']);
         }
@@ -296,10 +292,6 @@ abstract class RestJsonApiTestCase extends RestApiTestCase
     protected function dumpYmlTemplate(?string $fileName, Response $response): void
     {
         $data = self::jsonToArray($response->getContent());
-        if (null === $data) {
-            throw new \RuntimeException('The response does not have the content.');
-        }
-
         if ($this->hasReferenceRepository()) {
             $idReferences = [];
             $doctrine = self::getContainer()->get('doctrine');
@@ -377,9 +369,7 @@ abstract class RestJsonApiTestCase extends RestApiTestCase
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     protected static function isApplicableContentType(ResponseHeaderBag $headers): bool
     {
         return $headers->contains('Content-Type', self::JSON_API_CONTENT_TYPE);
@@ -414,7 +404,7 @@ abstract class RestJsonApiTestCase extends RestApiTestCase
     /**
      * Extracts the list of errors from JSON:API response.
      */
-    protected function getResponseErrors(Response $response): string
+    protected function getResponseErrors(Response $response): array
     {
         $content = self::jsonToArray($response->getContent());
         self::assertIsArray($content);

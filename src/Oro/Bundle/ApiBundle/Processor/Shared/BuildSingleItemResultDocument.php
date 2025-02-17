@@ -3,6 +3,7 @@
 namespace Oro\Bundle\ApiBundle\Processor\Shared;
 
 use Oro\Bundle\ApiBundle\Processor\Context;
+use Oro\Bundle\ApiBundle\Processor\FormContext;
 use Oro\Bundle\ApiBundle\Request\DocumentBuilderInterface;
 
 /**
@@ -10,15 +11,13 @@ use Oro\Bundle\ApiBundle\Request\DocumentBuilderInterface;
  */
 class BuildSingleItemResultDocument extends BuildResultDocument
 {
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     protected function processResult(DocumentBuilderInterface $documentBuilder, Context $context): void
     {
         $documentBuilder->setDataObject(
             $context->getResult(),
             $context->getRequestType(),
-            $context->getMetadata()
+            $context instanceof FormContext ? $context->getNormalizedMetadata() : $context->getMetadata()
         );
     }
 }

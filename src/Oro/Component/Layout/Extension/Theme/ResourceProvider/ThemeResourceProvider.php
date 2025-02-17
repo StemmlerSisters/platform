@@ -56,22 +56,13 @@ class ThemeResourceProvider extends PhpArrayConfigProvider implements ResourcePr
         $this->additionalResourcePaths = $additionalResourcePaths;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getResources(): array
     {
         return $this->doGetConfig();
     }
 
-    public function loadAndGetConfig(ResourcesContainerInterface $resourcesContainer): array
-    {
-        return $this->doLoadConfig($resourcesContainer);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function findApplicableResources(array $paths): array
     {
         $values = [];
@@ -97,9 +88,7 @@ class ThemeResourceProvider extends PhpArrayConfigProvider implements ResourcePr
         return $values;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     protected function doLoadConfig(ResourcesContainerInterface $resourcesContainer)
     {
         $themeLayoutUpdates = $this->loadThemeLayoutUpdates($resourcesContainer);

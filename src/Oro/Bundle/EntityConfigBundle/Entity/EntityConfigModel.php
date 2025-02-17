@@ -55,6 +55,7 @@ class EntityConfigModel extends ConfigModel
     /**
      * @return int
      */
+    #[\Override]
     public function getId()
     {
         return $this->id;
@@ -110,7 +111,7 @@ class EntityConfigModel extends ConfigModel
      * @param \Closure|null $filter function (FieldConfigModel $model)
      * @return ArrayCollection|FieldConfigModel[]
      */
-    public function getFields(\Closure $filter = null)
+    public function getFields(?\Closure $filter = null)
     {
         return $filter ? $this->fields->filter($filter) : $this->fields;
     }
@@ -130,17 +131,13 @@ class EntityConfigModel extends ConfigModel
         return $fields->first();
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getIndexedValues()
     {
         return $this->indexedValues;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     protected function createIndexedValue($scope, $code, $value)
     {
         $result = new ConfigModelIndexValue($scope, $code, $value);

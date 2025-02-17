@@ -160,7 +160,6 @@ services:
 
     oro_attachment.twig.file_extension:
         class: 'Oro\Bundle\AttachmentBundle\Twig\FileExtension'
-        public: false
         arguments:
             - '@oro_platform.twig.service_locator'
         tags:
@@ -358,8 +357,7 @@ services:
         arguments:
             - '@router'
             - '@oro_attachment.configurator.provider.attachment_hash_provider'
-        calls:
-            - [setLogger, ['@logger']]
+            - '@logger'
 
     oro_attachment.provider.file_name:
         class: Oro\Bundle\AttachmentBundle\Provider\FileNameProvider
@@ -458,7 +456,6 @@ services:
 
     oro_attachment.provider.file_icon:
         class: 'Oro\Bundle\AttachmentBundle\Provider\FileIconProvider'
-        public: false
         arguments:
             - '%oro_attachment.files%'
 
@@ -543,8 +540,8 @@ services:
             - { name: validator.constraint_validator }
 
     Oro\Bundle\AttachmentBundle\Validator\Constraints\ExternalFileUrlValidator:
-        calls:
-            - ['setLogger', ['@logger']]
+        arguments:
+            - '@logger'
         tags:
             - { name: validator.constraint_validator }
 
@@ -558,11 +555,7 @@ services:
         class: Oro\Bundle\AttachmentBundle\Provider\AttachmentEntityConfigProvider
         arguments:
             - '@oro_entity_config.config_manager'
-        calls:
-            - [setLogger, ['@logger']]
-
-    Oro\Bundle\AttachmentBundle\Provider\AttachmentEntityConfigProviderInterface:
-        alias: oro_attachment.provider.attachment_entity_config
+            - '@logger'
 
     oro_attachment.provider.image_file_names:
         class: Oro\Bundle\AttachmentBundle\Provider\ImageFileNamesProvider
@@ -630,12 +623,11 @@ services:
         arguments:
             - '%liip_imagine.jpegoptim.binary%'
             - '%liip_imagine.pngquant.binary%'
-            - '@oro_attachment.cache.processor_helper'
 
     oro_attachment.checker.voter.post_processors_voter:
         class: 'Oro\Bundle\AttachmentBundle\Checker\Voter\PostProcessorsVoter'
-        arguments:
-            - '@oro_attachment.processor_helper'
+        calls:
+            - [setEnabled, ['%oro_attachment.post_processors.enabled%']]
         tags:
             - { name: oro_featuretogle.voter, priority: 10 }
 
@@ -661,8 +653,7 @@ services:
             - '@security.authorization_checker'
             - '@oro_attachment.import_export.file_import_strategy_helper'
             - '@translator'
-        calls:
-            - [setLogger, ['@logger']]
+            - '@logger'
         tags:
             - { name: monolog.logger, channel: oro_attachment }
 
@@ -771,8 +762,8 @@ services:
         class: Oro\Bundle\AttachmentBundle\Tools\ExternalFileFactory
         arguments:
             - !service { class: GuzzleHttp\Client }
-        calls:
-            - [setLogger, ['@logger']]
+            - []
+            - '@logger'
 
     oro_attachment.provider.extend_field_form_options.file:
         class: Oro\Bundle\AttachmentBundle\Provider\ExtendFieldFileFormOptionsProvider
@@ -817,3 +808,15 @@ services:
             - '@doctrine'
         tags:
             - { name: oro_dataaudit.entity_strategy_processor, entityName: Oro\Bundle\AttachmentBundle\Entity\Attachment }
+
+    oro_attachment.provider.files_template_provider:
+        class: Oro\Bundle\AttachmentBundle\Provider\FilesTemplateProvider
+
+    Oro\Bundle\AttachmentBundle\Provider\FilesTemplateProvider:
+        alias: oro_attachment.provider.files_template_provider
+
+    oro_attachment.provider.images_template_provider:
+        class: Oro\Bundle\AttachmentBundle\Provider\ImagesTemplateProvider
+
+    Oro\Bundle\AttachmentBundle\Provider\ImagesTemplateProvider:
+        alias: oro_attachment.provider.images_template_provider

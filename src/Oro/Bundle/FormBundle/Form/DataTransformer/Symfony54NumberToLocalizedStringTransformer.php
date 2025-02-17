@@ -26,17 +26,16 @@ use Symfony\Component\Form\Exception\TransformationFailedException;
 class Symfony54NumberToLocalizedStringTransformer implements DataTransformerInterface
 {
     protected $grouping;
-
     protected $roundingMode;
 
     private $scale;
     private $locale;
 
     public function __construct(
-        int $scale = null,
+        ?int $scale = null,
         ?bool $grouping = false,
         ?int $roundingMode = \NumberFormatter::ROUND_HALFUP,
-        string $locale = null
+        ?string $locale = null
     ) {
         $this->scale = $scale;
         $this->grouping = $grouping ?? false;
@@ -54,6 +53,7 @@ class Symfony54NumberToLocalizedStringTransformer implements DataTransformerInte
      * @throws TransformationFailedException if the given value is not numeric
      *                                       or if the value cannot be transformed
      */
+    #[\Override]
     public function transform($value)
     {
         if (null === $value) {
@@ -90,6 +90,7 @@ class Symfony54NumberToLocalizedStringTransformer implements DataTransformerInte
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      * @SuppressWarnings(PHPMD.NPathComplexity)
      */
+    #[\Override]
     public function reverseTransform($value)
     {
         if (null !== $value && !\is_string($value)) {

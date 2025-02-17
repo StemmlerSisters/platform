@@ -8,16 +8,16 @@ use Oro\Bundle\TestFrameworkBundle\Test\WebTestCase;
 use Oro\Bundle\WorkflowBundle\Exception\WorkflowNotFoundException;
 use Oro\Bundle\WorkflowBundle\Model\Workflow;
 use Oro\Bundle\WorkflowBundle\Translation\KeyTemplate\WorkflowTemplate;
-use Oro\Component\PhpUtils\ArrayUtil;
 
 class WorkflowDefinitionControllerTest extends WebTestCase
 {
     private const TEST_DEFINITION_NAME = 'TEST_DEFINITION';
     private const RELATED_ENTITY = WorkflowAwareEntity::class;
 
+    #[\Override]
     protected function setUp(): void
     {
-        $this->initClient([], $this->generateWsseAuthHeader());
+        $this->initClient([], self::generateApiAuthHeader());
     }
 
     public function testWorkflowDefinitionPostNotValid()
@@ -124,14 +124,19 @@ class WorkflowDefinitionControllerTest extends WebTestCase
             'exclusive_active_groups' => [],
             'exclusive_record_groups' => [],
             'applications' => $workflowDefinition->getApplications(),
+            'metadata' => []
         ];
 
         $this->assertArrayHasKey('created_at', $result);
         $this->assertArrayHasKey('updated_at', $result);
         unset($result['created_at'], $result['updated_at']);
 
-        ArrayUtil::sortBy($expectedResult['steps'], false, 'step_order');
-        ArrayUtil::sortBy($result['steps'], false, 'step_order');
+        usort($expectedResult['steps'], function (array $a, array $b) {
+            return $a['step_order'] <=> $b['step_order'];
+        });
+        usort($result['steps'], function (array $a, array $b) {
+            return $a['step_order'] <=> $b['step_order'];
+        });
         $this->assertEquals($expectedResult, $result);
     }
 

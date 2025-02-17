@@ -113,9 +113,7 @@ class WorkflowAttributesType extends AbstractType
         $this->translator = $translator;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $this->addEventListeners($builder, $options);
@@ -135,13 +133,7 @@ class WorkflowAttributesType extends AbstractType
             $builder->addEventSubscriber($this->defaultValuesListener);
         }
 
-        if (!empty($options['form_init'])) {
-            $this->formInitListener->initialize(
-                $options['workflow_item'],
-                $options['form_init']
-            );
-            $builder->addEventSubscriber($this->formInitListener);
-        }
+        $builder->addEventSubscriber($this->formInitListener);
 
         if (!empty($options['attribute_fields'])) {
             $this->requiredAttributesListener->initialize(array_keys($options['attribute_fields']));
@@ -344,9 +336,9 @@ class WorkflowAttributesType extends AbstractType
             return array_map(function ($value) use ($context) {
                 return $this->resolveContextValue($context, $value);
             }, $option);
-        } else {
-            return $this->contextAccessor->getValue($context, $option);
         }
+
+        return $this->contextAccessor->getValue($context, $option);
     }
 
     /**
@@ -356,8 +348,8 @@ class WorkflowAttributesType extends AbstractType
      * - "workflow"                 - optional, instance of Workflow
      * - "disable_attribute_fields" - optional, a flag to disable all attributes fields
      *
-     * {@inheritdoc}
      */
+    #[\Override]
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setRequired(['workflow_item']);
@@ -434,17 +426,12 @@ class WorkflowAttributesType extends AbstractType
         return $this->propertyAccessor;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function getName()
     {
         return $this->getBlockPrefix();
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getBlockPrefix(): string
     {
         return self::NAME;

@@ -3,7 +3,7 @@
 namespace Oro\Bundle\DataGridBundle\Tests\Functional\MaterializedView;
 
 use Oro\Bundle\DataGridBundle\Datagrid\Common\DatagridConfiguration;
-use Oro\Bundle\DataGridBundle\Datagrid\Manager as DatagridManager;
+use Oro\Bundle\DataGridBundle\Datagrid\ManagerInterface as DatagridManager;
 use Oro\Bundle\DataGridBundle\MaterializedView\MaterializedViewByDatagridFactory;
 use Oro\Bundle\PlatformBundle\MaterializedView\MaterializedViewManager;
 use Oro\Bundle\PlatformBundle\Tests\Functional\MaterializedView\MaterializedViewsAwareTestTrait;
@@ -20,6 +20,7 @@ class MaterializedViewByDatagridFactoryTest extends WebTestCase
 
     private DatagridManager $datagridManager;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->initClient([], self::generateBasicAuthHeader());
@@ -31,6 +32,7 @@ class MaterializedViewByDatagridFactoryTest extends WebTestCase
         $this->datagridManager = self::getContainer()->get('oro_datagrid.datagrid.manager');
     }
 
+    #[\Override]
     public static function tearDownAfterClass(): void
     {
         self::deleteAllMaterializedViews(self::getContainer());

@@ -80,9 +80,18 @@ define([
             if (options.template) {
                 this.template = options.template;
             }
-            this.template = this.getTemplateFunction();
 
             Pagination.__super__.initialize.call(this, options);
+        },
+
+        getTemplateData() {
+            const {state} = this.collection;
+
+            return {
+                disabled: !this.enabled || !state.totalRecords,
+                handles: this.makeHandles(),
+                state: state
+            };
         },
 
         /**
@@ -225,17 +234,21 @@ define([
                 return this;
             }
 
-            this.$el.empty();
-            this.$el.append(this.template({
-                disabled: !this.enabled || !state.totalRecords,
-                handles: this.makeHandles(),
-                state: state
-            }));
+            Pagination.__super__.render.call(this);
 
-            if (this.hidden) {
-                this.$el.hide();
+            this.toggleView();
+
+            return this;
+        },
+
+        toggleView() {
+            this.$el.removeClass('hide');
+
+            if (this.hidden || this.$el.is(':empty')) {
+                this.$el.addClass('hide');
+            } else {
+                this.$el.removeClass('hide');
             }
-
             return this;
         }
     });

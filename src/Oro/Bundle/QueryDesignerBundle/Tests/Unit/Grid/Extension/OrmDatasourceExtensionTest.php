@@ -52,6 +52,7 @@ class OrmDatasourceExtensionTest extends OrmTestCase
     /** @var FormFactoryInterface */
     private $formFactory;
 
+    #[\Override]
     protected function setUp(): void
     {
         $constraintFactory = new ConstraintFactory();
@@ -186,7 +187,7 @@ class OrmDatasourceExtensionTest extends OrmTestCase
      *
      * @return FilterInterface
      */
-    private function createFilter(string $name, array $params = null): FilterInterface
+    private function createFilter(string $name, ?array $params = null): FilterInterface
     {
         $defaultParams = [
             'type' => $name

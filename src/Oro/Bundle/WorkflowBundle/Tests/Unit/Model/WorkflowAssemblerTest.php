@@ -67,6 +67,7 @@ class WorkflowAssemblerTest extends \PHPUnit\Framework\TestCase
     /** @var WorkflowAssembler */
     private $workflowAssembler;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->workflow = $this->createWorkflow();
@@ -275,7 +276,7 @@ class WorkflowAssemblerTest extends \PHPUnit\Framework\TestCase
 
         // source data
         $workflowDefinition = $this->createWorkflowDefinition($configuration);
-        $attributes =$this->expectsAttributeAssembleCalls($workflowDefinition, $configuration);
+        $attributes = $this->expectsAttributeAssembleCalls($workflowDefinition, $configuration);
         $steps = $this->expectStepAssemblerCalls($configuration, $attributes);
         $transitions = $this->expectTransitionAssemblerCalls($configuration, $steps);
         $this->expectTranslatorCalls();

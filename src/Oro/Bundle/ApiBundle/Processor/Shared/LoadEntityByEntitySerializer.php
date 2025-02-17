@@ -13,6 +13,7 @@ use Oro\Bundle\EntityBundle\ORM\EntityClassResolver;
 use Oro\Component\ChainProcessor\ContextInterface;
 use Oro\Component\ChainProcessor\ProcessorInterface;
 use Oro\Component\DoctrineUtils\ORM\QueryBuilderUtil;
+use Oro\Component\DoctrineUtils\ORM\QueryHintResolverInterface;
 use Oro\Component\EntitySerializer\EntitySerializer;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
@@ -25,20 +26,21 @@ class LoadEntityByEntitySerializer implements ProcessorInterface
     private EntitySerializer $entitySerializer;
     private DoctrineHelper $doctrineHelper;
     private EntityClassResolver $entityClassResolver;
+    private QueryHintResolverInterface $queryHintResolver;
 
     public function __construct(
         EntitySerializer $entitySerializer,
         DoctrineHelper $doctrineHelper,
-        EntityClassResolver $entityClassResolver
+        EntityClassResolver $entityClassResolver,
+        QueryHintResolverInterface $queryHintResolver
     ) {
         $this->entitySerializer = $entitySerializer;
         $this->doctrineHelper = $doctrineHelper;
         $this->entityClassResolver = $entityClassResolver;
+        $this->queryHintResolver = $queryHintResolver;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function process(ContextInterface $context): void
     {
         /** @var Context $context */
@@ -75,10 +77,9 @@ class LoadEntityByEntitySerializer implements ProcessorInterface
     ): ?array {
         $initialQb = clone $qb;
         $result = $this->entitySerializer->serialize($qb, $config, $normalizationContext);
-        if (empty($result)) {
-            // use a query without ACL protection to check if an entity exists in DB
-            $this->prepareNotAclProtectedQueryBuilder($initialQb);
-            $notAclProtectedData = $initialQb->getQuery()->getOneOrNullResult(Query::HYDRATE_ARRAY);
+        if (!$result) {
+            $notAclProtectedData = $this->getNotAclProtectedQuery($initialQb, $config)
+                ->getOneOrNullResult(Query::HYDRATE_ARRAY);
             if ($notAclProtectedData) {
                 throw new AccessDeniedException('No access to the entity.');
             }
@@ -92,12 +93,17 @@ class LoadEntityByEntitySerializer implements ProcessorInterface
         return $result;
     }
 
-    private function prepareNotAclProtectedQueryBuilder(QueryBuilder $qb): void
+    private function getNotAclProtectedQuery(QueryBuilder $qb, EntityDefinitionConfig $config): Query
     {
         $entityClass = $this->entityClassResolver->getEntityClass(QueryBuilderUtil::getSingleRootEntity($qb));
         $idFieldNames = $this->doctrineHelper->getEntityIdentifierFieldNamesForClass($entityClass);
         if (\count($idFieldNames) !== 0) {
             $qb->select(QueryBuilderUtil::getSingleRootAlias($qb) . '.' . reset($idFieldNames));
         }
+
+        $query = $qb->getQuery();
+        $this->queryHintResolver->resolveHints($query, $config->getHints());
+
+        return $query;
     }
 }

@@ -11,7 +11,7 @@ class TestServiceLocatorInjectedViaSetter extends TestServiceLocatorInjection
     /** @var ContainerInterface */
     private $containerInjectedViaConstructor;
 
-    public function __construct(ContainerInterface $container = null)
+    public function __construct(?ContainerInterface $container = null)
     {
         $this->containerInjectedViaConstructor = $container;
     }
@@ -21,9 +21,7 @@ class TestServiceLocatorInjectedViaSetter extends TestServiceLocatorInjection
         return $this->containerInjectedViaConstructor;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public static function getSubscribedServices(): array
     {
         return array_merge(parent::getSubscribedServices(), [

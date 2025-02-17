@@ -30,7 +30,8 @@ use Symfony\Component\Security\Core\User\UserInterface;
         'entity' => ['icon' => 'fa-file'],
         'comment' => ['immutable' => true],
         'activity' => ['immutable' => true],
-        'attachment' => ['immutable' => true]
+        'attachment' => ['immutable' => true],
+        'entity_management' => ['enabled' => false]
     ]
 )]
 class File implements FileExtensionInterface, ExtendEntityInterface
@@ -228,7 +229,7 @@ class File implements FileExtensionInterface, ExtendEntityInterface
         return $this->updatedAt;
     }
 
-    public function setFile(\SplFileInfo $file = null)
+    public function setFile(?\SplFileInfo $file = null)
     {
         $this->file = $file;
 
@@ -258,6 +259,7 @@ class File implements FileExtensionInterface, ExtendEntityInterface
     /**
      * @return string
      */
+    #[\Override]
     public function getExtension()
     {
         return $this->extension;
@@ -346,6 +348,7 @@ class File implements FileExtensionInterface, ExtendEntityInterface
         $this->updatedAt = new \DateTime('now', new \DateTimeZone('UTC'));
     }
 
+    #[\Override]
     public function __toString()
     {
         if ($this->getExternalUrl() !== null) {

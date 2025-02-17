@@ -23,6 +23,7 @@ class CollectionNormalizer implements
     /**
      * @throws InvalidArgumentException
      */
+    #[\Override]
     public function setSerializer(SerializerInterface $serializer)
     {
         if (!$serializer instanceof ContextAwareNormalizerInterface
@@ -42,12 +43,13 @@ class CollectionNormalizer implements
      * Returned normalized data
      *
      * @param Collection $object object to normalize
-     * @param mixed $format
+     * @param string|null $format
      * @param array $context
      *
      * @return array
      */
-    public function normalize($object, string $format = null, array $context = [])
+    #[\Override]
+    public function normalize($object, ?string $format = null, array $context = [])
     {
         $result = [];
 
@@ -64,12 +66,13 @@ class CollectionNormalizer implements
      *
      * @param mixed $data
      * @param string $type
-     * @param mixed $format
+     * @param string|null $format
      * @param array $context
      *
      * @return ArrayCollection
      */
-    public function denormalize($data, string $type, string $format = null, array $context = [])
+    #[\Override]
+    public function denormalize($data, string $type, ?string $format = null, array $context = [])
     {
         if (!is_array($data)) {
             return new ArrayCollection();
@@ -102,18 +105,14 @@ class CollectionNormalizer implements
         return null;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function supportsNormalization($data, string $format = null, array $context = []): bool
+    #[\Override]
+    public function supportsNormalization($data, ?string $format = null, array $context = []): bool
     {
         return $data instanceof Collection;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function supportsDenormalization($data, string $type, string $format = null, array $context = []): bool
+    #[\Override]
+    public function supportsDenormalization($data, string $type, ?string $format = null, array $context = []): bool
     {
         return (bool)preg_match(
             '/^(Doctrine\\\Common\\\Collections\\\ArrayCollection|ArrayCollection)(<[\w_<>\\\]+>)?$/',

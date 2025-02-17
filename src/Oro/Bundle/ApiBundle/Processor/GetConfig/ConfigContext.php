@@ -46,9 +46,7 @@ class ConfigContext extends ApiContext
     /** @var string[]|null */
     private ?array $explicitlyConfiguredFieldNames = null;
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     protected function initialize(): void
     {
         parent::initialize();
@@ -246,6 +244,32 @@ class ConfigContext extends ApiContext
 
         $this->extras = $extras;
         $this->set(self::EXTRA, $names);
+    }
+
+    /**
+     * Adds or replaces a request for some configuration data.
+     */
+    public function setExtra(ConfigExtraInterface $extra): void
+    {
+        $existingExtraKey = null;
+        $extraName = $extra->getName();
+        $keys = array_keys($this->extras);
+        foreach ($keys as $key) {
+            if ($this->extras[$key]->getName() === $extraName) {
+                $existingExtraKey = $key;
+                break;
+            }
+        }
+
+        $extra->configureContext($this);
+        if (null === $existingExtraKey) {
+            $names = $this->get(self::EXTRA);
+            $names[] = $extraName;
+            $this->set(self::EXTRA, $names);
+            $this->extras[] = $extra;
+        } else {
+            $this->extras[$existingExtraKey] = $extra;
+        }
     }
 
     /**

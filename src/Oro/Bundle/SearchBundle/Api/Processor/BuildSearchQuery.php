@@ -43,9 +43,7 @@ class BuildSearchQuery implements ProcessorInterface
         $this->authorizationChecker = $authorizationChecker;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function process(ContextInterface $context): void
     {
         /** @var ListContext $context */
@@ -105,10 +103,10 @@ class BuildSearchQuery implements ProcessorInterface
         $context->setCriteria($this->buildCriteria($criteria));
     }
 
-    private function getSearchTextFilterName(FilterCollection $filters): string
+    private function getSearchTextFilterName(FilterCollection $filterCollection): string
     {
         /** @var FilterInterface $filter */
-        foreach ($filters as $filterKey => $filter) {
+        foreach ($filterCollection as $filterKey => $filter) {
             if ($filter instanceof SimpleSearchFilter) {
                 return $filterKey;
             }

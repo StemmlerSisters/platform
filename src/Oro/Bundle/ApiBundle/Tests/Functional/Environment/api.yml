@@ -71,13 +71,26 @@ api:
                 title:
                     exclude: false
                     property_path: name
+                    form_options:
+                        constraints:
+                            - NotBlank: ~
             filters:
                 fields:
                     name: ~
             actions:
+                get_list:
+                    page_size: 3
+                create:
+                    disable_inclusion: true
+                    disable_fieldset: true
                 update_list: true
         Oro\Bundle\ApiBundle\Tests\Functional\Environment\Entity\TestEmployee:
             exclude: false # see Oro\Bundle\ApiBundle\Tests\Functional\Environment\EntityExclusionProvider
+            fields:
+                name:
+                    form_options:
+                        constraints:
+                            - NotBlank: ~
             filters:
                 fields:
                     name: ~
@@ -86,6 +99,8 @@ api:
                     name: ~
                     position: ~
             actions:
+                get_list:
+                    page_size: 3
                 update_list: true
         Oro\Bundle\ApiBundle\Tests\Functional\Environment\Entity\TestDefaultAndNull: ~
         Oro\Bundle\ApiBundle\Tests\Functional\Environment\Entity\TestEntityForNestedObjects:
@@ -159,6 +174,7 @@ api:
                 fields:
                     email: ~
         Oro\Bundle\ApiBundle\Tests\Functional\Environment\Entity\TestOrder:
+            enable_validation: true
             fields:
                 poNumber:
                     form_options:
@@ -168,6 +184,8 @@ api:
                     property_path: target
                 items:
                     property_path: lineItems
+            actions:
+                update_list: true
         Oro\Bundle\ApiBundle\Tests\Functional\Environment\Entity\TestOrderLineItem:
             fields:
                 quantity:
@@ -337,6 +355,10 @@ api:
                     fieldDuration: ~
                     fieldMoneyValue: ~
                     fieldCurrency: ~
+        Extend\Entity\EV_Api_Enum2:
+            actions:
+                get_list:
+                    disable_paging: true
         Oro\Bundle\ApiBundle\Tests\Functional\Environment\Model\TestCurrentDepartment: ~
         Oro\Bundle\ApiBundle\Tests\Functional\Environment\Model\TestResourceWithoutIdentifier:
             fields:
@@ -366,7 +388,7 @@ api:
             identifier_field_names: [id]
             fields:
                 id:
-                    data_type: int
+                    data_type: string
                 name:
                     data_type: string
             # this entity does not have own API resource
@@ -440,15 +462,15 @@ api:
             identifier_field_names: [id]
             fields:
                 id:
-                    data_type: int
+                    data_type: integer
                 name:
                     data_type: string
                 articles:
-                    data_type: int
+                    data_type: integer
                     target_class: Oro\Bundle\ApiBundle\Tests\Functional\Environment\Model\TestArticleModel1
                     target_type: collection
                 bestArticle:
-                    data_type: int
+                    data_type: integer
                     target_class: Oro\Bundle\ApiBundle\Tests\Functional\Environment\Model\TestArticleModel1
             actions:
                 get_list: false
@@ -460,7 +482,7 @@ api:
             identifier_field_names: [id]
             fields:
                 id:
-                    data_type: int
+                    data_type: integer
                 headline:
                     data_type: string
                 body:
@@ -473,7 +495,7 @@ api:
             identifier_field_names: [id]
             fields:
                 id:
-                    data_type: int
+                    data_type: integer
                 name:
                     data_type: string
                 articles:
@@ -495,7 +517,7 @@ api:
             identifier_field_names: [id]
             fields:
                 id:
-                    data_type: int
+                    data_type: integer
                 headline:
                     data_type: string
                 body:

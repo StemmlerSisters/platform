@@ -33,10 +33,8 @@ class OroEventManager extends ContainerAwareEventManager
         $this->serviceContainer = $container;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function dispatchEvent($eventName, EventArgs $eventArgs = null): void
+    #[\Override]
+    public function dispatchEvent($eventName, ?EventArgs $eventArgs = null): void
     {
         $needExtraProcessing = $this->hasDisabledListeners() && $this->hasListeners($eventName);
 

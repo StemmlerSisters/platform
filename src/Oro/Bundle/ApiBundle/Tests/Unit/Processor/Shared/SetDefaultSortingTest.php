@@ -24,6 +24,7 @@ class SetDefaultSortingTest extends GetListProcessorTestCase
     /** @var SetDefaultSorting */
     private $processor;
 
+    #[\Override]
     protected function setUp(): void
     {
         parent::setUp();
@@ -232,29 +233,6 @@ class SetDefaultSortingTest extends GetListProcessorTestCase
         $sortFilter = $filters->get('sort');
         self::assertEquals('orderBy', $sortFilter->getDataType());
         self::assertEquals([], $sortFilter->getDefaultValue());
-        self::assertFalse($filters->isIncludeInDefaultGroup('sort'));
-    }
-
-    public function testProcessForEntityWithRenamedIdentifierField()
-    {
-        $config = new EntityDefinitionConfig();
-        $config->setIdentifierFieldNames(['renamedId']);
-        $config->addField('renamedId')->setPropertyPath('id');
-
-        $configOfSorters = new SortersConfig();
-        $configOfSorters->addField('renamedId')->setPropertyPath('id');
-
-        $this->context->setClassName(User::class);
-        $this->context->setConfig($config);
-        $this->context->setConfigOfSorters($configOfSorters);
-        $this->processor->process($this->context);
-
-        $filters = $this->context->getFilters();
-        self::assertCount(1, $filters);
-        /** @var SortFilter $sortFilter */
-        $sortFilter = $filters->get('sort');
-        self::assertEquals('orderBy', $sortFilter->getDataType());
-        self::assertEquals(['id' => 'ASC'], $sortFilter->getDefaultValue());
         self::assertFalse($filters->isIncludeInDefaultGroup('sort'));
     }
 

@@ -17,9 +17,7 @@ class CheckRequestType extends BaseCheckRequestType
 {
     private const JSON_API_MEDIA_TYPE = 'application/vnd.api+json';
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     protected function checkRequestType(Context $context): bool
     {
         $detected = false;
@@ -149,11 +147,7 @@ class CheckRequestType extends BaseCheckRequestType
         foreach ($acceptHeaderValues as $value) {
             [$mediaType] = MediaTypeHeaderUtil::parseMediaType($value);
             if (self::JSON_API_MEDIA_TYPE !== $mediaType
-                && (
-                    '*/*' === $mediaType
-                    || 'application/*' === $mediaType
-                    || 'application/json' === $mediaType
-                )
+                && ('application/json' === $mediaType || 'application/*' === $mediaType || '*/*' === $mediaType)
             ) {
                 return true;
             }

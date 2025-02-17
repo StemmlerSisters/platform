@@ -11,6 +11,7 @@ class SetHttpResponseStatusCodeTest extends GetListProcessorTestCase
 {
     private SetHttpResponseStatusCode $processor;
 
+    #[\Override]
     protected function setUp(): void
     {
         parent::setUp();
@@ -127,7 +128,7 @@ class SetHttpResponseStatusCodeTest extends GetListProcessorTestCase
         ];
     }
 
-    private function getError(int $statusCode = null): Error
+    private function getError(?int $statusCode = null): Error
     {
         $error = new Error();
         $error->setStatusCode($statusCode);

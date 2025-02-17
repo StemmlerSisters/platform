@@ -10,6 +10,7 @@ class TextHelperTest extends \PHPUnit\Framework\TestCase
     /** @var TextHelper */
     private $helper;
 
+    #[\Override]
     protected function setUp(): void
     {
         $translator = $this->createMock(TranslatorInterface::class);
@@ -25,7 +26,7 @@ class TextHelperTest extends \PHPUnit\Framework\TestCase
     /**
      * @dataProvider processTextDataProvider
      */
-    public function testProcessText(array|string|null $value, array|string|null $expected, string $domain = null)
+    public function testProcessText(array|string|null $value, array|string|null $expected, ?string $domain = null)
     {
         $this->assertSame($expected, $this->helper->processText($value, $domain));
     }

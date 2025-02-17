@@ -7,11 +7,12 @@ use Oro\Bundle\DataGridBundle\Extension\Action\Actions\AbstractAction;
 use Oro\Bundle\DataGridBundle\Extension\MassAction\MassActionExtension;
 use Symfony\Component\HttpFoundation\Request;
 
+/**
+ * Base class for datagrid mass actions.
+ */
 class AbstractMassAction extends AbstractAction implements MassActionInterface
 {
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function setOptions(ActionConfiguration $options)
     {
         if (empty($options['frontend_type'])) {
@@ -19,8 +20,13 @@ class AbstractMassAction extends AbstractAction implements MassActionInterface
         }
 
         if (!empty($options['icon'])) {
+            $icon = $options['icon'];
+            if (empty($options['frontend'])) {
+                $icon = 'fa-' . $icon;
+            }
+
             $options['launcherOptions'] = [
-                'iconClassName' => 'fa-' . $options['icon']
+                'iconClassName' => $icon,
             ];
             unset($options['icon']);
         }

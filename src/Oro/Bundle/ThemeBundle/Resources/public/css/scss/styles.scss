@@ -1,0 +1,22 @@
+/* @theme: admin.oro; */
+
+@import 'theme-configuration-preview';
+
+.theme-configuration-options {
+    [type=radio] + label {
+        display: inline;
+    }
+
+    .simplecolorpicker {
+        padding-right: 0;
+        padding-left: 0;
+    }
+}
+
+.control-group-preview {
+    flex-wrap: wrap;
+
+    .controls {
+        max-width: min-content;
+    }
+}

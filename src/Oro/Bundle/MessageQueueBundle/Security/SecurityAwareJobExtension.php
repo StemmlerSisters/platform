@@ -28,9 +28,7 @@ class SecurityAwareJobExtension extends AbstractExtension
         $this->jobManager = $jobManager;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function onPreRunUnique(Job $job): void
     {
         $token = $this->tokenStorage->getToken();
@@ -46,11 +44,12 @@ class SecurityAwareJobExtension extends AbstractExtension
             return;
         }
 
-        $serializedToken = $this->tokenSerializer->serialize($token);
-        if (null !== $serializedToken) {
+        try {
+            $serializedToken = $this->tokenSerializer->serialize($token);
             $jobProperties[SecurityAwareDriver::PARAMETER_SECURITY_TOKEN] = $serializedToken;
             $job->setProperties($jobProperties);
             $this->jobManager->saveJob($job);
+        } catch (\Exception $exception) {
         }
     }
 }

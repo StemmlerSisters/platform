@@ -34,7 +34,7 @@
     }
 
     &-sticky {
-        overflow-x: hidden;
+        overflow: hidden;
     }
 
     &-table {
@@ -349,4 +349,9 @@
     .action-cell {
         display: none;
     }
+}
+
+.grid-row-attention {
+    background-color: $oro-datagrid-highlight-bg;
+    font-weight: bold;
 }

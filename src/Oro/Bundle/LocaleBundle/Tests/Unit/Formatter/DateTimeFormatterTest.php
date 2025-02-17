@@ -17,6 +17,7 @@ class DateTimeFormatterTest extends \PHPUnit\Framework\TestCase
     /** @var DateTimeFormatter */
     private $formatter;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->localeSettings = $this->createMock(LocaleSettings::class);
@@ -50,8 +51,8 @@ class DateTimeFormatterTest extends \PHPUnit\Framework\TestCase
         ?string $locale,
         ?string $timeZone,
         string $language,
-        string $defaultLocale = null,
-        string $defaultTimeZone = null
+        ?string $defaultLocale = null,
+        ?string $defaultTimeZone = null
     ) {
         $this->localeSettings->expects($this->once())
             ->method('getLanguage')
@@ -213,8 +214,8 @@ class DateTimeFormatterTest extends \PHPUnit\Framework\TestCase
         ?string $locale,
         ?string $timeZone,
         string $language,
-        string $defaultLocale = null,
-        string $defaultTimeZone = null
+        ?string $defaultLocale = null,
+        ?string $defaultTimeZone = null
     ) {
         $this->localeSettings->expects($this->once())
             ->method('getLanguage')
@@ -319,8 +320,8 @@ class DateTimeFormatterTest extends \PHPUnit\Framework\TestCase
         ?string $locale,
         ?string $timeZone,
         string $language,
-        string $defaultLocale = null,
-        string $defaultTimeZone = null
+        ?string $defaultLocale = null,
+        ?string $defaultTimeZone = null
     ) {
         $this->localeSettings->expects($this->once())
             ->method('getLanguage')

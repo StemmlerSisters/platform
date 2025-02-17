@@ -14,14 +14,16 @@ class FilteredEntityReaderTest extends WebTestCase
 {
     private FilteredEntityReader $reader;
 
+    #[\Override]
     protected function setUp(): void
     {
-        $this->initClient([], $this->generateWsseAuthHeader());
+        $this->initClient([], self::generateApiAuthHeader());
         $this->loadFixtures([LoadGridViewData::class, LoadUser::class]);
         $this->setSecurityToken();
         $this->reader = self::getContainer()->get('oro_datagrid.importexport.export_filtered_reader');
     }
 
+    #[\Override]
     protected function tearDown(): void
     {
         self::getContainer()->get('security.token_storage')->setToken(null);

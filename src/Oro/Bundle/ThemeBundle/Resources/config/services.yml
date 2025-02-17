@@ -7,6 +7,7 @@ services:
     Oro\Bundle\ThemeBundle\Model\ThemeRegistry:
         alias: oro_theme.registry
 
+    # Twig extension
     oro_theme.twig.extension:
         class: Oro\Bundle\ThemeBundle\Twig\ThemeExtension
         public: false
@@ -14,3 +15,60 @@ services:
             - '@oro_platform.twig.service_locator'
         tags:
             - { name: twig.extension }
+
+    # Validators
+    oro_theme.configuration_validator:
+        class: Oro\Bundle\ThemeBundle\Validator\ConfigurationValidator
+        arguments:
+            - '@oro_layout.theme_extension.configuration.provider'
+            - !tagged_iterator oro_theme.configuration_validator
+
+    oro_theme.configuration_validator.preview:
+        class: Oro\Bundle\ThemeBundle\Validator\PreviewConfigurationValidator
+        arguments:
+            - ['png', 'jpg']
+        tags:
+            - { name: oro_theme.configuration_validator, alias: oro_theme_preview_configuration_validator }
+
+    # Search
+    oro_theme.form.autocomplete.theme_configuration.search_handler:
+        parent: oro_form.autocomplete.search_handler
+        arguments:
+            - 'Oro\Bundle\ThemeBundle\Entity\ThemeConfiguration'
+            - ['name']
+        tags:
+            - { name: oro_form.autocomplete.search_handler, alias: Oro\Bundle\ThemeBundle\Form\Type\ThemeConfigurationType, acl_resource: oro_theme_configuration_view }
+
+    # System Configuration
+    oro_theme.event_listener.system_config.configuration:
+        class: Oro\Bundle\ConfigBundle\EventListener\EntitySystemConfigListener
+        arguments:
+            - '@doctrine'
+            - 'Oro\Bundle\ThemeBundle\Entity\ThemeConfiguration'
+            - 'oro_theme.theme_configuration'
+        tags:
+            - { name: kernel.event_listener, event: oro_config.settings_form_preset, method: onFormPreSetData }
+            - { name: kernel.event_listener, event: oro_config.settings_before_save, method: onSettingsSaveBefore }
+
+    # Provider
+    oro_theme.provider.theme_configuration:
+        class: Oro\Bundle\ThemeBundle\Provider\ThemeConfigurationProvider
+        arguments:
+            - '@oro_config.manager'
+            - '@doctrine'
+
+    oro_theme.provider.theme_configuration_type:
+        class: Oro\Bundle\ThemeBundle\Provider\ThemeConfigurationTypeProvider
+        public: true
+        arguments:
+            - !tagged_iterator oro_theme.theme_configuration_type_provider
+
+    # Voter
+    oro_theme.acl.voter.theme_configuration_delete:
+        class: Oro\Bundle\ThemeBundle\Acl\Voter\ThemeConfigurationDeleteVoter
+        calls:
+            - [setClassName, ['Oro\Bundle\ThemeBundle\Entity\ThemeConfiguration']]
+        arguments:
+            - '@oro_entity.doctrine_helper'
+        tags:
+            - { name: security.voter }

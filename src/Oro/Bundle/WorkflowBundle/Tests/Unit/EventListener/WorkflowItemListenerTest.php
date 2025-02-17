@@ -31,6 +31,7 @@ class WorkflowItemListenerTest extends \PHPUnit\Framework\TestCase
     /** @var WorkflowItemListener */
     private $listener;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->doctrineHelper = $this->createMock(DoctrineHelper::class);
@@ -206,7 +207,7 @@ class WorkflowItemListenerTest extends \PHPUnit\Framework\TestCase
         $this->listener->preRemove($this->getEvent($entity));
     }
 
-    private function getEvent(object $entity, EntityManager $entityManager = null): LifecycleEventArgs
+    private function getEvent(object $entity, ?EntityManager $entityManager = null): LifecycleEventArgs
     {
         $event = $this->createMock(LifecycleEventArgs::class);
         $event->expects($this->any())

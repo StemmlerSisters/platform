@@ -32,6 +32,7 @@ class AttributeConfigExtensionTest extends TypeTestCase
     /** @var AttributeConfigExtension */
     private $extension;
 
+    #[\Override]
     protected function setUp(): void
     {
         parent::setUp();
@@ -260,7 +261,7 @@ class AttributeConfigExtensionTest extends TypeTestCase
         $this->extension->onSubmit($event);
 
         $expectedData = [
-            'extend'=> [
+            'extend' => [
                 'is_serialized' => $isSerialized
             ]
         ];
@@ -293,7 +294,7 @@ class AttributeConfigExtensionTest extends TypeTestCase
         $this->assertEmpty($event->getData());
     }
 
-    private function getFieldConfigModel(int $id = null): FieldConfigModel
+    private function getFieldConfigModel(?int $id = null): FieldConfigModel
     {
         $entityConfigModel = new EntityConfigModel('class');
         $fieldConfigModel = new FieldConfigModel('test', 'string');

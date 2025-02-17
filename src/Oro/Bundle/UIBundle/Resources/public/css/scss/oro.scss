@@ -604,6 +604,14 @@ label.radio.error {
     }
 }
 
+.collection-element-primary {
+    &--flex {
+        display: flex;
+        align-items: center;
+        gap: 0 $content-padding-small;
+    }
+}
+
 .collection-fields-list-bg.oro-item-collection {
     > div {
         position: relative;
@@ -786,6 +794,10 @@ span.validation-failed {
     color: $primary-700;
     font-size: $base-font-size;
     cursor: pointer;
+
+    &--warning {
+        color: $danger-light;
+    }
 }
 
 label .popover-body {

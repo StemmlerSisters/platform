@@ -15,7 +15,7 @@ class Path implements ExpressionInterface
     /** @var string */
     private $field;
 
-    public function __construct(string $field, string $alias = null)
+    public function __construct(string $field, ?string $alias = null)
     {
         $this->alias = $alias;
         $this->field = $field;
@@ -45,9 +45,7 @@ class Path implements ExpressionInterface
         return $this->field;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function visit(Visitor $visitor)
     {
         return $visitor->walkPath($this);

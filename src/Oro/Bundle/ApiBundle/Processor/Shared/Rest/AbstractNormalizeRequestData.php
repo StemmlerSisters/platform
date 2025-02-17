@@ -19,8 +19,12 @@ use Oro\Component\ChainProcessor\ProcessorInterface;
  */
 abstract class AbstractNormalizeRequestData implements ProcessorInterface
 {
+    protected const CLASS_FIELD_NAME = 'class';
+    protected const ID_FIELD_NAME = 'id';
+
     protected EntityIdTransformerRegistry $entityIdTransformerRegistry;
     protected ?FormContext $context = null;
+    protected ?string $requestDataItemKey = null;
 
     public function __construct(EntityIdTransformerRegistry $entityIdTransformerRegistry)
     {
@@ -75,8 +79,8 @@ abstract class AbstractNormalizeRequestData implements ProcessorInterface
         EntityMetadata $metadata
     ): array {
         return [
-            'class' => $entityClass,
-            'id'    => $this->normalizeEntityId($propertyPath, $entityId, $metadata)
+            self::CLASS_FIELD_NAME => $entityClass,
+            self::ID_FIELD_NAME => $this->normalizeEntityId($propertyPath, $entityId, $metadata)
         ];
     }
 
@@ -87,7 +91,10 @@ abstract class AbstractNormalizeRequestData implements ProcessorInterface
                 ->reverseTransform($entityId, $metadata);
             if (null === $normalizedId) {
                 $this->context->addNotResolvedIdentifier(
-                    'requestData' . ConfigUtil::PATH_DELIMITER . $propertyPath,
+                    'requestData'
+                    . (null !== $this->requestDataItemKey ? '.' . $this->requestDataItemKey : '')
+                    . ConfigUtil::PATH_DELIMITER
+                    . $propertyPath,
                     new NotResolvedIdentifier($entityId, $metadata->getClassName())
                 );
             }
@@ -106,11 +113,13 @@ abstract class AbstractNormalizeRequestData implements ProcessorInterface
         return $this->entityIdTransformerRegistry->getEntityIdTransformer($requestType);
     }
 
-    protected function addValidationError(string $title, string $propertyPath = null): Error
+    protected function addValidationError(string $title, ?string $propertyPath = null): Error
     {
         $error = Error::createValidationError($title);
         if (null !== $propertyPath) {
-            $error->setSource(ErrorSource::createByPropertyPath($propertyPath));
+            $error->setSource(ErrorSource::createByPropertyPath(
+                (null !== $this->requestDataItemKey ? $this->requestDataItemKey . '.' : '') . $propertyPath
+            ));
         }
         $this->context->addError($error);
 

@@ -55,6 +55,22 @@ class EntityGenerator
         $this->writePhpFile($this->entityClassesPath, $this->buildPhpFileHeader() . $classes);
     }
 
+    public function generateCustomEntities(array $customEntities): void
+    {
+        ExtendClassLoadingUtils::ensureDirExists($this->entityCacheDir);
+
+        $classes = '';
+        foreach ($customEntities as $customEntity) {
+            $customSchema = [
+                'entity' => $customEntity,
+                'class' => $customEntity,
+            ];
+            $classes .= $this->buildPhpClass($customSchema);
+        }
+        // writes PHP classes for extended entity proxy to PHP file contains all such classes
+        $this->writePhpFile($this->entityClassesPath, $this->buildPhpFileHeader() . $classes);
+    }
+
     /**
      * Generates PHP class for extended entity proxy
      */
@@ -126,7 +142,7 @@ class EntityGenerator
             return '';
         }
         $class = new ClassGenerator($schema['entity']);
-        if ('mappedSuperclass' === $schema['doctrine'][$schema['entity']]['type']) {
+        if (isset($schema['doctrine']) && 'mappedSuperclass' === $schema['doctrine'][$schema['entity']]['type']) {
             $class->setAbstract();
         }
 

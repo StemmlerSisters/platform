@@ -2,6 +2,7 @@
 
 namespace Oro\Bundle\FormBundle\Tests\Unit\DependencyInjection;
 
+use Oro\Bundle\FormBundle\DependencyInjection\Configuration;
 use Oro\Bundle\FormBundle\DependencyInjection\OroFormExtension;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
@@ -10,6 +11,7 @@ class OroFormExtensionTest extends \PHPUnit\Framework\TestCase
     public function testLoad(): void
     {
         $container = new ContainerBuilder();
+        $container->setParameter('kernel.environment', 'prod');
 
         $extension = new OroFormExtension();
         $extension->load([], $container);
@@ -20,7 +22,54 @@ class OroFormExtensionTest extends \PHPUnit\Framework\TestCase
                 [
                     'settings' => [
                         'resolved' => true,
-                        'wysiwyg_enabled' => ['value' => true, 'scope' => 'app']
+                        Configuration::WYSIWYG_ENABLED => [
+                            'value' => true,
+                            'scope' => 'app'
+                        ],
+                        Configuration::ENABLED_CAPTCHA => [
+                            'value' => false,
+                            'scope' => 'app'
+                        ],
+                        Configuration::USE_CAPTCHA_FOR_LOGGED_IN => [
+                            'value' => true,
+                            'scope' => 'app'
+                        ],
+                        Configuration::CAPTCHA_SERVICE => [
+                            'value' => 'recaptcha',
+                            'scope' => 'app'
+                        ],
+                        Configuration::CAPTCHA_PROTECTED_FORMS => [
+                            'value' => [],
+                            'scope' => 'app'
+                        ],
+                        Configuration::RECAPTCHA_PUBLIC_KEY => [
+                            'value' => '',
+                            'scope' => 'app'
+                        ],
+                        Configuration::RECAPTCHA_PRIVATE_KEY => [
+                            'value' => '',
+                            'scope' => 'app'
+                        ],
+                        Configuration::RECAPTCHA_MINIMAL_ALLOWED_SCORE => [
+                            'value' => '0.5',
+                            'scope' => 'app'
+                        ],
+                        Configuration::HCAPTCHA_PUBLIC_KEY => [
+                            'value' => '',
+                            'scope' => 'app'
+                        ],
+                        Configuration::HCAPTCHA_PRIVATE_KEY => [
+                            'value' => '',
+                            'scope' => 'app'
+                        ],
+                        Configuration::TURNSTILE_PUBLIC_KEY => [
+                            'value' => '',
+                            'scope' => 'app'
+                        ],
+                        Configuration::TURNSTILE_PRIVATE_KEY => [
+                            'value' => '',
+                            'scope' => 'app'
+                        ]
                     ]
                 ]
             ],
@@ -36,6 +85,7 @@ class OroFormExtensionTest extends \PHPUnit\Framework\TestCase
     public function testLoadWithHtmlPurifierModes(): void
     {
         $container = new ContainerBuilder();
+        $container->setParameter('kernel.environment', 'prod');
 
         $configs = [
             ['html_purifier_modes' => ['lax' => ['extends' => 'default']]]

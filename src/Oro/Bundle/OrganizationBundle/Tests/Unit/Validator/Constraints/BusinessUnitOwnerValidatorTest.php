@@ -9,12 +9,13 @@ use Symfony\Component\Validator\Test\ConstraintValidatorTestCase;
 
 class BusinessUnitOwnerValidatorTest extends ConstraintValidatorTestCase
 {
+    #[\Override]
     protected function createValidator()
     {
         return new BusinessUnitOwnerValidator();
     }
 
-    private function getBusinessUnit(int $id = null): BusinessUnit
+    private function getBusinessUnit(?int $id = null): BusinessUnit
     {
         $businessUnit = new BusinessUnit();
         if (null !== $id) {

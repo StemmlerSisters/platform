@@ -27,6 +27,7 @@ class PlaceholderTokenParserTest extends \PHPUnit\Framework\TestCase
     /** @var PlaceholderTokenParser */
     private $tokenParser;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->stream = new TokenStream([]);
@@ -109,7 +110,7 @@ class PlaceholderTokenParserTest extends \PHPUnit\Framework\TestCase
             ->willReturnSelf();
         $this->compiler->expects($this->once())
             ->method('write')
-            ->with('echo ')
+            ->with('yield ')
             ->willReturnSelf();
         $this->compiler->expects($this->once())
             ->method('subcompile')

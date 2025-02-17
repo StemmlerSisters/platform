@@ -29,6 +29,7 @@ class TransitionTriggerProcessorTest extends \PHPUnit\Framework\TestCase
 
     private SessionInterface|\PHPUnit\Framework\MockObject\MockObject $session;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->objectManager = $this->createMock(ObjectManager::class);
@@ -94,7 +95,7 @@ class TransitionTriggerProcessorTest extends \PHPUnit\Framework\TestCase
         return $trigger;
     }
 
-    private function getMessageMock(array $data = null): Message
+    private function getMessageMock(?array $data = null): Message
     {
         if (null === $data) {
             $data = [
@@ -109,7 +110,7 @@ class TransitionTriggerProcessorTest extends \PHPUnit\Framework\TestCase
         return $message;
     }
 
-    private function setUpObjectManager(BaseTransitionTrigger $trigger = null): void
+    private function setUpObjectManager(?BaseTransitionTrigger $trigger = null): void
     {
         $this->objectManager->expects(self::any())
             ->method('find')

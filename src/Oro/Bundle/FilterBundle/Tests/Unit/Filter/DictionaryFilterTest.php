@@ -5,13 +5,13 @@ namespace Oro\Bundle\FilterBundle\Tests\Unit\Filter;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\Driver\AttributeDriver;
 use Doctrine\Persistence\ManagerRegistry;
+use Oro\Bundle\EntityExtendBundle\Tests\Unit\Fixtures\TestEnumValue;
 use Oro\Bundle\FilterBundle\Datasource\Orm\OrmFilterDatasourceAdapter;
 use Oro\Bundle\FilterBundle\Filter\DictionaryFilter;
 use Oro\Bundle\FilterBundle\Filter\FilterUtility;
 use Oro\Bundle\FilterBundle\Form\Type\Filter\ChoiceFilterType;
 use Oro\Bundle\FilterBundle\Form\Type\Filter\DictionaryFilterType;
 use Oro\Bundle\FilterBundle\Tests\Unit\Filter\Fixtures\TestEntity;
-use Oro\Bundle\FilterBundle\Tests\Unit\Filter\Fixtures\TestEnumValue;
 use Oro\Component\Testing\ReflectionUtil;
 use Oro\Component\Testing\Unit\ORM\OrmTestCase;
 use Symfony\Component\Form\FormFactoryInterface;
@@ -28,6 +28,7 @@ class DictionaryFilterTest extends OrmTestCase
     /** @var DictionaryFilter */
     private $filter;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->em = $this->getTestEntityManager();
@@ -109,10 +110,10 @@ class DictionaryFilterTest extends OrmTestCase
             ->from(TestEntity::class, 'o');
 
         $values = [
-            new TestEnumValue('val1', 'Value1'),
-            new TestEnumValue('val2', 'Value2')
+            new TestEnumValue('test', 'Test', 'val1'),
+            new TestEnumValue('test', 'Test', 'val2')
         ];
-        $data   = [
+        $data = [
             'value' => $values
         ];
 
@@ -145,11 +146,11 @@ class DictionaryFilterTest extends OrmTestCase
             ->from(TestEntity::class, 'o');
 
         $values = [
-            new TestEnumValue('val1', 'Value1'),
-            new TestEnumValue('val2', 'Value2')
+            new TestEnumValue('test', 'Test', 'val1'),
+            new TestEnumValue('test', 'Test', 'val2')
         ];
-        $data   = [
-            'type'  => ChoiceFilterType::TYPE_NOT_CONTAINS,
+        $data = [
+            'type' => ChoiceFilterType::TYPE_NOT_CONTAINS,
             'value' => $values
         ];
 

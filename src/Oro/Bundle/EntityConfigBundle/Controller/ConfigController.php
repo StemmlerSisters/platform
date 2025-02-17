@@ -16,7 +16,9 @@ use Oro\Bundle\EntityConfigBundle\Helper\EntityConfigProviderHelper;
 use Oro\Bundle\EntityConfigBundle\Provider\ConfigProvider;
 use Oro\Bundle\EntityConfigBundle\Tools\ConfigHelper;
 use Oro\Bundle\EntityExtendBundle\EntityConfig\ExtendScope;
+use Oro\Bundle\FeatureToggleBundle\Checker\FeatureChecker;
 use Oro\Bundle\OrganizationBundle\Form\Type\OwnershipType;
+use Oro\Bundle\SecurityBundle\Acl\BasicPermission;
 use Oro\Bundle\SecurityBundle\Attribute\Acl;
 use Oro\Bundle\UIBundle\Route\Router;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
@@ -47,11 +49,20 @@ class ConfigController extends AbstractController
         $actions = [];
         $jsModules = [];
         $providers = $this->getConfigManager()->getProviders();
+        /** @var FeatureChecker $featureChecker */
+        $featureChecker = $this->container->get('oro_featuretoggle.checker.feature_checker');
+        $isCustomEntityCreationFeatureEnabled = $featureChecker->isFeatureEnabled('custom_entity_creation');
         foreach ($providers as $provider) {
             $propertyConfig = $provider->getPropertyConfig();
             $providerActions = $propertyConfig->getLayoutActions();
             foreach ($providerActions as $action) {
-                $actions[] = $action;
+                if (array_key_exists('route', $action) && 'oro_entityextend_entity_create' === $action['route']) {
+                    if ($isCustomEntityCreationFeatureEnabled) {
+                        $actions[] = $action;
+                    }
+                } else {
+                    $actions[] = $action;
+                }
             }
             $providerModules = $propertyConfig->getJsModules();
             foreach ($providerModules as $module) {
@@ -73,15 +84,16 @@ class ConfigController extends AbstractController
      *
      * @return array|RedirectResponse
      */
-    #[Route(path: '/update/{id}', name: 'oro_entityconfig_update')]
+    #[Route(path: '/update/{id}', name: 'oro_entityconfig_update', methods: ['GET', 'POST'])]
+    #[Acl(
+        id: 'oro_entityconfig_update',
+        type: 'entity',
+        class: EntityConfigModel::class,
+        permission: BasicPermission::EDIT
+    )]
     #[Template]
-    public function updateAction(Request $request, $id)
+    public function updateAction(Request $request, EntityConfigModel $entity)
     {
-        $entity  = $this->getConfigManager()
-            ->getEntityManager()
-            ->getRepository(EntityConfigModel::class)
-            ->find($id);
-
         $form = $this->createForm(
             ConfigType::class,
             null,
@@ -172,6 +184,12 @@ class ConfigController extends AbstractController
      * @return array|RedirectResponse
      */
     #[Route(path: '/field/update/{id}', name: 'oro_entityconfig_field_update')]
+    #[Acl(
+        id: 'oro_entityconfig_update_field',
+        type: 'entity',
+        class: FieldConfigModel::class,
+        permission: BasicPermission::EDIT
+    )]
     #[Template]
     public function fieldUpdateAction(FieldConfigModel $fieldConfigModel)
     {
@@ -396,14 +414,13 @@ class ConfigController extends AbstractController
         return $this->container->get(TranslatorInterface::class);
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public static function getSubscribedServices(): array
     {
         return array_merge(
             parent::getSubscribedServices(),
             [
+                'oro_featuretoggle.checker.feature_checker' => FeatureChecker::class,
                 'oro_entity.entity_field_provider' => EntityFieldProvider::class,
                 ConfigManager::class,
                 EntityRoutingHelper::class,

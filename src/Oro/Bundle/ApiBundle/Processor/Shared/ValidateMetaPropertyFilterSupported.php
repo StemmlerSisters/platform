@@ -25,9 +25,7 @@ class ValidateMetaPropertyFilterSupported implements ProcessorInterface
         $this->filterNamesRegistry = $filterNamesRegistry;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function process(ContextInterface $context): void
     {
         /** @var Context $context */
@@ -35,7 +33,7 @@ class ValidateMetaPropertyFilterSupported implements ProcessorInterface
         $filterName = $this->filterNamesRegistry
             ->getFilterNames($context->getRequestType())
             ->getMetaPropertyFilterName();
-        if (null === $context->getFilterValues()->get($filterName)) {
+        if (!$context->getFilterValues()->has($filterName)) {
             // nothing to validate because meta properties were not requested
             return;
         }

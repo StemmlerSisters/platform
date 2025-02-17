@@ -21,6 +21,7 @@ class HtmlTagHelperTest extends \PHPUnit\Framework\TestCase
 
     private HtmlTagHelper $helper;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->htmlTagProvider = $this->createMock(HtmlTagProvider::class);
@@ -302,6 +303,14 @@ class HtmlTagHelperTest extends \PHPUnit\Framework\TestCase
     {
         $actualString = '<div class="new">test1 test2</div><div class="new">test3   test4</div>';
         $expectedString = 'test1 test2 test3 test4';
+
+        $this->assertEquals($expectedString, $this->helper->stripTags($actualString));
+    }
+
+    public function testGetStrippedWithLtAndGt(): void
+    {
+        $actualString = '>test1 test2<test3   test4';
+        $expectedString = '>test1 test2<test3 test4';
 
         $this->assertEquals($expectedString, $this->helper->stripTags($actualString));
     }

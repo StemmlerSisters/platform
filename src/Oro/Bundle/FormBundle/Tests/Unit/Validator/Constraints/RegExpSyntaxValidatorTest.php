@@ -9,6 +9,7 @@ use Symfony\Component\Validator\Test\ConstraintValidatorTestCase;
 
 class RegExpSyntaxValidatorTest extends ConstraintValidatorTestCase
 {
+    #[\Override]
     protected function createValidator(): ConstraintValidator
     {
         return new RegExpSyntaxValidator();
@@ -25,12 +26,12 @@ class RegExpSyntaxValidatorTest extends ConstraintValidatorTestCase
     public function testViolationWhenInvalidRegExp(): void
     {
         $constraint = new RegExpSyntax();
-        $value = 'invalid~regexp';
+        $value = 'invalid~test';
 
         $this->validator->validate($value, $constraint);
 
         $this->buildViolation($constraint->message)
-            ->setParameter('{{ reason }}', '"preg_match(): Unknown modifier \'r\'"')
+            ->setParameter('{{ reason }}', '"preg_match(): Unknown modifier \'t\'"')
             ->setParameter('{{ value }}', '"~' . $value . '~i"')
             ->setCode(RegExpSyntax::INVALID_REGEXP_SYNTAX_ERROR)
             ->assertRaised();

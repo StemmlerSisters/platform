@@ -17,6 +17,7 @@ class AceManipulationHelperTest extends \PHPUnit\Framework\TestCase
     /** @var MutableAclInterface|\PHPUnit\Framework\MockObject\MockObject */
     private $acl;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->acl = $this->createMock(MutableAclInterface::class);
@@ -443,9 +444,9 @@ class AceManipulationHelperTest extends \PHPUnit\Framework\TestCase
 
     private function getAce(
         SecurityIdentityInterface $sid,
-        bool $granting = null,
-        int $mask = null,
-        string $strategy = null,
+        ?bool $granting = null,
+        ?int $mask = null,
+        ?string $strategy = null,
         int $getMaskCallCount = 1,
         int $getStrategyCallCount = 1
     ): EntryInterface {

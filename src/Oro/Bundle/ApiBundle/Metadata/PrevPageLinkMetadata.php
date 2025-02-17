@@ -17,16 +17,14 @@ class PrevPageLinkMetadata extends LinkMetadataDecorator
     public function __construct(
         LinkMetadataInterface $link,
         string $pageNumberFilterName,
-        QueryStringAccessorInterface $queryStringAccessor = null
+        ?QueryStringAccessorInterface $queryStringAccessor = null
     ) {
         parent::__construct($link);
         $this->pageNumberFilterName = $pageNumberFilterName;
         $this->queryStringAccessor = $queryStringAccessor;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function getHref(DataAccessorInterface $dataAccessor): ?string
     {
         $pageNumber = null;

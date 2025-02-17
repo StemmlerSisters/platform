@@ -34,6 +34,7 @@ class AclProtectedFieldTypeExtensionTest extends FormIntegrationTestCase
     /** @var AclProtectedFieldTypeExtension */
     private $extension;
 
+    #[\Override]
     protected function setUp(): void
     {
         parent::setUp();
@@ -227,7 +228,7 @@ class AclProtectedFieldTypeExtensionTest extends FormIntegrationTestCase
     /**
      * @return array [dispatcher, builder]
      */
-    private function getFormBuilderWithEventDispatcher(string $dataClass = null, string $formName = null): array
+    private function getFormBuilderWithEventDispatcher(?string $dataClass = null, ?string $formName = null): array
     {
         $dispatcher = new EventDispatcher();
         $formFactory = $this->createMock(FormFactoryInterface::class);

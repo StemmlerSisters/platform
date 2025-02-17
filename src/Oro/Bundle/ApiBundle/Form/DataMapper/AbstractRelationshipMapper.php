@@ -21,15 +21,13 @@ abstract class AbstractRelationshipMapper implements DataMapperInterface
     protected PropertyAccessorInterface $propertyAccessor;
     protected ?EntityMapper $entityMapper;
 
-    public function __construct(PropertyAccessorInterface $propertyAccessor, EntityMapper $entityMapper = null)
+    public function __construct(PropertyAccessorInterface $propertyAccessor, ?EntityMapper $entityMapper = null)
     {
         $this->propertyAccessor = $propertyAccessor;
         $this->entityMapper = $entityMapper;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function mapDataToForms(mixed $viewData, \Traversable $forms): void
     {
         $empty = null === $viewData;
@@ -50,9 +48,7 @@ abstract class AbstractRelationshipMapper implements DataMapperInterface
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function mapFormsToData(\Traversable $forms, mixed &$viewData): void
     {
         if (null === $viewData) {

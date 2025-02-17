@@ -15,15 +15,16 @@ use Symfony\Component\HttpFoundation\Response;
 
 class BuildListResultDocumentTest extends GetListProcessorTestCase
 {
-    /** @var \PHPUnit\Framework\MockObject\MockObject|ErrorCompleterRegistry */
+    /** @var ErrorCompleterRegistry|\PHPUnit\Framework\MockObject\MockObject */
     private $errorCompleterRegistry;
 
-    /** @var \PHPUnit\Framework\MockObject\MockObject|LoggerInterface */
+    /** @var LoggerInterface|\PHPUnit\Framework\MockObject\MockObject */
     private $logger;
 
     /** @var BuildListResultDocument */
     private $processor;
 
+    #[\Override]
     protected function setUp(): void
     {
         parent::setUp();
@@ -37,7 +38,7 @@ class BuildListResultDocumentTest extends GetListProcessorTestCase
         );
     }
 
-    public function testProcessContextWithoutErrorsOnEmptyResult()
+    public function testProcessContextWithoutErrorsOnEmptyResult(): void
     {
         $result = [];
         $metadata = new EntityMetadata('Test\Entity');
@@ -61,7 +62,7 @@ class BuildListResultDocumentTest extends GetListProcessorTestCase
         self::assertEquals($result, $this->context->getResult());
     }
 
-    public function testProcessContextWithoutErrorsOnNonEmptyResult()
+    public function testProcessContextWithoutErrorsOnNonEmptyResult(): void
     {
         $result = [new \stdClass()];
         $metadata = new EntityMetadata('Test\Entity');
@@ -85,7 +86,7 @@ class BuildListResultDocumentTest extends GetListProcessorTestCase
         self::assertEquals($result, $this->context->getResult());
     }
 
-    public function testProcessContextWithoutErrorsAndWithInfoRecords()
+    public function testProcessContextWithoutErrorsAndWithInfoRecords(): void
     {
         $result = [new \stdClass()];
         $metadata = new EntityMetadata('Test\Entity');
@@ -112,7 +113,7 @@ class BuildListResultDocumentTest extends GetListProcessorTestCase
         self::assertEquals($result, $this->context->getResult());
     }
 
-    public function testProcessContextWithoutErrorsOnNonEmptyResultAndErroredStatusCode()
+    public function testProcessContextWithoutErrorsOnNonEmptyResultAndErroredStatusCode(): void
     {
         $result = [new \stdClass()];
 
@@ -126,7 +127,7 @@ class BuildListResultDocumentTest extends GetListProcessorTestCase
         self::assertEquals($result, $this->context->getResult());
     }
 
-    public function testProcessWithErrors()
+    public function testProcessWithErrors(): void
     {
         $error = new Error();
 
@@ -154,7 +155,7 @@ class BuildListResultDocumentTest extends GetListProcessorTestCase
         self::assertFalse($this->context->hasErrors());
     }
 
-    public function testProcessWithException()
+    public function testProcessWithException(): void
     {
         $exception = new \LogicException();
 

@@ -49,9 +49,7 @@ class MailboxType extends AbstractType
         $this->oauthManagerRegistry = $oauthManagerRegistry;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setDefaults([
@@ -59,9 +57,7 @@ class MailboxType extends AbstractType
         ]);
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder->add('label', TextType::class, [
@@ -118,17 +114,12 @@ class MailboxType extends AbstractType
         $builder->addEventListener(FormEvents::POST_SUBMIT, [$this, 'postSubmit']);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getName()
     {
         return $this->getBlockPrefix();
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getBlockPrefix(): string
     {
         return 'oro_email_mailbox';
@@ -239,7 +230,7 @@ class MailboxType extends AbstractType
     /**
      * Set folder start sync date to prevent sync old emails
      */
-    protected function setFolderStartSync(Mailbox $data = null)
+    protected function setFolderStartSync(?Mailbox $data = null)
     {
         if (!$data || !$origin = $data->getOrigin()) {
             return;
@@ -256,7 +247,7 @@ class MailboxType extends AbstractType
     /**
      * Sets proper organization to origin. Set owner to null.
      */
-    protected function setOriginOrganizationAndOwner(Mailbox $data = null)
+    protected function setOriginOrganizationAndOwner(?Mailbox $data = null)
     {
         if ($data !== null) {
             $organization = $data->getOrganization();

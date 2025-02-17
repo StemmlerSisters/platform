@@ -15,6 +15,7 @@ class MigrationExecutorWithNameGeneratorTest extends MigrationExecutorTestCase
     private DbIdentifierNameGenerator $nameGenerator;
     private MigrationExecutorWithNameGenerator $executor;
 
+    #[\Override]
     protected function setUp(): void
     {
         parent::setUp();
@@ -47,8 +48,10 @@ class MigrationExecutorWithNameGeneratorTest extends MigrationExecutorTestCase
             );
 
         $this->executor->executeUp($migrations);
-        $messages = $this->logger->getMessages();
-        self::assertEquals(
+        $messages = array_values(array_filter($this->logger->getMessages(), function ($message) {
+            return !preg_match("/\<comment\>.*MiB/", $message);
+        }));
+        $this->assertEquals(
             [
                 '> ' . get_class($migration10),
                 'CREATE TABLE TEST (id INT AUTO_INCREMENT NOT NULL)',
@@ -74,8 +77,10 @@ class MigrationExecutorWithNameGeneratorTest extends MigrationExecutorTestCase
             ->method('executeQuery');
 
         $this->executor->executeUp($migrations, true);
-        $messages = $this->logger->getMessages();
-        self::assertEquals(
+        $messages = array_values(array_filter($this->logger->getMessages(), function ($message) {
+            return !preg_match("/\<comment\>.*MiB/", $message);
+        }));
+        $this->assertEquals(
             [
                 '> ' . get_class($migration10),
                 'CREATE TABLE TEST (id INT AUTO_INCREMENT NOT NULL)',

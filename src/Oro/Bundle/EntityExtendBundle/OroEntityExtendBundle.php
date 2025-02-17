@@ -34,12 +34,10 @@ class OroEntityExtendBundle extends Bundle
         $this->kernel = $kernel;
         $this->cacheDir = $kernel->getCacheDir();
 
-        ExtendClassLoadingUtils::registerClassLoader($this->cacheDir);
+        ExtendClassLoadingUtils::registerClassLoader($this->cacheDir, $kernel->getProjectDir());
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function boot(): void
     {
         parent::boot();
@@ -64,9 +62,7 @@ class OroEntityExtendBundle extends Bundle
         }
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function build(ContainerBuilder $container): void
     {
         parent::build($container);
@@ -74,7 +70,6 @@ class OroEntityExtendBundle extends Bundle
         $this->ensureInitialized();
 
         $container->addCompilerPass(new Compiler\EntityExtendValidationLoaderPass());
-        $container->addCompilerPass(new Compiler\ConfigLoaderPass());
         $container->addCompilerPass(new Compiler\EntityManagerPass());
         $container->addCompilerPass(new Compiler\MigrationConfigPass());
         $container->addCompilerPass(new Compiler\ExtendDuplicatorPass());

@@ -15,6 +15,7 @@ class RequestDataValidatorTest extends \PHPUnit\Framework\TestCase
     /** @var RequestDataValidator */
     private $validator;
 
+    #[\Override]
     protected function setUp(): void
     {
         parent::setUp();
@@ -1166,13 +1167,23 @@ class RequestDataValidatorTest extends \PHPUnit\Framework\TestCase
         );
     }
 
-    public function testValidMetaObject()
+    /**
+     * @dataProvider validMetaObjectProvider
+     */
+    public function testValidMetaObject(array $requestData)
     {
-        $requestData = ['meta' => ['key' => 'value']];
-
         $errors = $this->validator->validateMetaObject($requestData);
 
         self::assertEmpty($errors);
+    }
+
+    public function validMetaObjectProvider(): array
+    {
+        return [
+            [['meta' => ['key' => 'value']]],
+            [['meta' => []]],
+            [[]]
+        ];
     }
 
     /**
@@ -1194,10 +1205,10 @@ class RequestDataValidatorTest extends \PHPUnit\Framework\TestCase
     public function invalidMetaObjectProvider(): array
     {
         return [
-            [[], 'The primary meta object should exist', '/meta'],
             [['meta' => null], 'The primary meta object should not be empty', '/meta'],
-            [['meta' => []], 'The primary meta object should not be empty', '/meta'],
-            [['data' => ['type' => 'products']], 'The primary meta object should exist', '/meta'],
+            [['meta' => 'val'], 'The primary meta object should be an array', '/meta'],
+            [['meta' => [1, 2, 3]], 'The primary meta object should be an associative array', '/meta'],
+            [['data' => ['type' => 'products']], 'The \'meta\' section should exist', ''],
             [
                 ['meta' => ['key' => 'value'], 'data' => []],
                 'The \'data\' section should not exist',

@@ -25,6 +25,7 @@ class IndexEntityConfigDumperExtensionTest extends \PHPUnit\Framework\TestCase
     /** @var IndexEntityConfigDumperExtension */
     private $extension;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->configManager = $this->createMock(ConfigManager::class);
@@ -370,11 +371,11 @@ class IndexEntityConfigDumperExtensionTest extends \PHPUnit\Framework\TestCase
         $fieldConfig2 = new Config(new FieldConfigId('extend', $config->getId()->getClassName(), 'field2', 'string'));
         $fieldConfig2->set('is_extend', true);
 
-        $datagridFieldConfig1= new Config(
+        $datagridFieldConfig1 = new Config(
             new FieldConfigId('datagrid', $config->getId()->getClassName(), 'field1', 'string')
         );
         $datagridFieldConfig1->set('is_visible', DatagridScope::IS_VISIBLE_TRUE);
-        $datagridFieldConfig2= new Config(
+        $datagridFieldConfig2 = new Config(
             new FieldConfigId('datagrid', $config->getId()->getClassName(), 'field2', 'string')
         );
 

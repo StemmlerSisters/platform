@@ -25,6 +25,7 @@ use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
  */
 class FormHelper
 {
+    public const VALIDATION_GROUPS = ['Default', 'api'];
     public const EXTRA_FIELDS_MESSAGE = 'oro.api.form.extra_fields';
 
     private FormFactoryInterface $formFactory;
@@ -86,14 +87,14 @@ class FormHelper
             if (ConfigUtil::CLASS_NAME === ($metaProperty->getPropertyPath() ?? $name)) {
                 continue;
             }
-            $this->addFormField($formBuilder, $name, $entityConfig->getField($name), $metaProperty);
+            $this->addFormField($formBuilder, $name, $entityConfig->getField($name), $metaProperty, [], true);
         }
         $fields = $entityMetadata->getFields();
         foreach ($fields as $name => $field) {
             if (!$field->isInput()) {
                 continue;
             }
-            $this->addFormField($formBuilder, $name, $entityConfig->getField($name), $field);
+            $this->addFormField($formBuilder, $name, $entityConfig->getField($name), $field, [], true);
         }
         $associations = $entityMetadata->getAssociations();
         foreach ($associations as $name => $association) {
@@ -159,9 +160,9 @@ class FormHelper
     private function getFormDefaultOptions(): array
     {
         return [
-            'validation_groups'    => ['Default', 'api'],
+            'validation_groups' => self::VALIDATION_GROUPS,
             'extra_fields_message' => self::EXTRA_FIELDS_MESSAGE,
-            'enable_validation'    => false
+            'enable_validation' => false
         ];
     }
 

@@ -43,6 +43,20 @@ services:
         factory: ['@form.factory', createNamed]
         arguments: ["oro_user_reset_form", Oro\Bundle\UserBundle\Form\Type\ResetType, null, { validation_groups: [ResetPassword, Default] }]
 
+    oro_user.form.type.user_password_reset_request:
+        class: Oro\Bundle\UserBundle\Form\Type\UserPasswordResetRequestType
+        tags:
+            - { name: form.type, alias: oro_user_password_request }
+            - { name: oro_form.captcha_protected, form_name: oro_user_password_request }
+
+    Oro\Bundle\UserBundle\Form\Handler\UserPasswordResetHandler:
+        arguments:
+            - '@oro_user.manager'
+            - '@translator'
+            - '@logger'
+            - '@oro_user.provider.user_logging_info_provider'
+            - '%oro_user.reset.ttl%'
+
     oro_user.form.emailsettings:
         class: Symfony\Component\Form\Form
         factory: ['@form.factory', createNamed]
@@ -181,7 +195,7 @@ services:
             - '@oro_user.form.user'
             - '@request_stack'
             - '@oro_user.manager'
-            - '@oro_email.manager.template_email'
+            - '@oro_email.sender.email_template_sender'
             - '@oro_config.user'
             - '@translator'
             - '@logger'
@@ -350,13 +364,3 @@ services:
             - [ setConverter, ['@oro_user.widget_config_value.widget_user_multiselect.converter', 'users', 'oro.user.dashboard.owner'] ]
         tags:
             - { name: oro_dashboard.value.converter, form_type: Oro\Bundle\UserBundle\Form\Type\WidgetOwnersType }
-
-    oro_user.form.type.apikey_gen:
-        class: Oro\Bundle\UserBundle\Form\Type\UserApiKeyGenType
-        tags:
-            - { name: form.type, alias: oro_user_apikey_gen }
-
-    oro_user.form.type.apikey_gen_key:
-        class: Oro\Bundle\UserBundle\Form\Type\UserApiKeyGenKeyType
-        tags:
-            - { name: form.type, alias: oro_user_apikey_gen_key }

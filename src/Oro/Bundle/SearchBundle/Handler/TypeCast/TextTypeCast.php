@@ -9,12 +9,8 @@ use Oro\Bundle\SearchBundle\Query\Query;
  */
 class TextTypeCast extends AbstractTypeCastingHandler
 {
-    /**
-     * @param mixed $value
-     *
-     * @return object|string
-     */
-    public function castValue($value)
+    #[\Override]
+    public function castValue(mixed $value): mixed
     {
         if ($this->isSupported($value)) {
             return trim($value);
@@ -23,11 +19,13 @@ class TextTypeCast extends AbstractTypeCastingHandler
         return parent::castValue($value);
     }
 
+    #[\Override]
     public function isSupported($value): bool
     {
         return is_string($value) || (is_object($value) && method_exists($value, '__toString'));
     }
 
+    #[\Override]
     public static function getType(): string
     {
         return Query::TYPE_TEXT;

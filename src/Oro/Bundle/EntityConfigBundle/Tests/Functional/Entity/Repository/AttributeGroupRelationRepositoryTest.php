@@ -14,6 +14,7 @@ use Oro\Bundle\TestFrameworkBundle\Test\WebTestCase;
 
 class AttributeGroupRelationRepositoryTest extends WebTestCase
 {
+    #[\Override]
     protected function setUp(): void
     {
         $this->initClient([], $this->generateBasicAuthHeader());
@@ -103,7 +104,7 @@ class AttributeGroupRelationRepositoryTest extends WebTestCase
 
         $this->assertCount(2, $map);
         $this->assertCount(2, $map[$defaultGroup->getId()]);
-        $this->assertCount(1, $map[$regularGroup->getId()]);
+        $this->assertCount(2, $map[$regularGroup->getId()]);
 
         $expectedMap = [
             $defaultGroup->getId() => [
@@ -112,6 +113,7 @@ class AttributeGroupRelationRepositoryTest extends WebTestCase
             ],
             $regularGroup->getId() => [
                 LoadAttributeData::getAttributeIdByName(LoadAttributeData::REGULAR_ATTRIBUTE_1),
+                LoadAttributeData::getAttributeIdByName(LoadAttributeData::BOOL_ATTRIBUTE_1),
             ],
         ];
 

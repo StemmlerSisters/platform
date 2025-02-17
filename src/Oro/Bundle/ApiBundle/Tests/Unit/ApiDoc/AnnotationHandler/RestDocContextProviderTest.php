@@ -37,6 +37,7 @@ class RestDocContextProviderTest extends \PHPUnit\Framework\TestCase
     /** @var RestDocContextProvider */
     private $contextProvider;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->requestType = new RequestType([RequestType::REST]);
@@ -158,7 +159,8 @@ class RestDocContextProviderTest extends \PHPUnit\Framework\TestCase
                 self::assertEquals(
                     [
                         new EntityDefinitionConfigExtra($action, false, $entityClass, $associationName),
-                        new FilterFieldsConfigExtra([$entityClass => [$associationName]])
+                        new FilterFieldsConfigExtra([$entityClass => [$associationName]]),
+                        new DescriptionsConfigExtra()
                     ],
                     $context->getParentConfigExtras()
                 );

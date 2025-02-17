@@ -19,10 +19,8 @@ class ProcessEntityNormalizer extends AbstractProcessNormalizer
         $this->doctrineHelper = $doctrineHelper;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function normalize($object, string $format = null, array $context = [])
+    #[\Override]
+    public function normalize($object, ?string $format = null, array $context = [])
     {
         $processJob = $this->getProcessJob($context);
         $entityClass = $this->getClass($object);
@@ -48,10 +46,8 @@ class ProcessEntityNormalizer extends AbstractProcessNormalizer
         return $normalizedData;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function denormalize($data, string $type, string $format = null, array $context = [])
+    #[\Override]
+    public function denormalize($data, string $type, ?string $format = null, array $context = [])
     {
         $className = $data['className'];
 
@@ -74,18 +70,14 @@ class ProcessEntityNormalizer extends AbstractProcessNormalizer
         return $entity;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function supportsNormalization($data, string $format = null): bool
+    #[\Override]
+    public function supportsNormalization($data, ?string $format = null): bool
     {
         return is_object($data) && $this->doctrineHelper->isManageableEntity($data);
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function supportsDenormalization($data, string $type, string $format = null): bool
+    #[\Override]
+    public function supportsDenormalization($data, string $type, ?string $format = null): bool
     {
         return is_array($data) && !empty($data['className']);
     }

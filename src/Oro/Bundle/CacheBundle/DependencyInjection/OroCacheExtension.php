@@ -2,8 +2,7 @@
 
 namespace Oro\Bundle\CacheBundle\DependencyInjection;
 
-use Oro\Component\Config\Loader\CumulativeConfigLoader;
-use Oro\Component\Config\Loader\NullCumulativeFileLoader;
+use Oro\Component\Config\Loader\Factory\CumulativeConfigLoaderFactory;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
@@ -15,9 +14,7 @@ use Symfony\Component\Serializer\Mapping\Loader\YamlFileLoader as SerializerYaml
 
 class OroCacheExtension extends Extension
 {
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function load(array $configs, ContainerBuilder $container): void
     {
         $loader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
@@ -29,9 +26,9 @@ class OroCacheExtension extends Extension
 
     private function loadMetadataFactoryDefinition(ContainerBuilder $container): void
     {
-        $configLoader = new CumulativeConfigLoader(
+        $configLoader = CumulativeConfigLoaderFactory::create(
             'oro_cache_attributes',
-            new NullCumulativeFileLoader('Resources/config/oro/cache_metadata.yml')
+            'Resources/config/oro/cache_metadata.yml'
         );
         $resources = $configLoader->load();
         $serializerFileLoaders = [];

@@ -19,9 +19,7 @@ class LoadSearchEntities implements ProcessorInterface
         $this->searchEntityRepository = $searchEntityRepository;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function process(ContextInterface $context): void
     {
         /** @var ListContext $context */
@@ -35,7 +33,7 @@ class LoadSearchEntities implements ProcessorInterface
             $this->searchEntityRepository->getSearchEntities(
                 $context->getVersion(),
                 $context->getRequestType(),
-                $context->getFilterValues()->get('searchable')?->getValue()
+                $context->getFilterValues()->getOne('searchable')?->getValue()
             )
         );
     }

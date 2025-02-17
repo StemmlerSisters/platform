@@ -12,6 +12,7 @@ use Oro\Bundle\EntityBundle\ORM\DoctrineHelper;
 use Oro\Bundle\WorkflowBundle\Button\StartTransitionButton;
 use Oro\Bundle\WorkflowBundle\Entity\WorkflowDefinition;
 use Oro\Bundle\WorkflowBundle\Entity\WorkflowItem;
+use Oro\Bundle\WorkflowBundle\Event\EventDispatcher;
 use Oro\Bundle\WorkflowBundle\Extension\DatagridStartTransitionButtonProviderExtension;
 use Oro\Bundle\WorkflowBundle\Model\Transition;
 use Oro\Bundle\WorkflowBundle\Model\TransitionManager;
@@ -39,6 +40,7 @@ class DatagridStartTransitionButtonProviderExtensionTest extends \PHPUnit\Framew
     /** @var DatagridStartTransitionButtonProviderExtension */
     private $extension;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->workflowRegistry = $this->createMock(WorkflowRegistry::class);
@@ -232,7 +234,10 @@ class DatagridStartTransitionButtonProviderExtensionTest extends \PHPUnit\Framew
 
     private function createStartTransition(): Transition
     {
-        $transition = new Transition($this->createMock(TransitionOptionsResolver::class));
+        $transition = new Transition(
+            $this->createMock(TransitionOptionsResolver::class),
+            $this->createMock(EventDispatcher::class)
+        );
 
         return $transition->setStart(true);
     }

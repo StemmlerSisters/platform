@@ -9,6 +9,7 @@ use Oro\Bundle\WorkflowBundle\Entity\TransitionCronTrigger;
 use Oro\Bundle\WorkflowBundle\Entity\TransitionEventTrigger;
 use Oro\Bundle\WorkflowBundle\Entity\WorkflowDefinition;
 use Oro\Bundle\WorkflowBundle\Entity\WorkflowItem;
+use Oro\Bundle\WorkflowBundle\Event\EventDispatcher;
 use Oro\Bundle\WorkflowBundle\Handler\TransitionCronTriggerHandler;
 use Oro\Bundle\WorkflowBundle\Helper\TransitionCronTriggerHelper;
 use Oro\Bundle\WorkflowBundle\Model\Transition;
@@ -42,6 +43,7 @@ class TransitionCronTriggerHandlerTest extends \PHPUnit\Framework\TestCase
     /** @var TransitionCronTrigger */
     private $trigger;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->workflowManager = $this->createMock(WorkflowManager::class);
@@ -206,7 +208,7 @@ class TransitionCronTriggerHandlerTest extends \PHPUnit\Framework\TestCase
         $this->assertFalse($this->handler->process($trigger, TransitionTriggerMessage::create($trigger)));
     }
 
-    private function getWorkflow(Transition $transition = null): Workflow
+    private function getWorkflow(?Transition $transition = null): Workflow
     {
         $transitions = [];
 
@@ -227,7 +229,10 @@ class TransitionCronTriggerHandlerTest extends \PHPUnit\Framework\TestCase
 
     private function getTransition(bool $isStart = false): Transition
     {
-        $transition = new Transition($this->createMock(TransitionOptionsResolver::class));
+        $transition = new Transition(
+            $this->createMock(TransitionOptionsResolver::class),
+            $this->createMock(EventDispatcher::class)
+        );
 
         return $transition->setName(self::TRANSITION_NAME)->setStart($isStart);
     }

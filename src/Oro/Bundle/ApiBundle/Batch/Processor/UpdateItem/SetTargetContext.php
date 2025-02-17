@@ -16,9 +16,7 @@ use Oro\Component\ChainProcessor\ProcessorInterface;
  */
 class SetTargetContext implements ProcessorInterface
 {
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function process(ContextInterface $context): void
     {
         /** @var BatchUpdateItemContext $context */
@@ -55,6 +53,9 @@ class SetTargetContext implements ProcessorInterface
         $entityId = $context->getId();
         if (null !== $entityId && $targetContext instanceof SingleItemContext) {
             $targetContext->setId($entityId);
+            if ($targetContext instanceof FormContext) {
+                $targetContext->setRequestId($entityId);
+            }
         }
         if ($targetContext instanceof FormContext) {
             $targetContext->setRequestData($context->getRequestData());

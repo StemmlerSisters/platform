@@ -18,9 +18,7 @@ class OroPlatformBundle extends Bundle
 {
     public const PACKAGE_NAME = 'oro/platform';
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function build(ContainerBuilder $container): void
     {
         parent::build($container);
@@ -83,5 +81,10 @@ class OroPlatformBundle extends Bundle
         $container->addCompilerPass(new ProfilerCompilerPass());
         $container->addCompilerPass(new DoctrineConnectionPingPass('session'), PassConfig::TYPE_BEFORE_REMOVING);
         $container->addCompilerPass(new DoctrineConnectionPingPass('config'), PassConfig::TYPE_BEFORE_REMOVING);
+
+        $container->addCompilerPass(new Compiler\UsageStatsCompilerPass(
+            'oro_platform.provider.usage_stats.usage_stats_provider_registry',
+            'oro_platform.usage_stats_provider'
+        ));
     }
 }

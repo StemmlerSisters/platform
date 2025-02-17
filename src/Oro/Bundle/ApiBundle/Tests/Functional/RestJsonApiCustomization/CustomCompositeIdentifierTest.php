@@ -12,6 +12,7 @@ use Oro\Bundle\ApiBundle\Tests\Functional\RestJsonApiTestCase;
  */
 class CustomCompositeIdentifierTest extends RestJsonApiTestCase
 {
+    #[\Override]
     protected function setUp(): void
     {
         parent::setUp();
@@ -270,7 +271,7 @@ class CustomCompositeIdentifierTest extends RestJsonApiTestCase
 
         $response = $this->cget(
             ['entity' => $entityType],
-            ['filter[id]!' => $this->getEntityId('item 3', 3)]
+            ['filter[id][neq]' => $this->getEntityId('item 3', 3)]
         );
 
         $this->assertResponseContains(
@@ -348,7 +349,7 @@ class CustomCompositeIdentifierTest extends RestJsonApiTestCase
 
         $response = $this->cget(
             ['entity' => $entityType],
-            ['filter[id]!' => $this->getEntityId('item 1', 1) . ',' . $this->getEntityId('item 3', 3)]
+            ['filter[id][neq]' => $this->getEntityId('item 1', 1) . ',' . $this->getEntityId('item 3', 3)]
         );
 
         $this->assertResponseContains(

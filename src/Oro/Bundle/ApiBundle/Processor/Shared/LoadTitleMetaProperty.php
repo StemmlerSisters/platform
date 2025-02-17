@@ -10,9 +10,11 @@ use Oro\Bundle\ApiBundle\Config\TargetConfigExtraBuilder;
 use Oro\Bundle\ApiBundle\Model\EntityIdentifier;
 use Oro\Bundle\ApiBundle\Processor\Context;
 use Oro\Bundle\ApiBundle\Provider\ConfigProvider;
-use Oro\Bundle\ApiBundle\Provider\EntityTitleProvider;
+use Oro\Bundle\ApiBundle\Provider\EntityTitleProviderInterface;
 use Oro\Bundle\ApiBundle\Provider\ExpandedAssociationExtractor;
 use Oro\Bundle\ApiBundle\Util\ConfigUtil;
+use Oro\Bundle\EntityExtendBundle\Entity\EnumOption;
+use Oro\Bundle\EntityExtendBundle\Tools\ExtendHelper;
 use Oro\Component\ChainProcessor\ContextInterface;
 use Oro\Component\ChainProcessor\ProcessorInterface;
 
@@ -29,7 +31,7 @@ abstract class LoadTitleMetaProperty implements ProcessorInterface
     /** Used for composite keys comparison */
     private const COMPOSITE_KEYS = 'composite_keys';
 
-    private EntityTitleProvider $entityTitleProvider;
+    private EntityTitleProviderInterface $entityTitleProvider;
     private ExpandedAssociationExtractor $expandedAssociationExtractor;
     private ConfigProvider $configProvider;
     private ?string $titleFieldName = null;
@@ -37,7 +39,7 @@ abstract class LoadTitleMetaProperty implements ProcessorInterface
     private ?Context $context = null;
 
     public function __construct(
-        EntityTitleProvider $entityTitleProvider,
+        EntityTitleProviderInterface $entityTitleProvider,
         ExpandedAssociationExtractor $expandedAssociationExtractor,
         ConfigProvider $configProvider
     ) {
@@ -46,9 +48,7 @@ abstract class LoadTitleMetaProperty implements ProcessorInterface
         $this->configProvider = $configProvider;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function process(ContextInterface $context): void
     {
         /** @var Context $context */
@@ -92,6 +92,7 @@ abstract class LoadTitleMetaProperty implements ProcessorInterface
             $this->expandConfigExtra = null;
             $this->context = null;
         }
+        $context->setProcessed(self::OPERATION_NAME);
     }
 
     abstract protected function updateData(array $data, string $entityClass, EntityDefinitionConfig $config): array;
@@ -201,7 +202,7 @@ abstract class LoadTitleMetaProperty implements ProcessorInterface
      * @param string                 $entityClass
      * @param string                 $idFieldName
      * @param EntityDefinitionConfig $config
-     * @param string|null            $associationPath
+     * @param string|null $associationPath
      *
      * @return array [data item key => [entity key, association map], ...]
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
@@ -212,7 +213,7 @@ abstract class LoadTitleMetaProperty implements ProcessorInterface
         string $entityClass,
         string $idFieldName,
         EntityDefinitionConfig $config,
-        string $associationPath = null
+        ?string $associationPath = null
     ): array {
         $associationMap = [];
         $isMultiTargetAssociation = is_a($entityClass, EntityIdentifier::class, true);
@@ -263,7 +264,7 @@ abstract class LoadTitleMetaProperty implements ProcessorInterface
      * @param string                 $entityClass
      * @param string[]               $idFieldName
      * @param EntityDefinitionConfig $config
-     * @param string|null            $associationPath
+     * @param string|null $associationPath
      *
      * @return array [data item key => [entity key, association map], ...]
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
@@ -274,7 +275,7 @@ abstract class LoadTitleMetaProperty implements ProcessorInterface
         string $entityClass,
         array $idFieldName,
         EntityDefinitionConfig $config,
-        string $associationPath = null
+        ?string $associationPath = null
     ): array {
         $associationMap = [];
         $isMultiTargetAssociation = is_a($entityClass, EntityIdentifier::class, true);
@@ -340,6 +341,7 @@ abstract class LoadTitleMetaProperty implements ProcessorInterface
      *
      * @return array [data item key => [entity key, association map], ...]
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
      */
     private function collectIdentifiersForAssociations(
         array &$entityIdMap,
@@ -359,12 +361,15 @@ abstract class LoadTitleMetaProperty implements ProcessorInterface
 
             $config = $association->getTargetEntity();
             $idFieldName = AssociationConfigUtil::getEntityIdentifierFieldName($config);
-            if ($idFieldName) {
+            if ($idFieldName && $config->isMetaPropertyEnabled('title')) {
                 $isCollection = $association->isCollectionValuedAssociation();
                 if (!$isCollection) {
                     $value = [$value];
                 }
                 $targetEntityClass = $association->getTargetClass();
+                if (ExtendHelper::isOutdatedEnumOptionEntity($targetEntityClass)) {
+                    $targetEntityClass = EnumOption::class;
+                }
                 $targetAssociationPath = $associationPath
                     ? $associationPath . ConfigUtil::PATH_DELIMITER . $associationName
                     : $associationName;

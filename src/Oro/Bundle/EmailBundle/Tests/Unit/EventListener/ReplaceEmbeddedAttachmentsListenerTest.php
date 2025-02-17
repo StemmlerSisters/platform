@@ -14,6 +14,7 @@ class ReplaceEmbeddedAttachmentsListenerTest extends \PHPUnit\Framework\TestCase
     /** @var ReplaceEmbeddedAttachmentsListener */
     private $listener;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->listener = new ReplaceEmbeddedAttachmentsListener();
@@ -122,5 +123,42 @@ class ReplaceEmbeddedAttachmentsListenerTest extends \PHPUnit\Framework\TestCase
                 ]
             ]
         ];
+    }
+
+    public function testNotSupportedReplace()
+    {
+        $email     = new Email();
+        $emailBody = new EmailBody();
+
+        $replacements = $embeddedContentIds = [];
+        $embeddedContentId = 'test_content_id_1';
+
+        $attachment = new EmailAttachment();
+        $attachment
+            ->setEmbeddedContentId($embeddedContentId)
+            ->setContentType('image/jpeg');
+
+        $emailBody->addAttachment($attachment);
+
+        $cid          = 'cid:' . $embeddedContentId;
+        $embeddedContentIds[] = $cid;
+        $replacements[] = $cid;
+
+        $emailBody->setBodyContent(
+            vsprintf(
+                'body attachment without content for embedded_content_id #%s#',
+                $embeddedContentIds
+            )
+        );
+        $email->setEmailBody($emailBody);
+
+        $event = new EmailBodyLoaded($email);
+        $this->listener->replace($event);
+
+        $this->assertEquals($email, $event->getEmail());
+        $this->assertEquals(
+            vsprintf('body attachment without content for embedded_content_id #%s#', $replacements),
+            $event->getEmail()->getEmailBody()->getBodyContent()
+        );
     }
 }

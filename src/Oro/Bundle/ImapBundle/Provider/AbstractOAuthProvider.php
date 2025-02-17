@@ -26,10 +26,8 @@ abstract class AbstractOAuthProvider implements OAuthProviderInterface
         $this->resourceOwnerMap = $resourceOwnerMap;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function getAccessTokenByAuthCode(string $code, array $scopes = null): OAuthAccessTokenData
+    #[\Override]
+    public function getAccessTokenByAuthCode(string $code, ?array $scopes = null): OAuthAccessTokenData
     {
         $response = $this->doAccessTokenHttpRequest($this->getAccessTokenParameters($code, $scopes));
         if (empty($response['access_token'])) {
@@ -39,10 +37,8 @@ abstract class AbstractOAuthProvider implements OAuthProviderInterface
         return $this->createAccessTokenData($response);
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function getAccessTokenByRefreshToken(string $refreshToken, array $scopes = null): OAuthAccessTokenData
+    #[\Override]
+    public function getAccessTokenByRefreshToken(string $refreshToken, ?array $scopes = null): OAuthAccessTokenData
     {
         $response = $this->doAccessTokenHttpRequest($this->getRefreshTokenParameters($refreshToken, $scopes));
         if (empty($response['access_token'])) {
@@ -52,9 +48,7 @@ abstract class AbstractOAuthProvider implements OAuthProviderInterface
         return $this->createAccessTokenData($response);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function getUserInfo(string $accessToken): UserResponseInterface
     {
         $resourceOwner = $this->resourceOwnerMap->getResourceOwnerByName($this->getResourceOwnerName());
@@ -86,7 +80,7 @@ abstract class AbstractOAuthProvider implements OAuthProviderInterface
     /**
      * Gets parameters for a request to exchange the authorization code to the access token.
      */
-    protected function getAccessTokenParameters(string $code, array $scopes = null): array
+    protected function getAccessTokenParameters(string $code, ?array $scopes = null): array
     {
         return [
             'grant_type' => 'authorization_code',
@@ -97,7 +91,7 @@ abstract class AbstractOAuthProvider implements OAuthProviderInterface
     /**
      * Gets parameters for a request to renew the access token via the refresh token.
      */
-    protected function getRefreshTokenParameters(string $refreshToken, array $scopes = null): array
+    protected function getRefreshTokenParameters(string $refreshToken, ?array $scopes = null): array
     {
         $parameters = [
             'grant_type'    => 'refresh_token',

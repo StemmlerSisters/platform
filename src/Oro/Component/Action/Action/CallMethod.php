@@ -5,6 +5,20 @@ namespace Oro\Component\Action\Action;
 use Oro\Component\Action\Exception\InvalidParameterException;
 use Symfony\Component\PropertyAccess\PropertyPathInterface;
 
+/**
+ * Call function/method.
+ *
+ * Usage:
+ *  - '@call_method':
+ *      attribute: $.changedSkusStr
+ *      method: implode
+ *      method_parameters: [', ', $.changedSkus]
+ *
+ *  - '@call_method':
+ *      attribute: $.formView
+ *      object: $.form
+ *      method: createView
+ */
 class CallMethod extends AbstractAction
 {
     /**
@@ -12,13 +26,17 @@ class CallMethod extends AbstractAction
      */
     protected $options;
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     protected function executeAction($context)
     {
         $object = $this->getObject($context);
         $method = $this->getMethod();
+
+        // Do not call method on null object if object is configured.
+        if (!empty($this->options['object']) && !$object) {
+            return;
+        }
+
         if ($object) {
             $callback = [$object, $method];
         } else {
@@ -77,9 +95,7 @@ class CallMethod extends AbstractAction
         return $parameters;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function initialize(array $options)
     {
         if (empty($options['method'])) {

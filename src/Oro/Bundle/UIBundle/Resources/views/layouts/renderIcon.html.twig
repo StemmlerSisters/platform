@@ -4,8 +4,46 @@
 {%- macro getThemeSpriteUrl() -%}
     {% set layoutContext = get_layout_context() %}
     {% set theme = layoutContext.theme %}
-    {{- asset('/build/' ~ theme ~ '/svg-icons/theme-icons.svg') -}}
+    {% set basePath = app.request.basePath|trim %}
+    {% set themIconFilename = oro_is_rtl_mode() ? 'theme-icons.rtl.svg' : 'theme-icons.svg' %}
+    {{- asset(basePath ~ '/build/' ~ theme ~ '/svg-icons/' ~ themIconFilename) -}}
 {%- endmacro -%}
+
+{%- macro getThemeSpriteMetadata() -%}
+    {% set layoutContext = get_layout_context() %}
+    {% set theme = layoutContext.theme %}
+    {% set basePath = app.request.basePath|trim %}
+    {{- asset(basePath ~ '/build/' ~ theme ~ '/svg-icons/icons-metadata.json') -}}
+{%- endmacro -%}
+
+{#
+    Rendering an icon
+    Parameters - array:
+        [
+            'name' - icon id to show
+            'id' - element id (attribute)
+            'fill' - fill attribute
+            'width' - width attribute
+            'height' - height attribute
+            'class' - class attribute
+            'extraClass' - extra class
+            'role' - role attribute
+            'title' - short description for accessibulity
+        ]
+#}
+{% macro icon(parameters) -%}
+    {% if (parameters.name is defined) %}
+        {% import _self as themeIcons %}
+        {% set layoutContext = get_layout_context() %}
+        {% set isSvgSupport = layoutContext.is_svg_icons_support %}
+
+        {% if isSvgSupport == true %}
+            {{ themeIcons.svgIcon(parameters) }}
+        {% else %}
+            {{ themeIcons.faIcon(parameters) }}
+        {% endif %}
+    {% endif %}
+{% endmacro %}
 
 {#
     Rendering a svg icon
@@ -22,7 +60,7 @@
             'title' - short description for accessibulity
         ]
 #}
-{% macro icon(parameters) -%}
+{% macro svgIcon(parameters) -%}
     {% if (parameters.name is defined) %}
         {% import _self as themeIcons %}
         {% set href = themeIcons.getThemeSpriteUrl()|trim ~ '#' ~ parameters.name  %}
@@ -67,5 +105,24 @@
         {% endif %}
             <use href="{{- href -}}"/>
         </svg>
+    {% endif %}
+{% endmacro %}
+
+{#
+    Rendering a fa-icon
+    Parameters - array:
+        [
+            'name' - icon id to show
+            'extraClass' - extra class
+        ]
+#}
+{% macro faIcon(parameters) -%}
+    {% if parameters.name is defined %}
+        {% set class = 'fa-' ~ parameters.name ~ ' hide-text'  %}
+        {% if parameters.extraClass is defined %}
+            {% set class = class|trim ~ ' '  ~ parameters.extraClass|trim  %}
+        {% endif %}
+
+        <span class="{{- class -}}" aria-hidden="true"></span>
     {% endif %}
 {% endmacro %}

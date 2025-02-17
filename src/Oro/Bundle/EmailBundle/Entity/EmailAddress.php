@@ -165,13 +165,14 @@ abstract class EmailAddress
      * @param EmailOwnerInterface|null $owner
      * @return EmailAddress
      */
-    abstract public function setOwner(EmailOwnerInterface $owner = null);
+    abstract public function setOwner(?EmailOwnerInterface $owner = null);
 
     /**
      * Get a human-readable representation of this object.
      *
      * @return string
      */
+    #[\Override]
     public function __toString()
     {
         return sprintf('EmailAddress(%s)', $this->email);

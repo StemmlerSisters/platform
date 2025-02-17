@@ -3,7 +3,7 @@
 namespace Oro\Bundle\DataGridBundle\ImportExport;
 
 use Oro\Bundle\DataGridBundle\Datagrid\DatagridInterface;
-use Oro\Bundle\DataGridBundle\Datagrid\Manager as DatagridManager;
+use Oro\Bundle\DataGridBundle\Datagrid\ManagerInterface as DatagridManager;
 use Oro\Bundle\DataGridBundle\Extension\Formatter\Configuration;
 use Oro\Bundle\DataGridBundle\Provider\State\ColumnsStateProvider;
 use Oro\Bundle\DataGridBundle\Provider\State\DatagridStateProviderInterface;
@@ -28,9 +28,7 @@ class DatagridColumnsFromContextProvider implements DatagridColumnsFromContextPr
         $this->columnsStateProvider = $columnsStateProvider;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getColumnsFromContext(ContextInterface $context): array
     {
         if (!$context->hasOption('gridName')) {

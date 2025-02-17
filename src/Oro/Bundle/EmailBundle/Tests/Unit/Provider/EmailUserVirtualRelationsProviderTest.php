@@ -21,6 +21,7 @@ class EmailUserVirtualRelationsProviderTest extends \PHPUnit\Framework\TestCase
     /** @var EmailUserVirtualRelationsProvider */
     private $provider;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->configProvider = $this->createMock(ConfigProvider::class);
@@ -103,7 +104,7 @@ class EmailUserVirtualRelationsProviderTest extends \PHPUnit\Framework\TestCase
                     'relation_type' => 'manyToMany',
                     'related_entity_name' => User::class,
                     'target_join_alias' => 'target_field',
-                    'query' =>[
+                    'query' => [
                         'join' => [
                             'left' => [
                                 [

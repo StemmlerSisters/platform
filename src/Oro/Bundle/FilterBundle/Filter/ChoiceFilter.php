@@ -12,17 +12,13 @@ use Symfony\Component\Form\ChoiceList\View\ChoiceView;
  */
 class ChoiceFilter extends AbstractFilter
 {
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     protected function getFormType()
     {
         return ChoiceFilterType::class;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function init($name, array $params)
     {
         if (isset($params['null_value'])) {
@@ -31,9 +27,7 @@ class ChoiceFilter extends AbstractFilter
         parent::init($name, $params);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     protected function buildExpr(FilterDatasourceAdapterInterface $ds, $comparisonType, $fieldName, $data)
     {
         if ($this->checkNullValue($data)) {
@@ -58,9 +52,7 @@ class ChoiceFilter extends AbstractFilter
         return $this->buildComparisonExpr($ds, $comparisonType, $fieldName, $parameterName);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function getMetadata()
     {
         $formView = $this->getFormView();
@@ -77,7 +69,7 @@ class ChoiceFilter extends AbstractFilter
         );
 
         $metadata = parent::getMetadata();
-        $metadata['choices'] = $choices;
+        $metadata['choices'] = array_values($choices);
         $metadata['populateDefault'] = $formView->vars['populate_default'];
         if (!empty($formView->vars['default_value'])) {
             $metadata['placeholder'] = $formView->vars['default_value'];
@@ -92,9 +84,7 @@ class ChoiceFilter extends AbstractFilter
         return $metadata;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function prepareData(array $data): array
     {
         if (isset($data['value']) && !$this->getOr('keep_string_value', false)) {
@@ -113,9 +103,9 @@ class ChoiceFilter extends AbstractFilter
     }
 
     /**
-     * {@inheritDoc}
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
+    #[\Override]
     protected function parseData($data)
     {
         $data = parent::parseData($data);

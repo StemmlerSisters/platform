@@ -43,6 +43,7 @@ class ContextTest extends \PHPUnit\Framework\TestCase
     /** @var Context */
     private $context;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->configProvider = $this->createMock(ConfigProvider::class);
@@ -650,7 +651,7 @@ class ContextTest extends \PHPUnit\Framework\TestCase
     {
         self::assertNotNull($this->context->getFilterValues());
         self::assertFalse($this->context->getFilterValues()->has('test'));
-        self::assertNull($this->context->getFilterValues()->get('test'));
+        self::assertNull($this->context->getFilterValues()->getOne('test'));
     }
 
     public function testFilterValues()
@@ -661,14 +662,14 @@ class ContextTest extends \PHPUnit\Framework\TestCase
         self::assertSame($accessor, $this->context->getFilterValues());
     }
 
-    public function testMasterRequest()
+    public function testMainRequest()
     {
         self::assertFalse($this->context->isMainRequest());
-        self::assertFalse($this->context->get('masterRequest'));
+        self::assertFalse($this->context->get('mainRequest'));
 
-        $this->context->setMasterRequest(true);
+        $this->context->setMainRequest(true);
         self::assertTrue($this->context->isMainRequest());
-        self::assertTrue($this->context->get('masterRequest'));
+        self::assertTrue($this->context->get('mainRequest'));
     }
 
     public function testCorsRequest()
@@ -1140,7 +1141,8 @@ class ContextTest extends \PHPUnit\Framework\TestCase
 
         // test remove metadata
         $this->context->setMetadata(null);
-        self::assertFalse($this->context->hasMetadata());
+        self::assertTrue($this->context->hasMetadata());
+        self::assertNull($this->context->getMetadata());
     }
 
     public function testMetadataExtras()

@@ -7,9 +7,10 @@ use Oro\Bundle\TestFrameworkBundle\Test\WebTestCase;
 
 class RestApiTest extends WebTestCase
 {
+    #[\Override]
     protected function setUp(): void
     {
-        $this->initClient([], $this->generateWsseAuthHeader());
+        $this->initClient([], self::generateApiAuthHeader());
         $this->loadFixtures([LoadCommentData::class]);
     }
 
@@ -182,7 +183,7 @@ class RestApiTest extends WebTestCase
             ),
             [],
             [],
-            $this->generateWsseAuthHeader()
+            self::generateApiAuthHeader()
         );
 
         $response = $this->client->getResponse();

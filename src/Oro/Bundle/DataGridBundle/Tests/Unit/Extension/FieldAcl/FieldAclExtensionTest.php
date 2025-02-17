@@ -2,6 +2,7 @@
 
 namespace Oro\Bundle\DataGridBundle\Tests\Unit\Extension\FieldAcl;
 
+use Oro\Bundle\DataGridBundle\Datagrid\Common\DatagridConfiguration;
 use Oro\Bundle\DataGridBundle\Datagrid\ParameterBag;
 use Oro\Bundle\DataGridBundle\Extension\FieldAcl\FieldAclExtension;
 use Oro\Bundle\EntityConfigBundle\Config\ConfigManager;
@@ -22,6 +23,7 @@ class FieldAclExtensionTest extends \PHPUnit\Framework\TestCase
     /** @var FieldAclExtension */
     private $extension;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->authorizationChecker = $this->createMock(AuthorizationCheckerInterface::class);
@@ -39,13 +41,13 @@ class FieldAclExtensionTest extends \PHPUnit\Framework\TestCase
 
     public function testIsApplicableOnValidConfig()
     {
-        $config = new TestGridConfiguration(['source' => ['type' => 'orm']]);
+        $config = DatagridConfiguration::create(['source' => ['type' => 'orm']]);
         $this->assertTrue($this->extension->isApplicable($config));
     }
 
     public function testIsApplicableOnNonValidConfig()
     {
-        $config = new TestGridConfiguration(['source' => ['type' => 'search']]);
+        $config = DatagridConfiguration::create(['source' => ['type' => 'search']]);
         $this->assertFalse($this->extension->isApplicable($config));
     }
 
@@ -56,7 +58,7 @@ class FieldAclExtensionTest extends \PHPUnit\Framework\TestCase
 
     public function testProcessConfigs()
     {
-        $config = new TestGridConfiguration(
+        $config = DatagridConfiguration::create(
             [
                 'source' => ['type' => 'orm'],
                 'fields_acl' =>

@@ -2,7 +2,6 @@
 
 namespace Oro\Bundle\ConfigBundle\Tests\Unit\Form\Type;
 
-use GuzzleHttp\ClientInterface;
 use Oro\Bundle\AttachmentBundle\Entity\File;
 use Oro\Bundle\AttachmentBundle\Form\Type\FileType;
 use Oro\Bundle\AttachmentBundle\Tools\ExternalFileFactory;
@@ -25,6 +24,7 @@ class ConfigFileTypeTest extends FormIntegrationTestCase
     /** @var ConfigFileType */
     private $formType;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->transformer = $this->createMock(ConfigFileDataTransformer::class);
@@ -85,15 +85,13 @@ class ConfigFileTypeTest extends FormIntegrationTestCase
         self::assertEquals(self::FILE1_ID, $form->getData());
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     protected function getExtensions(): array
     {
         return [
             new PreloadedExtension([
                 $this->formType,
-                new FileType(new ExternalFileFactory($this->createMock(ClientInterface::class)))
+                new FileType($this->createMock(ExternalFileFactory::class))
             ], []),
             new ValidatorExtension(Validation::createValidator())
         ];

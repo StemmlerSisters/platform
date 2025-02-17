@@ -10,11 +10,13 @@ use Symfony\Component\Config\Definition\Builder\NodeBuilder;
  */
 class DictionaryEntityConfiguration implements EntityConfigInterface
 {
+    #[\Override]
     public function getSectionName(): string
     {
         return 'dictionary';
     }
 
+    #[\Override]
     public function configure(NodeBuilder $nodeBuilder): void
     {
         $nodeBuilder
@@ -30,9 +32,6 @@ class DictionaryEntityConfiguration implements EntityConfigInterface
             ->scalarNode('representation_field')
                 ->info('`string` specifies the representation field used to render titles for search items in the ' .
                     'reports filter.')
-            ->end()
-            ->node('activity_support', 'normalized_boolean')
-                ->info('`boolean` enables the “activity_support” functionality.')
             ->end()
         ;
     }

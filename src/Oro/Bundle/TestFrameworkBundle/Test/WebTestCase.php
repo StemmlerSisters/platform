@@ -69,9 +69,8 @@ abstract class WebTestCase extends BaseWebTestCase
      */
     protected const NEST_TRANSACTIONS_WITH_SAVEPOINTS = 'nestTransactionsWithSavepoints';
 
-    /** Default WSSE credentials */
+    /** Default test API credentials */
     protected const USER_NAME = 'admin';
-    protected const USER_PASSWORD = 'admin_api_key';
 
     /**  Default user name and password */
     protected const AUTH_USER = 'admin@example.com';
@@ -111,6 +110,7 @@ abstract class WebTestCase extends BaseWebTestCase
     /** @var bool */
     private static $initClientAllowed = false;
 
+    #[\Override]
     protected function setUp(): void
     {
     }
@@ -127,6 +127,7 @@ abstract class WebTestCase extends BaseWebTestCase
      * In order to disable kernel shutdown
      * @see \Symfony\Bundle\FrameworkBundle\Test\KernelTestCase::tearDown
      */
+    #[\Override]
     protected function tearDown(): void
     {
     }
@@ -167,10 +168,8 @@ abstract class WebTestCase extends BaseWebTestCase
         self::resetClient();
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function run(TestResult $result = null): TestResult
+    #[\Override]
+    public function run(?TestResult $result = null): TestResult
     {
         self::$initClientAllowed = true;
 
@@ -288,9 +287,7 @@ abstract class WebTestCase extends BaseWebTestCase
         return self::$afterInitClientMethods[$className];
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     protected static function createKernel(array $options = []): KernelInterface
     {
         if (!array_key_exists('environment', $options)) {
@@ -436,12 +433,9 @@ abstract class WebTestCase extends BaseWebTestCase
     }
 
     /**
-     * Process and replace all references and functions to values
-     *
-     * @param  array|string $data Can be path to yml template file or array
-     * @return array|string
+     * Processes and replaces all references and functions to values.
      */
-    protected static function processTemplateData($data)
+    protected static function processTemplateData(mixed $data): mixed
     {
         if (!self::$referenceRepository) {
             return $data;
@@ -734,7 +728,7 @@ abstract class WebTestCase extends BaseWebTestCase
         return null !== self::$referenceRepository;
     }
 
-    protected function getReferenceRepository(string $class = null): ReferenceRepository
+    protected function getReferenceRepository(?string $class = null): ReferenceRepository
     {
         if (null === self::$referenceRepository) {
             throw new \LogicException('The reference repository is not set. Have you loaded fixtures?');
@@ -960,38 +954,16 @@ abstract class WebTestCase extends BaseWebTestCase
     }
 
     /**
-     * Generate WSSE authorization header
-     *
-     * @param string $userName
-     * @param string $userPassword
-     * @param string|null $nonce
-     *
-     * @return array
+     * Generate test API authorization header
      */
-    public static function generateWsseAuthHeader(
-        $userName = self::USER_NAME,
-        $userPassword = self::USER_PASSWORD,
-        $nonce = null
-    ) {
-        if (null === $nonce) {
-            $nonce = uniqid('nonce', true);
-        }
-
-        $created = date('c');
-        $digest = base64_encode(sha1(base64_decode($nonce) . $created . $userPassword, true));
-        $wsseHeader = [
+    public static function generateApiAuthHeader(
+        string $userName = self::USER_NAME,
+        ?int $organizationId = null
+    ): array {
+        return [
             'CONTENT_TYPE' => 'application/json',
-            'HTTP_Authorization' => 'WSSE profile="UsernameToken"',
-            'HTTP_X-WSSE' => sprintf(
-                'UsernameToken Username="%s", PasswordDigest="%s", Nonce="%s", Created="%s"',
-                $userName,
-                $digest,
-                $nonce,
-                $created
-            )
+            'HTTP_X-API-TEST' => $organizationId ? $userName . '^' . $organizationId : $userName
         ];
-
-        return $wsseHeader;
     }
 
     /**
@@ -1005,7 +977,7 @@ abstract class WebTestCase extends BaseWebTestCase
         return [
             'PHP_AUTH_USER' => $userName,
             'PHP_AUTH_PW' => $userPassword,
-            'HTTP_PHP_AUTH_ORGANIZATION' => $userOrganization
+            'HTTP_PHP_AUTH_ORGANIZATION' => $userOrganization,
         ];
     }
 
@@ -1019,7 +991,9 @@ abstract class WebTestCase extends BaseWebTestCase
      */
     public static function jsonToArray(string $json): array
     {
-        return (array)json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+        return $json
+            ? (array)json_decode($json, true, 512, JSON_THROW_ON_ERROR)
+            : [];
     }
 
     /**
@@ -1125,7 +1099,10 @@ abstract class WebTestCase extends BaseWebTestCase
         $message = $message ? $message . PHP_EOL : '';
         $message .= sprintf('Failed asserting response has header "Content-Type: %s":', $contentType);
         $message .= PHP_EOL . $response->headers;
-        self::assertTrue($response->headers->contains('Content-Type', $contentType), $message);
+        $actualContentType = strtolower($response->headers->get('Content-Type'));
+        $expectedContentType = strtolower($contentType);
+
+        self::assertTrue(($actualContentType === $expectedContentType), $message);
     }
 
     /**
@@ -1251,21 +1228,12 @@ abstract class WebTestCase extends BaseWebTestCase
         }
     }
 
-    /**
-     * @return string
-     */
-    protected function getCurrentDir()
+    protected function getCurrentDir(): string
     {
         return dirname((new \ReflectionClass($this))->getFileName());
     }
 
-    /**
-     * @param string $folderName
-     * @param string $fileName
-     *
-     * @return string
-     */
-    protected function getTestResourcePath($folderName, $fileName)
+    protected function getTestResourcePath(?string $folderName, string $fileName): string
     {
         if (!$folderName) {
             return $this->getCurrentDir() . DIRECTORY_SEPARATOR . $fileName;
@@ -1274,22 +1242,14 @@ abstract class WebTestCase extends BaseWebTestCase
         return $this->getCurrentDir() . DIRECTORY_SEPARATOR .  $folderName . DIRECTORY_SEPARATOR . $fileName;
     }
 
-    /**
-     * @param string $path
-     *
-     * @return bool
-     */
-    protected function isRelativePath($path)
+    protected function isRelativePath(string $path): bool
     {
         return
-            0 !== strpos($path, '/')
-            && 0 !== strpos($path, '@')
-            && false === strpos($path, ':');
+            !str_starts_with($path, '/')
+            && !str_starts_with($path, '@')
+            && !str_contains($path, ':');
     }
 
-    /**
-     * @return Session
-     */
     protected function createSession(): Session
     {
         if (!$this->client) {
@@ -1342,10 +1302,10 @@ abstract class WebTestCase extends BaseWebTestCase
         } catch (SessionNotFoundException $e) {
             $session = $this->createSession();
 
-            $masterRequest = new Request();
-            $masterRequest->setSession($session);
+            $mainRequest = Request::create('/');
+            $mainRequest->setSession($session);
 
-            $requestStack->push($masterRequest);
+            $requestStack->push($mainRequest);
 
             $session->start();
             $session->save();

@@ -12,7 +12,7 @@ class AddressStub implements NameInterface
     /** @var string */
     private $organization;
 
-    public function __construct(string $name = '', string $organization = null)
+    public function __construct(string $name = '', ?string $organization = null)
     {
         $this->name = $name;
         $this->organization = $organization;
@@ -21,6 +21,7 @@ class AddressStub implements NameInterface
     /**
      * @return string
      */
+    #[\Override]
     public function getName()
     {
         return $this->name;

@@ -120,7 +120,7 @@ define(function(require) {
                 this.$el.attr('data-focusable', true);
                 this.findFirstQuoteLine();
             } else {
-                this.$el.removeAttr('data-focusable');
+                this.$el.attr('data-focusable', null);
             }
 
             this.firstRender = false;
@@ -143,7 +143,7 @@ define(function(require) {
                     // if content is not modified, return html representation back
                     this.$el.val(this.htmlValue);
                 } else {
-                    this.$el.val(txtHtmlTransformer.text2html(this.$el.val()));
+                    this.$el.val(this.$el.val());
                 }
             }
             this._deferredRender();
@@ -152,7 +152,7 @@ define(function(require) {
                 options.readonly = true;
             }
 
-            if (options.toolbar_mode && _.isArray(options.toolbar)) {
+            if (options.toolbar_mode && Array.isArray(options.toolbar)) {
                 // The toolbar modes are not available when using multiple toolbars or the toolbar(n) option.
                 options.toolbar = options.toolbar.join(' | ');
             }
@@ -165,6 +165,7 @@ define(function(require) {
             }, this);
 
             tinyMCE.init(_.extend({
+                license_key: 'gpl',
                 target: this.el,
                 setup: function(editor) {
                     editor.on('keydown', function(e) {

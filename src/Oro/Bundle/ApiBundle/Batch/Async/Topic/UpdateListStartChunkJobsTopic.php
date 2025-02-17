@@ -2,41 +2,29 @@
 
 namespace Oro\Bundle\ApiBundle\Batch\Async\Topic;
 
-use Oro\Component\MessageQueue\Topic\AbstractTopic;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
- * A topic to start child jobs that are used to process API batch operation chunks
+ * A topic to start child jobs that are used to process API batch operation chunks.
  */
-class UpdateListStartChunkJobsTopic extends AbstractTopic
+class UpdateListStartChunkJobsTopic extends AbstractUpdateListTopic
 {
+    #[\Override]
     public static function getName(): string
     {
         return 'oro.api.update_list.start_chunk_jobs';
     }
 
+    #[\Override]
     public static function getDescription(): string
     {
         return 'Starts child jobs that are used to process API batch operation chunks.';
     }
 
+    #[\Override]
     public function configureMessageBody(OptionsResolver $resolver): void
     {
-        $resolver
-            ->setRequired('operationId')
-            ->setAllowedTypes('operationId', 'int');
-
-        $resolver
-            ->setRequired('entityClass')
-            ->setAllowedTypes('entityClass', 'string');
-
-        $resolver
-            ->setRequired('requestType')
-            ->setAllowedTypes('requestType', 'string[]');
-
-        $resolver
-            ->setRequired('version')
-            ->setAllowedTypes('version', 'string');
+        parent::configureMessageBody($resolver);
 
         $resolver
             ->setRequired('rootJobId')

@@ -2,41 +2,29 @@
 
 namespace Oro\Bundle\ApiBundle\Batch\Async\Topic;
 
-use Oro\Component\MessageQueue\Topic\AbstractTopic;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
- * A topic to process a chunk of data of API batch update request
+ * A topic to process a chunk of data of API batch update request.
  */
-class UpdateListProcessChunkTopic extends AbstractTopic
+class UpdateListProcessChunkTopic extends AbstractUpdateListTopic
 {
+    #[\Override]
     public static function getName(): string
     {
         return 'oro.api.update_list.process_chunk';
     }
 
+    #[\Override]
     public static function getDescription(): string
     {
         return 'Processes a chunk of data of API batch update request.';
     }
 
+    #[\Override]
     public function configureMessageBody(OptionsResolver $resolver): void
     {
-        $resolver
-            ->setRequired('operationId')
-            ->setAllowedTypes('operationId', 'int');
-
-        $resolver
-            ->setRequired('entityClass')
-            ->setAllowedTypes('entityClass', 'string');
-
-        $resolver
-            ->setRequired('requestType')
-            ->setAllowedTypes('requestType', 'string[]');
-
-        $resolver
-            ->setRequired('version')
-            ->setAllowedTypes('version', 'string');
+        parent::configureMessageBody($resolver);
 
         $resolver
             ->setRequired('jobId')

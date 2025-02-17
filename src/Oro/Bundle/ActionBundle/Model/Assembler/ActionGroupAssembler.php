@@ -2,35 +2,40 @@
 
 namespace Oro\Bundle\ActionBundle\Model\Assembler;
 
+use Oro\Bundle\ActionBundle\Event\ActionGroupEventDispatcher;
 use Oro\Bundle\ActionBundle\Model\ActionGroup;
 use Oro\Bundle\ActionBundle\Model\ActionGroupDefinition;
+use Oro\Bundle\ActionBundle\Model\ActionGroupServiceAdapter;
 use Oro\Component\Action\Action\ActionFactoryInterface;
 use Oro\Component\ConfigExpression\ExpressionFactory as ConditionFactory;
+use Symfony\Contracts\Service\ServiceProviderInterface;
 
+/**
+ * ActionGroup service assembler. Assembles action group based on a configuration.
+ */
 class ActionGroupAssembler extends AbstractAssembler
 {
-    /** @var ActionFactoryInterface */
-    private $actionFactory;
-
-    /** @var ConditionFactory */
-    private $conditionFactory;
-
-    /** @var ParameterAssembler */
-    private $parameterAssembler;
-
-    /**@var ActionGroup\ParametersResolver */
-    private $parametersResolver;
+    private ActionFactoryInterface $actionFactory;
+    private ConditionFactory $conditionFactory;
+    private ParameterAssembler $parameterAssembler;
+    private ActionGroup\ParametersResolver $parametersResolver;
+    private ActionGroupEventDispatcher $eventDispatcher;
+    private ServiceProviderInterface $actionGroupServiceLocator;
 
     public function __construct(
         ActionFactoryInterface $actionFactory,
         ConditionFactory $conditionFactory,
         ParameterAssembler $parameterAssembler,
-        ActionGroup\ParametersResolver $parametersResolver
+        ActionGroup\ParametersResolver $parametersResolver,
+        ActionGroupEventDispatcher $eventDispatcher,
+        ServiceProviderInterface $actionGroupServiceLocator
     ) {
         $this->actionFactory = $actionFactory;
         $this->conditionFactory = $conditionFactory;
         $this->parameterAssembler = $parameterAssembler;
         $this->parametersResolver = $parametersResolver;
+        $this->eventDispatcher = $eventDispatcher;
+        $this->actionGroupServiceLocator = $actionGroupServiceLocator;
     }
 
     /**
@@ -42,13 +47,27 @@ class ActionGroupAssembler extends AbstractAssembler
         $actionGroups = [];
 
         foreach ($configuration as $actionGroupName => $options) {
-            $actionGroups[$actionGroupName] = new ActionGroup(
-                $this->actionFactory,
-                $this->conditionFactory,
-                $this->parameterAssembler,
-                $this->parametersResolver,
-                $this->assembleDefinition($actionGroupName, $options)
-            );
+            $serviceName = $this->getOption($options, 'service', null);
+            if ($serviceName) {
+                $actionGroups[$actionGroupName] = new ActionGroupServiceAdapter(
+                    $this->parametersResolver,
+                    $this->actionGroupServiceLocator->get($serviceName),
+                    $this->eventDispatcher,
+                    $this->getOption($options, 'method', 'execute'),
+                    $this->getOption($options, 'return_value_name'),
+                    $this->getOption($options, 'parameters'),
+                    $this->assembleDefinition($actionGroupName, $options)
+                );
+            } else {
+                $actionGroups[$actionGroupName] = new ActionGroup(
+                    $this->actionFactory,
+                    $this->conditionFactory,
+                    $this->parameterAssembler,
+                    $this->parametersResolver,
+                    $this->eventDispatcher,
+                    $this->assembleDefinition($actionGroupName, $options)
+                );
+            }
         }
 
         return $actionGroups;
@@ -62,39 +81,16 @@ class ActionGroupAssembler extends AbstractAssembler
     protected function assembleDefinition($actionGroupName, array $options)
     {
         $definition = new ActionGroupDefinition();
+        $definition->setName($actionGroupName);
+        $definition->setAclResource($this->getOption($options, 'acl_resource'));
 
-        $definition
-            ->setName($actionGroupName)
-            ->setConditions($this->getOption($options, 'conditions', []))
-            ->setActions($this->getOption($options, 'actions', []))
-            ->setParameters($this->getOption($options, 'parameters', []));
-
-        $this->addConditions($definition, $options);
+        if (!$this->getOption($options, 'service')) {
+            $definition
+                ->setConditions($this->getOption($options, 'conditions', []))
+                ->setActions($this->getOption($options, 'actions', []))
+                ->setParameters($this->getOption($options, 'parameters', []));
+        }
 
         return $definition;
-    }
-
-    protected function addConditions(ActionGroupDefinition $definition, array $options)
-    {
-        $conditions = $this->getAclConditions($this->getOption($options, 'acl_resource'));
-
-        if ($currentConditions = $definition->getConditions()) {
-            $conditions = array_merge($conditions, [$currentConditions]);
-        }
-
-        $definition->setConditions($conditions ? ['@and' => $conditions] : []);
-    }
-
-    /**
-     * @param string|array|null $aclResource
-     * @return array
-     */
-    protected function getAclConditions($aclResource)
-    {
-        if (!$aclResource) {
-            return [];
-        }
-
-        return [['@acl_granted' => $aclResource]];
     }
 }

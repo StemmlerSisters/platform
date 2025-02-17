@@ -12,8 +12,12 @@ use Symfony\Component\Form\Exception\InvalidConfigurationException;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
+use Symfony\Component\OptionsResolver\Options;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
+/**
+ * The form type for action operations.
+ */
 class OperationType extends AbstractType
 {
     const NAME = 'oro_action_operation';
@@ -32,25 +36,18 @@ class OperationType extends AbstractType
         $this->contextAccessor = $contextAccessor;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function getName()
     {
         return $this->getBlockPrefix();
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getBlockPrefix(): string
     {
         return self::NAME;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setRequired(['data', 'operation']);
@@ -66,7 +63,8 @@ class OperationType extends AbstractType
             [
                 'data_class' => 'Oro\Bundle\ActionBundle\Model\ActionData',
                 'attribute_fields' => [],
-                'attribute_default_values' => []
+                'attribute_default_values' => [],
+                'block_prefix' => static fn (Options $options) => $options['operation']->getName()
             ]
         );
 
@@ -75,9 +73,7 @@ class OperationType extends AbstractType
         $resolver->setAllowedTypes('attribute_default_values', 'array');
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $this->initialization($builder, $options);
@@ -105,7 +101,7 @@ class OperationType extends AbstractType
                     $data = $event->getData();
 
                     foreach ($options['attribute_default_values'] as $attributeName => $value) {
-                        $data->$attributeName = $this->contextAccessor->getValue($data, $value);
+                        $data->set($attributeName, $this->contextAccessor->getValue($data, $value));
                     }
                 }
             );
@@ -145,8 +141,8 @@ class OperationType extends AbstractType
                 $attributeOptions = [];
             }
 
-            if (isset($actionData->$attributeName)) {
-                $attributeOptions['options']['data'] = $actionData->$attributeName;
+            if ($actionData->has($attributeName)) {
+                $attributeOptions['options']['data'] = $actionData->get($attributeName);
             }
 
             $attributeOptions = $this->prepareAttributeOptions($attribute, $attributeOptions, $options);

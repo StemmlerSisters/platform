@@ -167,7 +167,7 @@ class EmailAttachment implements FileExtensionInterface
      *
      * @return $this
      */
-    public function setFile(File $file = null)
+    public function setFile(?File $file = null)
     {
         $this->file = $file;
 
@@ -179,6 +179,7 @@ class EmailAttachment implements FileExtensionInterface
      *
      * @return string
      */
+    #[\Override]
     public function getExtension()
     {
         return pathinfo($this->fileName, PATHINFO_EXTENSION);
@@ -210,11 +211,14 @@ class EmailAttachment implements FileExtensionInterface
         if ($this->file) {
             $size = $this->file->getFileSize();
         } else {
-            $content = ContentDecoder::decode(
-                $this->attachmentContent->getContent(),
-                $this->attachmentContent->getContentTransferEncoding()
-            );
-            $size = strlen($content);
+            $size = 0;
+            if ($this->attachmentContent?->getContent() !== null) {
+                $content = ContentDecoder::decode(
+                    $this->attachmentContent->getContent(),
+                    $this->attachmentContent->getContentTransferEncoding()
+                );
+                $size = strlen($content);
+            }
         }
 
         return $size;
@@ -231,6 +235,7 @@ class EmailAttachment implements FileExtensionInterface
     /**
      * @return string
      */
+    #[\Override]
     public function __toString()
     {
         return (string)$this->getFileName();

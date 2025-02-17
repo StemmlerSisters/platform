@@ -37,6 +37,7 @@ services:
             - '@oro_api.entity_exclusion_provider_registry'
             - '@oro_api.expanded_association_extractor'
             - '@oro_api.entity_field_filtering_helper'
+            - '@oro_entity.dictionary_value_list_provider'
 
     oro_api.complete_definition_helper.object:
         class: Oro\Bundle\ApiBundle\Processor\GetConfig\CompleteDefinition\CompleteObjectDefinitionHelper
@@ -76,15 +77,9 @@ services:
         class: Oro\Bundle\ApiBundle\Processor\GetConfig\CompleteDescriptions\DescriptionProcessor
         arguments:
             - '@oro_api.complete_descriptions.request_depended_text_processor'
-            - '@oro_api.complete_descriptions.feature_depended_text_processor'
 
     oro_api.complete_descriptions.request_depended_text_processor:
         class: Oro\Bundle\ApiBundle\Processor\GetConfig\CompleteDescriptions\RequestDependedTextProcessor
-
-    oro_api.complete_descriptions.feature_depended_text_processor:
-        class: Oro\Bundle\ApiBundle\Processor\GetConfig\CompleteDescriptions\FeatureDependedTextProcessor
-        arguments:
-            - '@oro_featuretoggle.checker.feature_checker'
 
     oro_api.complete_descriptions.resource_doc_parser_provider:
         class: Oro\Bundle\ApiBundle\Processor\GetConfig\CompleteDescriptions\ResourceDocParserProvider
@@ -151,6 +146,14 @@ services:
         tags:
             - { name: oro.api.processor, action: get_config, priority: -5 }
 
+    oro_api.api.get_config.add_enum_option_associations:
+        class: Oro\Bundle\ApiBundle\Processor\GetConfig\AddEnumOptionAssociations
+        arguments:
+            - '@oro_api.doctrine_helper'
+            - '@oro_entity_config.config_manager'
+        tags:
+            - { name: oro.api.processor, action: get_config, extra: '!identifier_fields_only', priority: -10 }
+
     oro_api.get_config.complete_definition.expand_related_entities:
         class: Oro\Bundle\ApiBundle\Processor\GetConfig\ExpandRelatedEntities
         arguments:
@@ -208,8 +211,9 @@ services:
         class: Oro\Bundle\ApiBundle\Processor\GetConfig\CompleteFilters
         arguments:
             - '@oro_api.doctrine_helper'
-            - ['string', 'text', 'boolean', 'datetime', 'date', 'time']
-            - ['string', 'text', 'boolean', 'guid', 'currency']
+            - '@oro_entity_config.config_manager'
+            - [] # disallowArrayDataTypes. They are set by Oro\Bundle\ApiBundle\DependencyInjection\OroApiExtension
+            - [] # disallowRangeDataTypes. They are set by Oro\Bundle\ApiBundle\DependencyInjection\OroApiExtension
         tags:
             - { name: oro.api.processor, action: get_config, extra: 'filters&!identifier_fields_only', priority: -80 }
 
@@ -217,6 +221,7 @@ services:
         class: Oro\Bundle\ApiBundle\Processor\GetConfig\CompleteSorters
         arguments:
             - '@oro_api.doctrine_helper'
+            - '@oro_entity_config.config_manager'
         tags:
             - { name: oro.api.processor, action: get_config, extra: 'sorters&!identifier_fields_only', priority: -80 }
 
@@ -291,14 +296,14 @@ services:
     oro_api.get_config.complete_status_codes:
         class: Oro\Bundle\ApiBundle\Processor\GetConfig\Rest\CompleteStatusCodes
         tags:
-            - { name: oro.api.processor, action: get_config, extra: 'descriptions&!identifier_fields_only', requestType: rest, priority: -200 }
+            - { name: oro.api.processor, action: get_config, extra: descriptions, requestType: rest, priority: -200 }
 
     oro_api.get_config.json_api.complete_status_codes:
         class: Oro\Bundle\ApiBundle\Processor\GetConfig\JsonApi\CompleteStatusCodes
         arguments:
             - '@oro_api.doctrine_helper'
         tags:
-            - { name: oro.api.processor, action: get_config, extra: 'descriptions&!identifier_fields_only', requestType: rest&json_api, priority: -205 }
+            - { name: oro.api.processor, action: get_config, extra: descriptions, requestType: rest&json_api, priority: -205 }
 
     oro_api.get_config.complete_descriptions:
         class: Oro\Bundle\ApiBundle\Processor\GetConfig\CompleteDescriptions

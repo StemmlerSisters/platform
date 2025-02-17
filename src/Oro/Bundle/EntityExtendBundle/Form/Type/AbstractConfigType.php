@@ -20,8 +20,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
  */
 abstract class AbstractConfigType extends BaseAbstractConfigType
 {
-    /** @var ConfigManager */
-    protected $configManager;
+    protected ConfigManager $configManager;
 
     public function __construct(ConfigTypeHelper $typeHelper, ConfigManager $configManager)
     {
@@ -29,9 +28,7 @@ abstract class AbstractConfigType extends BaseAbstractConfigType
         $this->configManager = $configManager;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         /*
@@ -58,9 +55,7 @@ abstract class AbstractConfigType extends BaseAbstractConfigType
         );
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function configureOptions(OptionsResolver $resolver)
     {
         parent::configureOptions($resolver);

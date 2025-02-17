@@ -20,7 +20,6 @@ use Oro\Bundle\LocaleBundle\Command\LocalizationOptionsCommandTrait;
 use Oro\Bundle\LocaleBundle\Command\UpdateLocalizationCommand;
 use Oro\Bundle\LocaleBundle\DependencyInjection\OroLocaleExtension;
 use Oro\Bundle\MigrationBundle\Command\LoadDataFixturesCommand;
-use Oro\Bundle\PricingProBundle\DependencyInjection\Configuration as CurrencyProConfig;
 use Oro\Bundle\SecurityBundle\Command\LoadPermissionConfigurationCommand;
 use Oro\Bundle\TranslationBundle\Command\OroTranslationUpdateCommand;
 use Oro\Bundle\UserBundle\Migrations\Data\ORM\LoadAdminUserData;
@@ -75,6 +74,7 @@ class InstallCommand extends AbstractCommand implements InstallCommandInterface
     }
 
     /** @SuppressWarnings(PHPMD.ExcessiveMethodLength) */
+    #[\Override]
     protected function configure()
     {
         $this
@@ -185,6 +185,7 @@ HELP
         parent::configure();
     }
 
+    #[\Override]
     protected function initialize(InputInterface $input, OutputInterface $output)
     {
         $event = new ConsoleEvent($this, $input, $output);
@@ -192,6 +193,7 @@ HELP
     }
 
     /** @noinspection PhpMissingParentCallCommonInspection */
+    #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->input = $input;
@@ -232,11 +234,11 @@ HELP
             $this->eventDispatcher->dispatch($event, InstallerEvents::INSTALLER_AFTER_DATABASE_PREPARATION);
 
             $this->finalStep($commandExecutor, $output, $input);
+            $this->eventDispatcher->dispatch($event, InstallerEvents::FINISH);
+
             // cache clear must be done after assets build process finished,
             // otherwise, it could lead to unpredictable errors
             $this->clearCache($commandExecutor, $input);
-
-            $this->eventDispatcher->dispatch($event, InstallerEvents::FINISH);
         } catch (\Exception $exception) {
             $output->writeln(sprintf('<error>%s</error>', $exception->getMessage()));
             // Exceptions may originate in the command executor and in InstallCommand code itself
@@ -510,16 +512,6 @@ HELP
 
             if ($currentCurrency !== $currency) {
                 $configManager->set($currencyConfigKey, $currency);
-
-                $configManager->set(
-                    CurrencyProConfig::getConfigKeyByName(CurrencyProConfig::DEFAULT_CURRENCY),
-                    $currency
-                );
-
-                $configManager->set(
-                    CurrencyProConfig::getConfigKeyByName(CurrencyProConfig::ENABLED_CURRENCIES),
-                    [$currency]
-                );
             }
         }
         $configManager->flush();

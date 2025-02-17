@@ -27,7 +27,7 @@ class EmailBodyBuilder
     /** @var EmailBodyHelper */
     private $emailBodyHelper;
 
-    public function __construct(ConfigManager $configManager = null)
+    public function __construct(?ConfigManager $configManager = null)
     {
         $this->configManager = $configManager;
     }
@@ -86,29 +86,28 @@ class EmailBodyBuilder
             throw new \LogicException('Call setEmailBody first.');
         }
 
-        if (!$this->allowSaveAttachment(
-            $this->checkContentSizeValue(
-                $content,
-                $contentSize,
-                $contentTransferEncoding
-            )
-        )) {
-            return;
-        }
-
-        $emailAttachment        = new EmailAttachment();
-        $emailAttachmentContent = new EmailAttachmentContent();
-
-        $emailAttachmentContent
-            ->setEmailAttachment($emailAttachment)
-            ->setContentTransferEncoding($contentTransferEncoding)
-            ->setContent($content);
-
+        $emailAttachment = new EmailAttachment();
         $emailAttachment
             ->setFileName($fileName)
             ->setContentType($contentType)
-            ->setContent($emailAttachmentContent)
             ->setEmbeddedContentId($embeddedContentId);
+
+        $contentSize = $this->checkContentSizeValue(
+            $content,
+            $contentSize,
+            $contentTransferEncoding
+        );
+
+        if ($this->allowSaveAttachment($contentSize)) {
+            $emailAttachmentContent = new EmailAttachmentContent();
+
+            $emailAttachmentContent
+                ->setEmailAttachment($emailAttachment)
+                ->setContentTransferEncoding($contentTransferEncoding)
+                ->setContent($content);
+
+            $emailAttachment->setContent($emailAttachmentContent);
+        }
 
         $this->emailBody->addAttachment($emailAttachment);
     }

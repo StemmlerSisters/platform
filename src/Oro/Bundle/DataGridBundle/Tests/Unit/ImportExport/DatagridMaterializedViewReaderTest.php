@@ -5,7 +5,7 @@ namespace Oro\Bundle\DataGridBundle\Tests\Unit\ImportExport;
 use Doctrine\ORM\AbstractQuery;
 use Oro\Bundle\DataGridBundle\Datagrid\Common\DatagridConfiguration;
 use Oro\Bundle\DataGridBundle\Datagrid\Datagrid;
-use Oro\Bundle\DataGridBundle\Datagrid\Manager as DatagridManager;
+use Oro\Bundle\DataGridBundle\Datagrid\ManagerInterface as DatagridManager;
 use Oro\Bundle\DataGridBundle\Datagrid\ParameterBag;
 use Oro\Bundle\DataGridBundle\Datasource\Orm\OrmDatasource;
 use Oro\Bundle\DataGridBundle\Datasource\ResultRecord;
@@ -24,6 +24,7 @@ class DatagridMaterializedViewReaderTest extends \PHPUnit\Framework\TestCase
 
     private DatagridMaterializedViewReader $reader;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->datagridManager = $this->createMock(DatagridManager::class);

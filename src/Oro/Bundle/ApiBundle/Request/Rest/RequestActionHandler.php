@@ -40,25 +40,19 @@ class RequestActionHandler extends BaseRequestActionHandler
         $this->viewHandler = $viewHandler;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     protected function getRequestHeaders(Request $request): AbstractParameterBag
     {
         return new RestRequestHeaders($request);
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    protected function getRequestFilters(Request $request): FilterValueAccessorInterface
+    #[\Override]
+    protected function getRequestFilters(Request $request, string $action): FilterValueAccessorInterface
     {
-        return $this->filterValueAccessorFactory->create($request);
+        return $this->filterValueAccessorFactory->create($request, $action);
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     protected function prepareContext(Context $context, Request $request): void
     {
         parent::prepareContext($context, $request);
@@ -67,10 +61,8 @@ class RequestActionHandler extends BaseRequestActionHandler
         }
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    protected function buildResponse(Context $context): Response
+    #[\Override]
+    protected function buildResponse(Context $context, Request $request): Response
     {
         $view = View::create($context->getResult());
 
@@ -88,9 +80,7 @@ class RequestActionHandler extends BaseRequestActionHandler
                 $data = $view->getData();
                 if (null !== $data) {
                     // Allow json_encode to convert float to integer.
-                    $encoder = new JsonEncode([
-                        JsonEncode::OPTIONS => 0,
-                    ]);
+                    $encoder = new JsonEncode([JsonEncode::OPTIONS => 0]);
                     $response->setContent($encoder->encode($data, $format));
                 } elseif (Response::HTTP_OK === $view->getStatusCode()) {
                     $response->headers->set('Content-Length', 0);
@@ -103,7 +93,7 @@ class RequestActionHandler extends BaseRequestActionHandler
             }
         );
 
-        return $this->viewHandler->handle($view);
+        return $this->viewHandler->handle($view, $request);
     }
 
     private function isCorsRequest(Request $request): bool

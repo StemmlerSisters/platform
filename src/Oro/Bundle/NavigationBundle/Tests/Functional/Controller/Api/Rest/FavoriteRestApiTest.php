@@ -11,11 +11,13 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
  */
 class FavoriteRestApiTest extends AbstractRestApiTest
 {
+    #[\Override]
     protected function getItemType(): string
     {
         return 'favorite';
     }
 
+    #[\Override]
     protected function getItemId(): int
     {
         return $this->getReference(NavigationItemData::NAVIGATION_ITEM_FAVORITE_1)->getId();
@@ -27,7 +29,7 @@ class FavoriteRestApiTest extends AbstractRestApiTest
             'GET',
             $this->getUrl('oro_api_get_navigationitems', ['type' => $this->getItemType()]),
             [],
-            self::generateWsseAuthHeader(LoadUserData::USER_NAME_2, LoadUserData::USER_PASSWORD_2)
+            self::generateApiAuthHeader(LoadUserData::USER_NAME_2)
         );
 
         $result = $this->client->getResponse();

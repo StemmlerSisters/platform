@@ -29,6 +29,7 @@ class TransitionEventTriggerExtensionTest extends AbstractEventTriggerExtensionT
 
     private TransitionEventTriggerHandler|\PHPUnit\Framework\MockObject\MockObject $handler;
 
+    #[\Override]
     protected function setUp(): void
     {
         parent::setUp();
@@ -306,10 +307,8 @@ class TransitionEventTriggerExtensionTest extends AbstractEventTriggerExtensionT
         ];
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    protected function getTriggers(string $triggerName = null): array|object
+    #[\Override]
+    protected function getTriggers(?string $triggerName = null): array|object
     {
         if (!$this->triggers) {
             $priority = 0;

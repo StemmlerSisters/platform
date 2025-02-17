@@ -51,9 +51,7 @@ class CachingApiDocExtractor extends BaseExtractor implements
         $this->debug = $debug;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getRoutes()
     {
         if (null === $this->routes) {
@@ -63,17 +61,17 @@ class CachingApiDocExtractor extends BaseExtractor implements
         return $this->routes;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function all($view = ApiDoc::DEFAULT_VIEW)
     {
-        return parent::all($this->resolveView($view));
+        try {
+            return parent::all($this->resolveView($view));
+        } finally {
+            $this->routes = null;
+        }
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function extractAnnotations(array $routes, $view = ApiDoc::DEFAULT_VIEW)
     {
         return $this->doExtractAnnotations(

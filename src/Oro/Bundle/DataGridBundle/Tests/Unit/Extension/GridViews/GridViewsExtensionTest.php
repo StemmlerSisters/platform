@@ -43,6 +43,7 @@ class GridViewsExtensionTest extends \PHPUnit\Framework\TestCase
     /** @var GridViewsExtension */
     private $gridViewsExtension;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->eventDispatcher = $this->createMock(EventDispatcherInterface::class);
@@ -149,7 +150,7 @@ class GridViewsExtensionTest extends \PHPUnit\Framework\TestCase
         $this->assertGridStateView($grid2, self::GRID_VIEW_ID_2);
     }
 
-    private function assertGridStateView(string $grid, string $expectedGridView = null): void
+    private function assertGridStateView(string $grid, ?string $expectedGridView = null): void
     {
         $data = MetadataObject::create([]);
         $config = DatagridConfiguration::create([DatagridConfiguration::NAME_KEY => $grid]);

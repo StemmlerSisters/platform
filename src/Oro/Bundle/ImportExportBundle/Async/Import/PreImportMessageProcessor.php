@@ -4,6 +4,7 @@ namespace Oro\Bundle\ImportExportBundle\Async\Import;
 
 use Doctrine\Persistence\ManagerRegistry;
 use Oro\Bundle\ImportExportBundle\Async\ImportExportResultSummarizer;
+use Oro\Bundle\ImportExportBundle\Async\Topic\FinishImportTopic;
 use Oro\Bundle\ImportExportBundle\Async\Topic\ImportTopic;
 use Oro\Bundle\ImportExportBundle\Async\Topic\PreImportTopic;
 use Oro\Bundle\ImportExportBundle\Async\Topic\SaveImportExportResultTopic;
@@ -124,9 +125,7 @@ class PreImportMessageProcessor implements MessageProcessorInterface, TopicSubsc
         $this->batchSize = $batchSize;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public static function getSubscribedTopics()
     {
         return [PreImportTopic::getName()];
@@ -193,6 +192,13 @@ class PreImportMessageProcessor implements MessageProcessorInterface, TopicSubsc
             ),
             'options' => $body['options']
         ]);
+        $context->addDependentJob(FinishImportTopic::getName(), [
+            'rootImportJobId' => $job->getRootJob()->getId(),
+            'processorAlias' => $body['processorAlias'],
+            'type' => $body['process'],
+            'options' => $body['options']
+        ]);
+
         $this->dependentJob->saveDependentJob($context);
     }
 
@@ -275,9 +281,7 @@ class PreImportMessageProcessor implements MessageProcessorInterface, TopicSubsc
         return $files;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function process(MessageInterface $message, SessionInterface $session)
     {
         $messageBody = $message->getBody();

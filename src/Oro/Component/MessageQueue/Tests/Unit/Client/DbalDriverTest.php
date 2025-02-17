@@ -17,9 +17,7 @@ class DbalDriverTest extends \PHPUnit\Framework\TestCase
 
     private DbalDriver $driver;
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     protected function setUp(): void
     {
         $this->session = $this->createMock(DbalSessionInterface::class);
@@ -170,9 +168,9 @@ class DbalDriverTest extends \PHPUnit\Framework\TestCase
     private function getMessage(
         string $messageId,
         string $body,
-        int $timestamp = null,
-        int $delay = null,
-        string $priority = null
+        ?int $timestamp = null,
+        ?int $delay = null,
+        ?string $priority = null
     ): Message {
         $message = new Message($body, $priority);
         $message->setMessageId($messageId);

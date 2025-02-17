@@ -246,6 +246,7 @@ class Group implements ExtendEntityInterface
      *
      * @return string
      */
+    #[\Override]
     public function __toString()
     {
         return (string) $this->name;
@@ -257,7 +258,7 @@ class Group implements ExtendEntityInterface
      * @param Organization|null $organization
      * @return Group
      */
-    public function setOrganization(Organization $organization = null)
+    public function setOrganization(?Organization $organization = null)
     {
         $this->organization = $organization;
 

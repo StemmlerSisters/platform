@@ -47,9 +47,7 @@ final class OroTranslationServiceAdapter implements TranslationServiceAdapterInt
         $this->apiKey = $translationServiceCredentials['apikey'] ?? '';
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function fetchTranslationMetrics(): array
     {
         $response = $this->request('stats');
@@ -83,14 +81,11 @@ final class OroTranslationServiceAdapter implements TranslationServiceAdapterInt
     }
 
     /**
-     * {@inheritDoc}
-     *
-     * All dashes used as the language-locality separators in language code will be treated as underscores
-     * (e.g. "en-US" is treated as "en_US").
      *
      * @throws TranslationServiceAdapterException if the provided path is an existing file that cannot be overwritten,
      *                        or if the translation service returns other than 200 HTTP_OK response.
      */
+    #[\Override]
     public function downloadLanguageTranslationsArchive(
         string $languageCode,
         string $pathToSaveDownloadedArchive
@@ -123,13 +118,13 @@ final class OroTranslationServiceAdapter implements TranslationServiceAdapterInt
     }
 
     /**
-     * {@inheritDoc}
      *
      * @throws TranslationServiceAdapterException if cannot extract data from the archive
      *
      * @SuppressWarnings(PHPMD.NPathComplexity)
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
+    #[\Override]
     public function extractTranslationsFromArchive(
         string $pathToArchive,
         string $directoryPathToExtractTo,
@@ -313,7 +308,7 @@ final class OroTranslationServiceAdapter implements TranslationServiceAdapterInt
 
     private static function createOverwriteExistingFileException(
         string $actualFilePath,
-        \Throwable $previous = null
+        ?\Throwable $previous = null
     ): TranslationServiceAdapterException {
         return new TranslationServiceAdapterException(
             sprintf('Cannot overwrite the existing file "%s".', $actualFilePath),
@@ -324,7 +319,7 @@ final class OroTranslationServiceAdapter implements TranslationServiceAdapterInt
     private static function createExtractException(
         string $actualFilePath,
         string $directoryPathToExtractTo,
-        \Throwable $previous = null
+        ?\Throwable $previous = null
     ): TranslationServiceAdapterException {
         return new TranslationServiceAdapterException(
             sprintf('Failed to extract "%s" to "%s".', $actualFilePath, $directoryPathToExtractTo),
@@ -334,7 +329,7 @@ final class OroTranslationServiceAdapter implements TranslationServiceAdapterInt
 
     private static function createCloseTranslationArchiveException(
         string $actualFilePath,
-        \Throwable $previous = null
+        ?\Throwable $previous = null
     ): TranslationServiceAdapterException {
         return new TranslationServiceAdapterException(
             sprintf('Failed to close the translation archive "%s".', $actualFilePath),

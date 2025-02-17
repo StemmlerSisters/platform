@@ -26,6 +26,7 @@ class WorkflowVirtualRelationProviderTest extends \PHPUnit\Framework\TestCase
     /** @var WorkflowVirtualRelationProvider */
     private $provider;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->doctrineHelper = $this->createMock(DoctrineHelper::class);
@@ -216,7 +217,7 @@ class WorkflowVirtualRelationProviderTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals('virtual_relation', $this->provider->getTargetJoinAlias('', 'virtual_relation'));
     }
 
-    private function assertGetEntitiesWithoutCacheCall(string $class = null): void
+    private function assertGetEntitiesWithoutCacheCall(?string $class = null): void
     {
         $classes = [];
         $expectedClasses = [];

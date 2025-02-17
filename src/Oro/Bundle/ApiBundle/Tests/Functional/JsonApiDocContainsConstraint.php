@@ -3,7 +3,6 @@
 namespace Oro\Bundle\ApiBundle\Tests\Functional;
 
 use Oro\Bundle\ApiBundle\Request\JsonApi\JsonApiDocumentBuilder as JsonApiDoc;
-use Oro\Component\PhpUtils\ArrayUtil;
 use Oro\Component\Testing\Assert\ArrayContainsConstraint;
 
 /**
@@ -25,9 +24,9 @@ class JsonApiDocContainsConstraint extends ArrayContainsConstraint
     }
 
     /**
-     * {@inheritDoc}
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
+    #[\Override]
     protected function matches($other): bool
     {
         if (parent::matches($other)
@@ -46,8 +45,8 @@ class JsonApiDocContainsConstraint extends ArrayContainsConstraint
                     $expectedItems = $this->getDataItems($expectedData);
                     $actualItems = $this->getDataItems($other[JsonApiDoc::DATA]);
                     if (!$this->strictPrimaryData) {
-                        ArrayUtil::sortBy($expectedItems, false, JsonApiDoc::ID, SORT_STRING);
-                        ArrayUtil::sortBy($actualItems, false, JsonApiDoc::ID, SORT_STRING);
+                        $this->sortDataForNotStrictComparison($expectedItems);
+                        $this->sortDataForNotStrictComparison($actualItems);
                     }
                     try {
                         \PHPUnit\Framework\Assert::assertSame(
@@ -73,9 +72,7 @@ class JsonApiDocContainsConstraint extends ArrayContainsConstraint
         return empty($this->errors);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     protected function matchAssocArray(array $expected, array $actual, array $path): void
     {
         parent::matchAssocArray($expected, $actual, $path);
@@ -97,9 +94,7 @@ class JsonApiDocContainsConstraint extends ArrayContainsConstraint
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     protected function matchIndexedArray(array $expected, array $actual, array $path): void
     {
         parent::matchIndexedArray($expected, $actual, $path);
@@ -134,5 +129,21 @@ class JsonApiDocContainsConstraint extends ArrayContainsConstraint
         }
 
         return $result;
+    }
+
+    private function sortDataForNotStrictComparison(array &$data): void
+    {
+        $sortingData = [];
+        foreach ([JsonApiDoc::TYPE, JsonApiDoc::ID] as $fieldName) {
+            $sortingItems = array_column($data, $fieldName);
+            if ($sortingItems) {
+                $sortingData[] = array_column($data, $fieldName);
+                $sortingData[] = SORT_ASC;
+            }
+        }
+        if ($sortingData) {
+            $sortingData[] = &$data;
+            array_multisort(...$sortingData);
+        }
     }
 }

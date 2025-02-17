@@ -21,20 +21,17 @@ use Twig\TwigFunction;
  *   - oro_timezone
  *   - oro_timezone_offset
  *   - oro_format_address_by_address_country
+ *   - oro_entity_do_not_lowercase_noun_locales
  */
 class LocaleExtension extends AbstractExtension implements ServiceSubscriberInterface
 {
-    private ContainerInterface $container;
     private ?LocaleSettings $localeSettings = null;
 
-    public function __construct(ContainerInterface $container)
+    public function __construct(private ContainerInterface $container, private ?array $localesNotInLowercase)
     {
-        $this->container = $container;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getFunctions()
     {
         return [
@@ -50,6 +47,10 @@ class LocaleExtension extends AbstractExtension implements ServiceSubscriberInte
             new TwigFunction(
                 'oro_format_address_by_address_country',
                 [$this, 'isFormatAddressByAddressCountry']
+            ),
+            new TwigFunction(
+                'oro_entity_do_not_lowercase_noun_locales',
+                [$this, 'isNotNeedToLowerCaseNounLocale']
             ),
         ];
     }
@@ -104,6 +105,15 @@ class LocaleExtension extends AbstractExtension implements ServiceSubscriberInte
         return $this->getLocaleSettings()->getCurrencySymbolByCurrency($currencyCode);
     }
 
+    public function isNotNeedToLowerCaseNounLocale(): bool
+    {
+        if (in_array($this->getLocale(), $this->localesNotInLowercase, true)) {
+            return true;
+        }
+
+        return false;
+    }
+
     /**
      * @return string
      */
@@ -138,9 +148,7 @@ class LocaleExtension extends AbstractExtension implements ServiceSubscriberInte
         return $this->getLocaleSettings()->isFormatAddressByAddressCountry();
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public static function getSubscribedServices(): array
     {
         return [

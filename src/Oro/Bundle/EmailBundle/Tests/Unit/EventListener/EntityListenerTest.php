@@ -51,6 +51,7 @@ class EntityListenerTest extends \PHPUnit\Framework\TestCase
     /** @var EntityListener */
     private $listener;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->producer = $this->createMock(MessageProducerInterface::class);
@@ -253,6 +254,8 @@ class EntityListenerTest extends \PHPUnit\Framework\TestCase
             ->method('collectEmailAddresses');
 
         $this->listener->onFlush(new OnFlushEventArgs($em));
+        $this->listener->postFlush(new PostFlushEventArgs($em));
+        // Test that second flush will not trigger second round of processing
         $this->listener->postFlush(new PostFlushEventArgs($em));
     }
 

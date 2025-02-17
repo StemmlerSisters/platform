@@ -20,6 +20,8 @@ class GoogleResourceOwnerFactoryTest extends TestCase
     private HttpClientInterface $httpClient;
     private HttpUtils $httpUtils;
     private RequestDataStorageInterface $storage;
+
+    #[\Override]
     protected function setUp(): void
     {
         $this->crypter = $this->createMock(SymmetricCrypterInterface::class);

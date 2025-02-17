@@ -28,10 +28,9 @@ class RestDocumentBuilder extends AbstractDocumentBuilder
     private const ERROR_TITLE = 'title';
     private const ERROR_DETAIL = 'detail';
     private const ERROR_SOURCE = 'source';
+    private const ERROR_PROPERTIES = 'properties';
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getDocument(): array
     {
         $result = null;
@@ -47,9 +46,7 @@ class RestDocumentBuilder extends AbstractDocumentBuilder
         return $result;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     protected function convertCollectionToArray(
         iterable $collection,
         RequestType $requestType,
@@ -66,8 +63,9 @@ class RestDocumentBuilder extends AbstractDocumentBuilder
     }
 
     /**
-     * {@inheritdoc}
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
+    #[\Override]
     protected function convertObjectToArray(
         mixed $object,
         RequestType $requestType,
@@ -84,19 +82,23 @@ class RestDocumentBuilder extends AbstractDocumentBuilder
             $result = $data;
         } else {
             $metadata = $this->getTargetMetadataProvider()->getTargetMetadata($object, $metadata);
+            $hasIdentifierFields = $metadata->hasIdentifierFields();
             $objectClass = $this->objectAccessor->getClassName($object);
             if (!$objectClass) {
                 $objectClass = $metadata->getClassName();
             }
             $objectAlias = $this->getEntityAlias($objectClass, $requestType);
+            $objectId = $hasIdentifierFields
+                ? $this->getEntityId($object, $requestType, $metadata)
+                : null;
 
             $entityData = $data;
             $entityData[DataAccessorInterface::ENTITY_CLASS] = $objectClass;
             if ($objectAlias) {
                 $entityData[DataAccessorInterface::ENTITY_TYPE] = $objectAlias;
             }
-            if ($metadata->hasIdentifierFields()) {
-                $entityData[DataAccessorInterface::ENTITY_ID] = $this->getEntityId($object, $requestType, $metadata);
+            if ($hasIdentifierFields) {
+                $entityData[DataAccessorInterface::ENTITY_ID] = $objectId;
             }
             $this->resultDataAccessor->setEntity($entityData);
 
@@ -108,14 +110,16 @@ class RestDocumentBuilder extends AbstractDocumentBuilder
             $this->addLinks($result, $metadata->getLinks());
             $this->addAttributes($result, $data, $metadata);
             $this->addRelationships($result, $data, $requestType, $metadata);
+            $idFieldNames = $metadata->getIdentifierFieldNames();
+            if (\count($idFieldNames) === 1) {
+                $result[$idFieldNames[0]] = $objectId;
+            }
         }
 
         return $result;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     protected function convertErrorToArray(Error $error): array
     {
         $result = [];
@@ -139,21 +143,21 @@ class RestDocumentBuilder extends AbstractDocumentBuilder
                 $result[self::ERROR_SOURCE] = $source->getPropertyPath();
             }
         }
+        $metaProperties = $error->getMetaProperties();
+        foreach ($metaProperties as $name => $metaProperty) {
+            $result[self::ERROR_PROPERTIES][$name] = $metaProperty->getValue();
+        }
 
         return $result;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     protected function convertToEntityType(string $entityClass, RequestType $requestType): string
     {
         return $entityClass;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     protected function tryConvertToEntityType(string $entityClass, RequestType $requestType): ?string
     {
         return $entityClass;
@@ -193,9 +197,7 @@ class RestDocumentBuilder extends AbstractDocumentBuilder
         }
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     protected function addLinkToResult(array &$result, string $name, LinkMetadataInterface $link): void
     {
         $href = $this->getLinkHref($link);
@@ -207,9 +209,7 @@ class RestDocumentBuilder extends AbstractDocumentBuilder
         }
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     protected function addMetaToCollectionResult(array &$result, string $name, mixed $value): void
     {
         // not supported
@@ -257,16 +257,14 @@ class RestDocumentBuilder extends AbstractDocumentBuilder
         }
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     protected function processRelatedObject(
         mixed $object,
         RequestType $requestType,
         AssociationMetadata $associationMetadata
     ): mixed {
         if (is_scalar($object)) {
-            return $object;
+            return $this->getEntityId($object, $requestType, $associationMetadata->getTargetMetadata());
         }
 
         $this->resultDataAccessor->addEntity();
@@ -287,17 +285,13 @@ class RestDocumentBuilder extends AbstractDocumentBuilder
         }
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     protected function addRelatedObject(array $object): void
     {
         throw new \LogicException('The included objects are not supported by this document.');
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     protected function hasIdentifierFieldsOnly(EntityMetadata $metadata): bool
     {
         if (\count($metadata->getMetaProperties()) > 0) {

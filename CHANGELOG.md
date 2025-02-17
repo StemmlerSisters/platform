@@ -2,14 +2,802 @@ The upgrade instructions are available at [Oro documentation website](https://do
 
 The current file describes significant changes in the code that may affect the upgrade of your customizations.
 
-# UNRELEASED
+## UNRELEASED
 
-#### CurrencyBundle
-* Added supporting of the `readonly` attribute in `\Oro\Bundle\CurrencyBundle\Form\Type\PriceType`.
+### Security Changes
+* Security firewall `wsse_secured` renamed to `old_api_secured`.
+* Security firewall `api_wsse_secured` renamed to `api_secured`.
+
+### Added
+
+#### DistributionBundle
+* Added the ability to run post-install and post-update composer scripts defined in the composer.json of a dependency. Script that should be run during post-install must be put into section `extra.oro-post-install-cmd`, during post-update - into section `extra.oro-post-update-cmd`.
+* Added new event `oro_distribution.route_collection.all` dispatched when routes are loaded from all route loaders. Implemented via `\Oro\Bundle\DistributionBundle\Routing\DelegatingLoader` decorating the `routing.loader` service.
+* Added `\Oro\Bundle\DistributionBundle\EventListener\RoutePrioritizingListener` as a general solution to alter route priorities.
+* Added `oro_distribution.event_listener.route_prioritizing.web_debug_toolbar` to increase the priorities of web debug toolbar routes (_wdt, _profiler*, _preview_error).
+* Added the ability to override controller template attribute with `_template_override` request attribute. Useful for overriding the template of a forwarded request. Implemented in `\Oro\Bundle\DistributionBundle\EventListener\ControllerTemplateListener`. 
+
+#### FormBundle
+* Added the ability to use nested constraints (e.g. `When`) in `\Oro\Bundle\FormBundle\Validator\ConstraintFactory` that creates constraints from an array definition (e.g. fetched from `system_configuration.yml`).
+
+#### ThemeBundle
+* Added theme configuration feature that provides theme developers a way to make a storefront theme configurable by a store owner.
+* Added new `\Oro\Bundle\ThemeBundle\Entity\ThemeConfiguration` entity that contains theme configuration options.
+* Added new `oro:theme:configuration:validate` command that validates theme configuration.
+* Added `\Oro\Bundle\ThemeBundle\Fallback\Provider\ThemeConfigurationFallbackProvider` fallback provider which fetches data from theme configuration.
+
+#### UIBundle
+* Added new twig function `oro_is_string` that finds whether the given variable type is a string.
+* Added new twig `html_controls_after` variable for `form_row` widget that renders passed html content.
+* Removed jquery-numeric
+
+#### LayoutBundle
+* Added new twig function `oro_theme_configuration_value` that returns theme configuration option value.
+* Added theme configuration definition for configuration section into `\Oro\Bundle\LayoutBundle\Layout\Extension\ThemeConfiguration`.
+
+#### AttachmentBundle
+* Added new `\Oro\Bundle\AttachmentBundle\Form\Type\ContentFileType` form type that saves content from the uploaded file but does not save file in the system.
+
+#### SecurityBundle
+* Added new `\Oro\Bundle\SecurityBundle\DoctrineExtension\Dbal\Types\CryptedTextType` doctrine type that stores text data in crypted format.
+* Decomposed `\Oro\Bundle\SecurityBundle\Request\SessionHttpKernelDecorator` into `\Oro\Bundle\SecurityBundle\Request\SessionStorageOptionsManipulator`.
+* Added `oro_security.session.storage.options` container parameters that holds original session storage options.
+
+#### ApiBundle
+* Added new `crypted_text` doctrine type as a data type to `api_doc_data_types` and `open_api` sections of ORO API configuration.
+* Added an "Add filter" button to each resource for API sandbox.
+* Added a new meta `validate` flag to create and update operations, making API requests with transaction rollback instead of commit.
+* Added a new `rollback_validated_request` event for `customize_form_data` action.
+
+### Changed
+
+#### ActionBundle
+
+##### Operations
+
+- added ability to define operation logic as a service instead of having it in YAML
+- Added `OperationServiceInterface` and `OperationServiceAbstract` for operation services
+- added new tag `oro_operation_service` to gather operation services in a separate service locator
+- updated OperationAssembler and Operation to work with services
+- Moved acl_resource check to the announce event listener instead of constantly adding it to pre-conditions
+- Moved operation feature availability check to the announce event listener instead of constantly adding it to pre-conditions
+
+###### Operation Events
+
+Operation execution events added for better extensibility and control of operation execution flow
+
+- `announce` event is triggered during checking pre-conditions
+- `guard` event is triggered during checking conditions
+- `pre_execute` and `execute` events are triggered before and after operation logic execution
+
+For all event types 2 events are triggered: `oro_operation.<event_name>` and `oro_operation.<operation_name>.<event_name>`.
+
+##### Action Group Changes
+
+* Added `ActionExecutor` to be able to run actions and action groups from PHP code without a need to work with ActionData, context, PropertyPaths, etc.
+* Added `ActionGroupWrapper` to be able to call a service method as an action group. All such services should be added to service locator with tag `oro_action_group_service`. If service needs to add/change some context variables it has to return an array with an appropriate keys. Note that argument names are used to map data from context to method arguments and must be named same to call parameters.
+* Moved logic from action groups YAML definitions to PHP services for checkout-related action_groups
+* Added ability to define action group as a service + method config parameters
+* added `return_value_name` for `action_group` to map value to action group result correctly for action group services
+* added `method_argument_name` to parameter config to map action group parameter to service method argument
+* Moved `acl_resource` check to the guard event listener instead of constantly adding it to pre-conditions (this check was lost for service-based action_groups)
+* Action group execution events added for better extensibility and control of execution flow
+
+    * `guard` event is triggered during checking conditions
+      *`pre_execute` and `execute` events are triggered before and after operation logic execution
+
+For all event types 2 events are triggered. `oro_action_group.<event_name>` and `oro_action_group.<operation_name>.<event_name>`
+
+#### WorkflowBundle
+
+* added `conditional_steps_to` to allow to transit workflow to different steps with single transition based on condition per-step
+* `conditional_steps_to` are shown in workflow UI
+* Improved workflow config importing, allowed to reference files in bundles with `@BundleName/path/to/configs/workflow.yml` syntax
+
+##### Transition services
+
+* added ability to define transition logic as a transition service instead of having it in YAML transition_definition
+* Added `TransitionServiceInterface` and `TransitionServiceAbstract` for transition services
+* added new tag `oro_workflow.transition_service` to gather transition services in a separate service locator
+* updated `TransitionAssembler`, Transition and Workflow configuration to work with transition services
+* implemented `ContinueToShippingAddress` for b2b checkout workflow as a transition service example
+* added evaluateExpression to ActionExecutor service to cover whole transition needs: run an action, action group, evaluate condition expression
+* Improved QuoteAcceptable condition to support default as a property path
+
+##### Workflow Events
+
+Added workflow events
+* `pre_announce`, `announce`. These events are triggered during checking pre-conditions
+* `pre_guard`, `guard`. These events are triggered during checking conditions
+
+Next event are triggered during transition execution:
+* `start` (workflow)
+* `leave` (step)
+* `enter` (step)
+* `entered` (step)
+* `transition` (transition)
+* `completed` (transition)
+
+For all events except start 3 events are triggered. `oro_workflow.<event_name>`, `oro_workflow.<workflow_name>.<event_name>` and `oro_workflow.<workflow_name>.<event_name>.<step_name|transition_name>`
+
+##### Workflow ACL checks
+
+* Moved `acl_resource` check to pre_announce event listener instead of constantly adding it to pre-conditions
+* Moved `is_granted_workflow_transition` check for steps to pre_announce event listener
+* Moved `resolve_destination_page` from actions to oro_workflow.transition listener for all workflows to support usage of this option with transition_service
+* ResolveDestinationPage was updated to support destination as variable in workflows
+* `aclResource` and `aclMessages` were added to Transition model
+
+##### Workflow Definition Load CLI command
+
+* Added `--watch` and `--watch-interval` options to `oro:workflow:definition:load` command to periodically reload the workflow definition(s). Can be used during development to not bother the developer who might forget to reload the definition.
+
+##### ExtendableCondition and ExtendableAction changes
+
+* removed dependency on WorkflowItem/ActionData in listeners which limited those listeners to a place from which event is triggered (workflow definition or action group)
+* extracted extendable condition errors processing to a separate service to not depend on the translator and request stack directly
+* added ability to trigger checkout events directly using event dispatcher without a need to use extendable action|condition
+* introduced determined set of data available in listeners, access to current execution context was limited in order to remove untraceable dependencies on the inner workflow implementations and improve listeners re-usability
+
+##### Configuration import directive filters
+
+* Added `import_condition` (Expression Language syntax same to on used in DI) option for workflow import
+* Added import filters that may be registered via `WorkflowConfigurationImportsProcessor::addImportFilter` and should implement the `ImportFilterInterface`
+
+
+#### ThemeBundle
+* Changed a field value of the `type` field on a string instead of the removed `\Oro\Bundle\ThemeBundle\Entity\Enum\ThemeConfigurationType` enum for `\Oro\Bundle\ThemeBundle\Entity\ThemeConfiguration` entity.
+
+#### ApiBundle
+* The `masterRequest` attribute in API context was replaced with `mainRequest`. If you have API processors that use the `masterRequest` attribute in the `oro.api.processor` service tag it should be replaces with the `mainRequest` attribute. 
+* Changed `\Oro\Bundle\ApiBundle\Filter\FilterValueAccessorInterface` to be able to use filters by same field but with different operators, e.g. `?filter[id][gt]=1&filter[id][lt]=10`:
+  - added `getOne` method
+  - changed return value for `get` method from `?FilterValue` to `FilterValue[]`
+  - changed return value for `getGroup` method from `array [filter key => FilterValue, ...]` to `array [filter key => [FilterValue, ...], ...]`
+  - changed return value for `getAll` method from `array [filter key => FilterValue, ...]` to `array [filter key => [FilterValue, ...], ...]`
+* Outdated format of API filters like `filter[id]>=1` is not supported from now, use `filter[field][operator]=value` syntax instead, e.g. `filter[id][gte]=1`.
+
+#### ActionBundle
+
+##### Action Group Changes
+
+* Added ActionExecutor to be able to run actions and action groups from PHP code without a need to work with ActionData, context, PropertyPaths, etc.
+* Added ActionGroupWrapper to be able to call a service method as an action group. All such services should be added to service locator with tag oro_action_group_service. If service needs to add/change some context variables it has to return an array with an appropriate keys. Note that argument names are used to map data from context to method arguments and must be named same to call parameters.
+* Moved logic from action groups YAML definitions to PHP services for checkout-related action_groups
+* Added ability to define action group as a service + method config parameters
+* Added `return_value_name` for action_group to map value to action group result correctly for action group services
+* Added `method_argument_name` to parameter config to map action group parameter to service method argument
+
+#### WorkflowBundle
+
+* Added `conditional_steps_to` to allow to transit workflow to different steps with single transition based on condition per-step
+* `conditional_steps_to` are shown in workflow UI
+* Improved workflow config importing, allowed to reference files in bundles with `@BundleName/path/to/configs/workflow.yml` syntax
+* Disallowed to transit workflow in pre-conditions or pre-actions.
+
+##### Transition services
+
+* Added ability to define transition logic as a transition service instead of having it in YAML transition_definition
+* Added TransitionServiceInterface and TransitionServiceAbstract for transition services
+* Added new tag oro_workflow.transition_service to gather transition services in a separate service locator
+* Updated TransitionAssembler, Transition and Workflow configuration to work with transition services
+* Implemented ContinueToShippingAddress for b2b checkout workflow as a transition service example
+* Added evaluateExpression to ActionExecutor service to cover whole transition needs: run an action, action group, evaluate condition expression
+* Improved QuoteAcceptable condition to support default as a property path
+
+##### Workflow Events
+
+Added workflow events
+* pre_announce, announce. These event are triggered during checking pre-conditions
+* pre_guard, guard. These event are triggered during checking pre-conditions
+
+Next event are triggered during transition execution:
+* start (workflow)
+* leave (step)
+* enter (step)
+* entered (step)
+* transition (transition)
+* completed (transition)
+
+For all events except start 3 events are triggered. oro_workflow.<event_name>, oro_workflow.<workflow_name>.<event_name> and oro_workflow.<workflow_name>.<event_name>.<step_name|transition_name>
+
+##### Workflow ACL checks
+
+* Moved `acl_resource` check to pre_announce event listener instead of constantly adding it to pre-conditions. After this change, `acl_resource` checks will be done *before* pre-actions. It's no longer possible to reference variables in `acl_resource`, such checks must be moved to pre-conditions.
+* Moved `is_granted_workflow_transition` check for steps to `pre_announce` event listener
+* Moved `resolve_destination_page` from actions to `oro_workflow.transition` listener for all workflows to support usage of this option with transition_service
+* `ResolveDestinationPage` was updated to support destination as variable in workflows
+* `aclResource` and `aclMessages` were added to Transition model
+
+##### Workflow Definition Load CLI command
+
+* Added `--watch` and `--watch-interval` options to `oro:workflow:definition:load` command to periodically reload the workflow definition(s). Can be used during development to not bother the developer who might forget to reload the definition.
+
+##### ExtendableCondition and ExtendableAction changes
+
+* ExtendableCondition does not work directly with context, accepting only the data needed for event listeners.
+* ExtendableConditionEvent `getContext` replaced by `getData`. It's no longer possible to work directly with the workflow/action execution context.
+* ExtendableAction does not work directly with context, accepting only the data needed for event listeners.
+* ExtendableActionEvent `getContext` replaced by `getData`. It's no longer possible to work directly with the workflow/action execution context.
+* Introduced determined set of data available in listeners, access to current execution context was limited in order to remove untraceable dependencies on the inner workflow implementations and improve listeners re-usability
+* Removed dependency on WorkflowItem/ActionData in listeners which limited those listeners to a place from which event is triggered (workflow definition or action group)
+* Extracted extendable condition errors processing to a separate service to not depend on the translator and request stack directly
+* Added ability to trigger checkout events directly using event dispatcher without a need to use extendable action|condition
+
+##### Configuration import directive filters
+
+* Added `import_condition` (Expression Language syntax same to on used in DI) option for workflow import
+* Added import filters that may be registered via `WorkflowConfigurationImportsProcessor::addImportFilter` and should implement the `ImportFilterInterface`
+
+#### EntityBundle
+* Changed `\Oro\Bundle\EntityBundle\Provider\EntityNameProvider` to make it work with enum fields.
+
+#### EmailBundle
+* Fixed `\Oro\Bundle\EmailBundle\Sync\NotificationAlertManager` fails to update an existing alert if user is null.
+
+#### UserBundle
+* Changed `\Oro\Bundle\UserBundle\Controller\ResetController::sendEmailAction` so it redirects to the `_return_route` route request attribute in case of error.
+* Changed `\Oro\Bundle\UserBundle\Controller\ResetController::sendEmailAction` so it redirects to the `_target_route` request attribute in case of success.
+* Changed `@OroUser/Reset` templates to enable the ability to override form action path, return path and target path.
+* Changed `@OroUser/Security/login.html.twig` template to enable the ability to override form action path, return path and target path.
+
+#### SanitizeBundle
+* Updated sanitize logic, it takes into account a new `crypted_text` doctrine type now.
+
+#### ActionBundle
+* Disabled key normalization for `data` attributes of the `button_options` section for operations. Now, using the dash symbol for data attribute naming is possible.
+
+# Oro Enum Changes
+
+Updating the ORO Enum implementation is caused by:
+
+- Read-only permissions for web server user on entity extend files in the system cache.
+- Updates to entities from the UI do not require cache updates in the entity management.
+- Need to avoid code generation.
+- Reduce the number of requests in cases where the object uses join queries with a large number of lists.
+- After completion, it will be possible to remove MultiHostBundle on schema update.
+
+## The structure of relationships between entities and storage
+
+*Before:*
+
+- The main storage place for ORO Enums are tables created for each enum. The table name begins with ``oro_enum_``.
+
+Example:
+
+```
+oro_enum_auth_status
+oro_enum_inventory_status
+```
+
+- The connection between a specific enum and a table is created using a relation column. To get the value of the enum,
+  you need to make a join in the query.
+- The entity configuration stores the relationship between the enum and the target table and the configuration of the
+  enum itself.
+- There is a difference in configuration for the enum and for the product attribute of the enum.
+- All extend enums are inherited from the base one ```Oro\Bundle\EntityExtendBundle\Entity\AbstractEnumValue```.
+
+*After:*
+
+- All ORO enums are stored in a table ```oro_enum_option```.
+- The connection between the target table that uses the enum and the enum itself is built without a relation. Enum
+  values used by entities are stored in the field ```serialized_data```.
+
+- Updated enums are inherited not from the ```Oro\Bundle\EntityExtendBundle\Entity\AbstractEnumValue```
+  but from ```Oro\Bundle\EntityExtendBundle\Entity\EnumOptionInterface```[[f]](#upgrade-toolkit-coverage)
+
+``` json
+{
+    "inventory_status": "prod_inventory_status.in_stock",
+    "multi_enum": ["prod_multi_enum.test_option_1", "prod_multi_enum.test_option_3"]
+}
+```
+## The structure of DB storage
+
+*Before:*
+
+Stored in the generated table, which begins with the prefix "oro_enum_" (that is, each enum has its own table).
+
+Example of enum for "oro_enum_auth_status" table:
+
+```markdown
+| id      | name    | priority | is_default |
+| reset   | Reset   | 2        | false      |
+| locked  | Locked  | 3        | false      |
+| expired | Expired | 4        | false      |
+| active  | Active  | 1        | true       |
+```
+
+*After:*
+
+Stored in the "oro_enum_option" table.
+
+Example:
+
+```markdown
+| id                  | internal_id | enum_code   | name    | priority | is_default |
+| auth_status.locked  | locked      | auth_status | Locked  | 3        | false      |
+| auth_status.expired | expired     | auth_status | Expired | 4        | false      |
+| auth_status.active  | active      | auth_status | Active  | 1        | true       |
+| auth_status.reset   | reset       | auth_status | Reset   | 2        | false      |
+```
+
+## Versioned migration Enum changes:
+
+*Before:*
+
+```php
+    $queries->addPostQuery(
+        new OutdatedInsertEnumValuesQuery(
+            $this->extendExtension,
+            'cu_auth_status', 
+            [new OutdatedEnumDataValue(CustomerUserAuthStatus::STATUS_EXPIRED, 'Expired', 3)]
+        )
+     );
+```
+
+```php
+namespace Oro\Bundle\CalendarBundle\Migrations\Schema\v1_0;
+
+class OroCalendarBundle implements Migration, ExtendExtensionAwareInterface
+ {
+     use ExtendExtensionAwareTrait;
+ 
+     public function up(Schema $schema, QueryBag $queries)
+     {
+         $table = $schema->getTable('oro_calendar_event_attendee');
+        $this->extendExtension->addEnumField(
+            $schema,
+            $table,
+            'status',
+            'ce_attendee_status',
+            false,
+            false,
+            [
+                'extend' => ['owner' => ExtendScope::OWNER_CUSTOM]
+            ]
+         );
+     }
+```
+
+*After:*
+
+```php
+    $queries->addPostQuery(
+        new OutdatedInsertEnumValuesQuery(
+            $this->outdatedExtendExtension, // Outdated extend extension must be used for old enums
+            'cu_auth_status', 
+            [new OutdatedEnumDataValue(CustomerUserAuthStatus::STATUS_EXPIRED, 'Expired', 3)]
+        )
+     );
+```
+
+```php
+namespace Oro\Bundle\CalendarBundle\Migrations\Schema\v1_0;
+
+class OroCalendarBundle implements Migration, OutdatedExtendExtensionAwareInterface
+ {
+     use OutdatedExtendExtensionAwareTrait;
+ 
+    public function up(Schema $schema, QueryBag $queries)
+     {
+         $table = $schema->getTable('oro_calendar_event_attendee');
+        $this->outdatedExtendExtension->addOutdatedEnumField(
+            $schema,
+            $table,
+            'status',
+            'ce_attendee_status',
+            false,
+            false,
+            [
+                'extend' => ['owner' => ExtendScope::OWNER_CUSTOM]
+            ]
+         );
+     }
+```
+
+## Migration data fixture:
+
+*Before:*
+
+```php
+   $queries->addPostQuery(new OutdatedInsertEnumValuesQuery($this->outdatedExtendExtension, 'cu_auth_status', [
+            new OutdatedEnumDataValue(CustomerUserAuthStatus::STATUS_EXPIRED, 'Expired', 3)
+        ]));
+```
+
+*After:*
+
+```php
+class LoadLeadStatusOptionData extends AbstractEnumFixture
+{
+    protected function getData(): array
+    {
+        return [
+            'new' => 'New',
+            'qualified' => 'Qualified',
+            'canceled' => 'Disqualified',
+        ];
+    }
+
+    protected function getDefaultValue(): string
+    {
+        return 'new';
+    }
+
+    protected function getEnumCode(): string
+    {
+        return 'lead_status';
+    }
+}
+
+```
+
+## Joining enum options DQL:
+
+*Before:*
+
+- join Enum options via "relation"
+
+```php
+    ->leftJoin('attendee.status', 'attendee_status')
+```
+
+*After:*
+
+```php
+->leftJoin(
+    EnumOption::class,
+    'attendee_status',
+    Expr\Join::WITH,
+    "JSON_EXTRACT(attendee.serialized_data, 'status') = attendee_status"
+)
+
+```
+
+- Query by enum fields
+
+```php
+ $qb = $this->doctrine->getRepository(CustomerUser::class)
+            ->createQueryBuilder('u')
+            ->select('COUNT(u.id)')
+            ->andWhere('IDENTITY(u.auth_status) <> :authStatus')
+```
+
+*After:*
+
+```php
+ $qb = $this->doctrine->getRepository(CustomerUser::class)
+            ->createQueryBuilder('u')
+            ->select('COUNT(u.id)')
+            ->andWhere("JSON_EXTRACT(u.serialized_data, 'auth_status') <> :authStatus")
+```
+
+## Query to Enum Option Repository:
+
+*Before:*
+
+```php
+   $statusEnum = $this->doctrine
+        ->getRepository(ExtendHelper::buildEnumValueClassName(Attendee::STATUS_ENUM_CODE))
+        ->find(Attendee::STATUS_NONE);
+```
+
+*After:*
+
+```php
+    $statusEnum = $this->doctrine
+         ->getRepository(EnumOption::class)
+         ->find(ExtendHelper::buildEnumOptionId(Attendee::STATUS_ENUM_CODE, Attendee::STATUS_NONE)
+    );
+```
+
+## Comparison of enum option:
+
+*Before:*
+
+```php
+  if ($user->getAuthStatus()->getId() !== UserManager::STATUS_ACTIVE) {}
+```
+
+```php
+  if (!$originalValue instanceof AbstractEnumValue) {}
+```
+
+*After:*
+
+```php
+  if ($user->getAuthStatus()->getIntenalId() !== UserManager::STATUS_ACTIVE) {}
+```
+
+```php
+  if (!$originalValue instanceof EnumOptionInterface) {}
+```
+
+### Expression Language changes:
+
+*Before:*
+
+```yaml
+    shippingRuleD:
+      name: 'D'
+      enabled: true
+      sortOrder: 1
+      stopProcessing: true
+      expression: "lineItems.any( lineItem.product.shipping_category.id = 'd' )"
+```
+
+*After:*
+
+```yaml
+    shippingRuleD:
+        name: 'D'
+        enabled: true
+        sortOrder: 1
+        stopProcessing: true
+        expression: "lineItems.any( lineItem.product.shipping_category.internalId = 'd' )" # use internalId instead of id
+```
+
+### Datagrids changes:[[p]](#upgrade-toolkit-coverage)
+
+*Before:*
+
+- join enum options
+
+```yaml
+join:
+  left:
+    - { join: ra.status, alias: status }
+```
+
+*After:*
+
+```yaml
+join:
+  left:
+#    - { join: ra.status, alias: status } # removed
+```
+
+- Example of datagrid columns and joins update
+
+*Before:*
+
+```yaml
+    orders-grid:
+        acl_resource: oro_order_view
+        extends: base-orders-grid
+        source:
+            query:
+                select:
+                    - internalStatus.name as internalStatusName
+                    - internalStatus.id as internalStatusId
+                join:
+                    left:
+                        - { join: order1.internal_status, alias: internalStatus }
+                groupBy:  order1.id
+            hints:
+                - HINT_TRANSLATABLE
+        columns:
+            internalStatusName:
+                label: oro.order.internal_status.label
+```
+
+*After:*
+
+```yaml
+    orders-grid:
+        acl_resource: oro_order_view
+        extends: base-orders-grid
+        source:
+            query:
+                select:
+#                    - internalStatus.name as internalStatusName # removed
+#                    - internalStatus.id as internalStatusId # removed
+                join:
+                    left:
+#                       - { join: order1.internal_status, alias: internalStatus } # removed
+                groupBy:  order1.id
+            hints:
+                - HINT_TRANSLATABLE
+        columns:
+            internal_status:
+                label: oro.order.internal_status.label
+```
+
+### Data fixture changes:[[p]](#upgrade-toolkit-coverage)
+
+- load enum options
+
+*Before:*
+
+```yaml
+Extend\Entity\EV_Acc_Internal_Rating:
+    1_of_5:
+        __construct:
+            - '1_of_5'
+            - '1_of_5'
+```
+*After:*
+
+```yaml
+Oro\Bundle\EntityExtendBundle\Entity\EnumOption:
+    1_of_5:
+        __construct:
+            - 'acc_internal_rating' # enum_code
+            - '1_of_5'
+            - '1_of_5'
+```
+
+## Search index
+
+- Enum fields do not change in the search index, the only thing you need to remember is that in the search, the internal id of the enum is used as a key, and the value remains unchanged.
+
+## Import and Export
+
+- The format of import and export has not changed, but you need to remember that the internalId of the enum option is used as an identifier.
+
+### Transition definition configuration changes:
+
+*Before:*
+
+```yaml
+quote_creating_definition:
+  preconditions:
+    '@and':
+         - '@neq':  [$status.id, 'lost']
+         - '@neq':  [$status.id, 'won']
+         - '@type': [$customer.target, 'Oro\Bundle\CustomerBundle\Entity\Customer']
+
+```
+*After:*
+
+```yaml
+quote_creating_definition:
+  preconditions:
+    '@and':
+      - '@neq':  [$status.internalId, 'lost']
+      - '@neq':  [$status.internalId, 'won']
+      - '@type': [$customer.target, 'Oro\Bundle\CustomerBundle\Entity\Customer']
+```
+
+### Checking the set of changes of enum field
+
+*Before:*
+
+```php
+    $changeSet = $unitOfWork->getEntityChangeSet($entity);
+    if (isset($changeSet['status']) || isset($changeSet['inventory_status'])) {}
+```
+
+*After:*
+
+```php
+    $changeSet = $unitOfWork->getEntityChangeSet($entity);
+    if (isset($changeSet['serialized_data'][0]['status']) # $changeSet['serialized_data'][0] - previous status value
+        || isset($changeSet['serialized_data'][0]['inventory_status'])) {}
+```
+
+### System configuration changes:
+
+*Before:*
+
+```php
+    public function getConfigTreeBuilder(): TreeBuilder
+    {
+        $treeBuilder = new TreeBuilder('oro_seller_dashboard');
+        $rootNode = $treeBuilder->getRootNode();
+
+        SettingsBuilder::append(
+            $rootNode,
+            [
+                'order_count_status_criteria' => [
+                    'type' => 'array',
+                    'value' => [
+                        OrderStatusesProviderInterface::INTERNAL_STATUS_OPEN
+                    ]
+                ]
+            ]
+        );
+    }
+```
+*After:*
+
+```php
+    public function getConfigTreeBuilder(): TreeBuilder
+    {
+        $treeBuilder = new TreeBuilder('oro_seller_dashboard');
+        $rootNode = $treeBuilder->getRootNode();
+
+        SettingsBuilder::append(
+            $rootNode,
+            [
+                'order_count_status_criteria' => [
+                    'type' => 'array',
+                    'value' => [
+                        ExtendHelper::buildEnumOptionId(
+                            Order::INTERNAL_STATUS_CODE,
+                            OrderStatusesProviderInterface::INTERNAL_STATUS_OPEN
+                        ),
+                    ]
+                ]
+            ]
+        );
+    }
+```
+
+### Template changes (optional, to improve performance):
+
+*Before:*
+
+```html
+<i {% if invitationClass %}class="{{ invitationClass }}" title="{{ attendee.status.name }}" {% endif %}></i>
+
+```
+
+*After:*
+
+```html
+<i {% if invitationClass %}class="{{ invitationClass }}" title="{{ attendee.status.id|trans_enum }}" {% endif %}></i>
+```
+
+### Behat test changes:
+
+*Before:*
+
+```text
+ Scenario: Create Multi-Select fields with one auditable
+   ...
+   And I fill form with:
+   | Field name    | AuditableMultiSelect |
+   | Type          | Multi-Select         |
+   And I click "Continue"
+   And set Options with:
+   | Label   |
+   | Option1 |
+   | Option2 |
+   | Option3 |
+   And I fill form with:
+   | Auditable | Yes |
+   And I save and create new form
+   Then click update schema            # schema update step is needed
+   When I click update schema
+   Then I should see Schema updated flash message
+   ...
+```
+*After:*
+
+```text
+Scenario: Create Multi-Select fields with one auditable
+  ...
+  And I fill form with:
+  | Field name    | AuditableMultiSelect |
+  | Type          | Multi-Select         |
+  And I click "Continue"
+  And set Options with:
+  | Label   |
+  | Option1 |
+  | Option2 |
+  | Option3 |
+  And I fill form with:
+  | Auditable | Yes |
+  And I save and create new form
+#  Then click update schema                # This step is not needed more for enums fields!!!
+#  When I click update schema
+#  Then I should see Schema updated flash message
+  ...
+```
+
+### Removed
+
+#### EntityBundle
+* Removed **activity_support** configuration option from **dictionary** entity config scope. Consider replacing it with **collapsed_associations** configuration option of QueryDesignerBundle when it is used for your entity.
+
+#### WsseAuthenticationBundle
+* WsseAuthenticationBundle was removed. WSSE auth headers cannot be used for API. Use Oauth 2.0 instead.
 
 ## Changes in the Platform package versions
 
-- [6.0.0-RC](#600-rc-2024-02-29)
+- [6.0.0](#600-2024-03-30)
 - [5.1.0](#510-2023-03-31)
 - [5.0.0](#500-2022-01-26)
 - [4.2.10](#4210)
@@ -28,14 +816,14 @@ The current file describes significant changes in the code that may affect the u
 - [2.2.0](#220-2017-05-31)
 - [2.1.0](#210-2017-03-30)
 
-## 6.0.0-RC (2024-02-29)
-[Show detailed list of changes](incompatibilities-6-0-rc.md)
+## 6.0.0 (2024-03-30)
+[Show detailed list of changes](incompatibilities-6-0.md)
 
 ### Security Changes
 
 Based on symfony security changes, the approach to user authentication was updated. The main differences in the new approach will be described below.
 
-* You should use `SecurityExtension::addAuthenticatorFactory()` instead of `SecurityExtension::addSecurityListenerFactory()`.
+* You should use `SecurityExtension::addAuthenticatorFactory()` instead of `SecurityExtension::addSecurityListenerFactory()`.[[f]](#upgrade-toolkit-coverage)
 
 Before:
 
@@ -91,7 +879,7 @@ oro_security:
         - { path: /healthcheck/http_status_check(s$|/.*), roles: PUBLIC_ACCESS }
 ```
 
-* Changed implementation of `anonymous_customer_user` authnetication. To check whether the user is authorized, it is not enough to check whether the user is absent in the token, it is also worth checking whether this user is not a customer visitor (`CustomerVisitor::class`).
+* Changed implementation of `anonymous_customer_user` authnetication. To check whether the user is authorized, it is not enough to check whether the user is absent in the token, it is also worth checking whether this user is not a customer visitor (`CustomerVisitor::class`).[[p]](#upgrade-toolkit-coverage)
 
 Before:
 
@@ -199,7 +987,62 @@ api:
 #### PlatformBundle
 * Added `\Oro\Bundle\PlatformBundle\Validator\Constraints\ValidEmbeddable` that allows to apply `Valid` constraint with explicit validation groups specified in `embeddedGroups` option.
 
+#### EmailBundle
+* Added the email template inheritance feature that provides an ability to extend an email template from parent one.
+* Added `oro_email.email_template_wysiwyg_enabled` system config setting allowing to toggle WYSIWYG an Email Template create/edit page. Now WYSIWYG is turned off by default. It is not recommended to turn it on if you are using the email template inheritance feature as it may break template syntax.
+* Added `\Oro\Bundle\EmailBundle\Provider\RenderedEmailTemplateProvider` as an entry point to get a rendered email template by criteria.
+* Added `\Oro\Bundle\EmailBundle\Sender\EmailTemplateSender` as an entry point to render email template and send it to recipients.
+* Added `\Oro\Bundle\EmailBundle\Factory\EmailModelFromEmailTemplateFactory` as an entry point to render an email template and create an email model ready to be sent.
+* Added `\Oro\Bundle\EmailBundle\Provider\EmailTemplateContextProvider` that dispatches `\Oro\Bundle\EmailBundle\Event\EmailTemplateContextCollectEvent` to collect email template context (e.g. localization) needed for its searching and rendering.
+* Added `\Oro\Bundle\EmailBundle\Controller\AjaxEmailController::compileEmailAction` to use it for email template rendering instead of `\Oro\Bundle\EmailBundle\Controller\Api\Rest\EmailTemplateController::getCompiledAction` in a Compose Email dialog.
+
+#### EntityBundle
+* Added method `getEntityTreeNodeByPropertyPath` to JS `EntityStructureDataProvider` (see [documentation](https://doc.oroinc.com/master/bundles/platform/EntityBundle/entity-structure-data-provider#get-entitytreenode-by-property-path))
+* Added magic property `entityTree` to `EntityStructureDataProvider` (see [documentation](https://doc.oroinc.com/master/bundles/platform/EntityBundle/entity-structure-data-provider#entity-tree)) that allows walk through entity fields tree
+* Added JS `EntityTreeNode` that is used in `EntityStructureDataProvider`
+
+#### FormBundle
+* Added JS `ExpressionEditorComponent` (see [documentation](https://doc.oroinc.com/master/bundles/platform/FormBundle/expression-editor#expressioneditorcomponent) that used instead regular `ViewComponent` in formtype options of rule editor. It's designed to prepare instance of `EntityStructureDataProvider` and create instance of `ExpressionEditorView`
+  expression-editor-component.js
+* Added `\Oro\Bundle\FormBundle\Validator\Constraints\UniqueEntity` validation constraint and validator.
+
+#### UIBundle
+* Added `renderCollapsibleWysiwygContentPreview` and `renderWysiwygContentPreview` TWIG macros to UIBundle for
+  rendering WYSIWYG content in backoffice.
+
+#### CurrencyBundle
+* Added supporting of the `readonly` attribute in `\Oro\Bundle\CurrencyBundle\Form\Type\PriceType`.
+
 ### Changed
+
+#### ApiBundle
+* Removed support of `{@feature}` placeholder in API documentation. It was done because API documentation should not
+  depend on the application configuration changes made by users.
+
+#### EmailBundle
+* Decomposed `\Oro\Bundle\EmailBundle\Provider\EmailRenderer`, made it as an entry point to render an email template.
+  * Added `\Oro\Bundle\EmailBundle\Event\EmailTemplateRenderBeforeEvent` and `\Oro\Bundle\EmailBundle\Event\EmailTemplateRenderAfterEvent`
+* Decomposed `\Oro\Bundle\EmailBundle\Form\Type\EmailType` into `\Oro\Bundle\EmailBundle\Form\EventListener\EmailTemplateRenderingSubscriber` to move the email template rendering responsibility to the form subscriber.
+* Changed `\Oro\Bundle\EmailBundle\Migrations\Data\ORM\AbstractEmailFixture` to make it ensure that an email template name is equal to its file name.
+
+#### EntityBundle
+* Refactored JS `EntityStructureDataProvider` [[?]](https://github.com/oroinc/platform/tree/master/src/Oro/Bundle/EntityBundle/Resources/public/js/app/services/entity-structure-data-provider.js) (see [documentation](https://doc.oroinc.com/master/bundles/platform/EntityBundle/entity-structure-data-provider/))
+  - method `getPropertyPathByPath` renamed to `getRelativePropertyPathByPath`
+  - method `getPathByPropertyPath` renamed to `getPathByRelativePropertyPath`
+  - method `getPathByPropertyPathSafely` renamed to `getPathByRelativePropertyPathSafely`
+* Decomposed `\Oro\Bundle\EntityBundle\Twig\Sandbox\TemplateRenderer` into separate processors and factories. Moved the TWIG sandbox configuration out of its responsibility.
+
+#### FormBundle
+* Refactored `ExpressionEditorView` [[?]](https://github.com/oroinc/platform/blob/master/src/Oro/Bundle/FormBundle/Resources/public/js/app/views/expression-editor-view.js) (see [documentation](https://doc.oroinc.com/master/bundles/platform/FormBundle/expression-editor/#expressioneditorview))
+* Refactored `ExpressionEditorUtil` [[?]](https://github.com/oroinc/platform/tree/master/src/Oro/Bundle/FormBundle/Resources/public/js/expression-editor-util.js) (see [documentation](https://doc.oroinc.com/master/bundles/platform/FormBundle/expression-editor/#expressioneditorutil))
+  * made it descendant of `BaseClass`
+  * changed options format
+
+#### LocaleBundle
+* Updated `\Oro\Bundle\LocaleBundle\Provider\CurrentLocalizationProvider::setCurrentLocalization` to make it additionally switch localization, language, locale in `\Locale`, `\Gedmo\Translatable\TranslatableListener` and Symfony translator.
+
+#### QueryDesignerBundle
+* JS `*-filter-initialized` modules, defined over `init_module` option in filter configuration, now expected to export a sync callback function
 
 ### Datagrids
 * All datagrids used in storefront application were moved from `<BundleName>/Resources/config/oro/datagrids.yml` to layouts folder of the `default` theme `<BundleName>/Resources/views/layouts/default/config/datagrids.yml`.
@@ -211,14 +1054,24 @@ This means that storefront datagrids can now differ between themes. Any storefro
 #### DataGridBundle
 * Added postponed delete entities logic to `\Oro\Bundle\DataGridBundle\Extension\MassAction\DeleteMassActionHandler`.
 
-### Changed
-
 #### UIBundle
 * Removed `$offset-*` scss variables
 * Added `spacing` scss function.
 `$offset-x\$offset-y` => `spacing('base')`
 `$offset-x-m\$offset-y-m` => `spacing('sm')`
 `$offset-x-s\$offset-y-s` => `spacing('xs')`
+
+### Removed
+
+#### EmailBundle
+* Removed `\Oro\Bundle\EmailBundle\Manager\EmailTemplateManager`, use instead `\Oro\Bundle\EmailBundle\Sender\EmailTemplateSender`.[[f]](#upgrade-toolkit-coverage)
+* Removed `\Oro\Bundle\EmailBundle\Tools\EmailTemplateSerializer`, use instead `\Oro\Bundle\EmailBundle\Sender\EmailTemplateSender`.[[f]](#upgrade-toolkit-coverage)
+* Removed `\Oro\Bundle\EmailBundle\Provider\LocalizedTemplateProvider` use instead `\Oro\Bundle\EmailBundle\Provider\EmailTemplateProvider` and `\Oro\Bundle\EmailBundle\Provider\TranslatedEmailTemplateProvider`.[[f]](#upgrade-toolkit-coverage)
+* Removed `\Oro\Bundle\EmailBundle\Provider\\Oro\Bundle\EmailBundle\Provider\EmailTemplateContentProvider`, use instead `\Oro\Bundle\EmailBundle\Provider\RenderedEmailTemplateProvider`.[[f]](#upgrade-toolkit-coverage)
+
+#### NotificationBundle
+* Removed `\Oro\Bundle\NotificationBundle\Manager\EmailNotificationSender`, use instead `\Oro\Bundle\NotificationBundle\Manager\EmailNotificationManager`.[[f]](#upgrade-toolkit-coverage)
+* Removed unused `\Oro\Bundle\NotificationBundle\Model\EmailTemplate`, use instead `\Oro\Bundle\EmailBundle\Model\EmailTemplate`.[[f]](#upgrade-toolkit-coverage)
 
 ## 5.1.0 (2023-03-31)
 
@@ -228,7 +1081,7 @@ This means that storefront datagrids can now differ between themes. Any storefro
 
 To remove the code generation in runtime, OroPlatform now uses extendable implementation of magic __get, __set and __call methods.
 
-To migrate your entities, follow the steps below:
+To migrate your entities, follow the steps below:[[f]](#upgrade-toolkit-coverage)
 
 1. Add `ExtendEntityInterface` implementation for extendable entity.
 2. Add the usage of `ExtendEntityTrait` for extendable entity.
@@ -299,7 +1152,7 @@ class User extends AbstractUser implements
 }
 ```
 
-#### Accessing Extended Properties and Methods
+#### Accessing Extended Properties and Methods[[f]](#upgrade-toolkit-coverage)
 
 * To access the properties and methods of all entities, you must use the PropertyAccess factory methods.
 * Method PropertyAccess::createPropertyAccessor() - used to create base symfony property accessor with custom reflection extractor. 
@@ -343,7 +1196,7 @@ services:
 #### Extended Entity Helper
 
 * For extended entities, we should use the helper method to check if extended property or method exists.
-* Oro\Bundle\EntityExtendBundle\EntityPropertyInfo helper methods must be used instead of property_exists() or method_exists() native methods for extended entities.
+* Oro\Bundle\EntityExtendBundle\EntityPropertyInfo helper methods must be used instead of property_exists() or method_exists() native methods for extended entities.[[f]](#upgrade-toolkit-coverage)
 
 **Important:** : property_exists() or method_exists() native methods are not working with extended entities.
 
@@ -367,7 +1220,7 @@ After:
     }
 ```
 
-#### Reflection Usage With Extended Entities 
+#### Reflection Usage With Extended Entities[[f]](#upgrade-toolkit-coverage)
 
 * For extended entities, use Oro\Bundle\EntityExtendBundle\EntityReflectionClass instead of \ReflectionClass;
 * For extended properties, use Oro\Bundle\EntityExtendBundle\Doctrine\Persistence\Reflection\ReflectionVirtualProperty
@@ -531,26 +1384,26 @@ use ExtendEntityTrait;
 #### TestUtils component
 * Moved all ORM relates mocks and test cases to `Testing` component.
   Old namespace for these classes was `Oro\Component\TestUtils\ORM`.
-  New namespace is `Oro\Component\Testing\Unit\ORM`.
+  New namespace is `Oro\Component\Testing\Unit\ORM`.[[f]](#upgrade-toolkit-coverage)
 
 #### ApiBundle
 * The parameter `throwException` was removed from the method `convertToEntityType`
   of `Oro\Bundle\ApiBundle\Util\ValueNormalizerUtil`. Use the `tryConvertToEntityType` method
-  when an entity type might not exist.
+  when an entity type might not exist.[[f]](#upgrade-toolkit-coverage)
 * The parameter `throwException` was removed from the method `convertToEntityClass`
   of `Oro\Bundle\ApiBundle\Util\ValueNormalizerUtil`. Use the `tryConvertToEntityClass` method
-  when an entity class might not exist.
+  when an entity class might not exist.[[f]](#upgrade-toolkit-coverage)
   
 #### AssetBundle
 * Changed configuration option `disable_babel` (`true` by default) to `with_babel` (`false` by default).
 
 #### AttachmentBundle
 * Changed `Oro\Bundle\AttachmentBundle\Entity\File::$file` property type to `?\SplFileInfo`
-  to allow `Oro\Bundle\AttachmentBundle\Model\ExternalFile`. Methods `setFile` and `getFile` are changed correspondingly.
+  to allow `Oro\Bundle\AttachmentBundle\Model\ExternalFile`. Methods `setFile` and `getFile` are changed correspondingly.[[p]](#upgrade-toolkit-coverage)
 * Changed `Oro\Bundle\AttachmentBundle\Manager\FileManager::getFileFromFileEntity` return type to `?\SplFileInfo`
-  to comply with `Oro\Bundle\AttachmentBundle\Entity\File::$file` property type.
+  to comply with `Oro\Bundle\AttachmentBundle\Entity\File::$file` property type.[[f]](#upgrade-toolkit-coverage)
 * Changed `Oro\Bundle\AttachmentBundle\ImportExport\FileImportStrategyHelper::getFieldLabel` visibility to public,
-  so it can be used for getting human-readable field names during import.
+  so it can be used for getting human-readable field names during import.[[f]](#upgrade-toolkit-coverage)
 * Changed `Oro\Bundle\AttachmentBundle\ImportExport\EventListener\FileStrategyEventListener` constructor, so it expects
   `Oro\Bundle\AttachmentBundle\ImportExport\FileManipulator $fileManipulator`
   instead of `$fileManager`, also the `$authorizationChecker` argument is removed.
@@ -558,7 +1411,7 @@ use ExtendEntityTrait;
 ### CacheBundle
 
 * The `oro.cache.abstract` abstract service is removed, use `oro.data.cache` instead, with the `cache.pool` tag 
-and the namespace in a tag attribute.
+and the namespace in a tag attribute.[[f]](#upgrade-toolkit-coverage)
 
   Before: 
   ```yaml
@@ -706,7 +1559,7 @@ The widgets `collapse-widget`, `collapse-group-widget`, `rows-collapse-widget` w
 * Changed the sorting mechanism in `\Oro\Bundle\NavigationBundle\Provider\BuilderChainProvider`: menu items are sorted as a single list instead of separate - sorted and unsorted parts. 
 
 #### MessageQueueBundle
-* Every custom MQ topic needs a `topic` class now; see more in the [Message Queue Topics](https://doc.oroinc.com/backend/mq/message-queue-topics/) topic.
+* Every custom MQ topic needs a `topic` class now; see more in the [Message Queue Topics](https://doc.oroinc.com/backend/mq/message-queue-topics/) topic.[[f]](#upgrade-toolkit-coverage)
 
 #### WorkflowBundle
 * To unify the WorkflowBundle and ActionBundle syntax, the `pre_conditions` and `post_actions` options of the workflow process definition configuration were renamed to `preconditions` and `actions` respectively.
@@ -717,11 +1570,11 @@ The widgets `collapse-widget`, `collapse-group-widget`, `rows-collapse-widget` w
 #### CronBundle
 * `Oro\Bundle\CronBundle\Command\CronCommandInterface` has been removed.
   Use `Oro\Bundle\CronBundle\Command\CronCommandScheduleDefinitionInterface`
-  and `Oro\Bundle\CronBundle\Command\CronCommandActivationInterface` instead.
+  and `Oro\Bundle\CronBundle\Command\CronCommandActivationInterface` instead.[[f]](#upgrade-toolkit-coverage)
 
 #### DataGridBundle
-* The deprecated `options / skip_acl_check` datagrid option was removed. Use the `source / skip_acl_apply` option instead.
-* The deprecated `source / acl_resource` datagrid option was removed. Use the `acl_resource` option instead.
+* The deprecated `options / skip_acl_check` datagrid option was removed. Use the `source / skip_acl_apply` option instead.[[f]](#upgrade-toolkit-coverage)
+* The deprecated `source / acl_resource` datagrid option was removed. Use the `acl_resource` option instead.[[f]](#upgrade-toolkit-coverage)
 
 #### EntityBundle
 * JS util `EntityFieldsUtil` was removed, use `EntityStructureDataProvider` instead.
@@ -737,17 +1590,17 @@ The widgets `collapse-widget`, `collapse-group-widget`, `rows-collapse-widget` w
 * The `day-value-helper` was removed, use `date-value-helper` instead.
 
 #### FormBundle
-* `Oro\Bundle\FormBundle\Model\UpdateHandler` has been removed. Use `Oro\Bundle\FormBundle\Model\UpdateHandlerFacade` instead.
+* `Oro\Bundle\FormBundle\Model\UpdateHandler` has been removed. Use `Oro\Bundle\FormBundle\Model\UpdateHandlerFacade` instead.[[f]](#upgrade-toolkit-coverage)
 
 #### ImportExportBundle
 * Removed `\Oro\Bundle\ImportExportBundle\Event\NormalizeEntityEvent::setResultField`, use
-  `\Oro\Bundle\ImportExportBundle\Event\NormalizeEntityEvent::setResultFieldValue` instead.
+  `\Oro\Bundle\ImportExportBundle\Event\NormalizeEntityEvent::setResultFieldValue` instead.[[f]](#upgrade-toolkit-coverage)
   
 #### InstallerBundle
 * Removed `Oro\Bundle\InstallerBundle\EventListener\AssetsInstallCommandListener`, use JS packages from NPM
 
 #### SearchBundle
-* `title_fields` field from `search.yml` field has been removed
+* `title_fields` field from `search.yml` field has been removed[[f]](#upgrade-toolkit-coverage)
 
 #### UIBundle
 * CSSVariable parser `oroui/js/css-variables-manager` has been removed.
@@ -761,10 +1614,10 @@ The widgets `collapse-widget`, `collapse-group-widget`, `rows-collapse-widget` w
 
 
 #### LayoutBundle
-* Removed `Oro\Bundle\LayoutBundle\Layout\LayoutContextHolder`, use `Oro\Component\Layout\LayoutContextStack` instead.
+* Removed `Oro\Bundle\LayoutBundle\Layout\LayoutContextHolder`, use `Oro\Component\Layout\LayoutContextStack` instead.[[f]](#upgrade-toolkit-coverage)
 
 #### NavigationBundle
-* Removed `Oro\Bundle\NavigationBundle\Builder\MenuUpdateBuilder`, added `\Oro\Bundle\NavigationBundle\Menu\MenuUpdateBuilder` instead.
+* Removed `Oro\Bundle\NavigationBundle\Builder\MenuUpdateBuilder`, added `\Oro\Bundle\NavigationBundle\Menu\MenuUpdateBuilder` instead.[[f]](#upgrade-toolkit-coverage)
 * Removed `\Oro\Bundle\NavigationBundle\Entity\MenuUpdateInterface::getExtras`, `\Oro\Bundle\NavigationBundle\Entity\MenuUpdate::getExtras`, its purpose is moved to `\Oro\Bundle\NavigationBundle\MenuUpdate\Propagator\ToMenuItem\ExtrasPropagator`.
 * Removed `\Oro\Bundle\NavigationBundle\Manager\MenuUpdateManager::moveMenuItem`, `\Oro\Bundle\NavigationBundle\Manager\MenuUpdateManager::moveMenuItems`. Use corresponding methods from `\Oro\Bundle\NavigationBundle\Manager\MenuUpdateMoveManager` instead.
 * Removed `\Oro\Bundle\NavigationBundle\Manager\MenuUpdateManager::showMenuItem`, `\Oro\Bundle\NavigationBundle\Manager\MenuUpdateManager::hideMenuItems`. Use corresponding methods from `\Oro\Bundle\NavigationBundle\Manager\MenuUpdateDisplayManager` instead.
@@ -880,7 +1733,7 @@ The widgets `collapse-widget`, `collapse-group-widget`, `rows-collapse-widget` w
   to ensure that result is not affected by an operating system.
   
 #### DataGridBundle
-* Changed filter configuration variable from `enabled` to `renderable`
+* Changed filter configuration variable from `enabled` to `renderable`[[f]](#upgrade-toolkit-coverage)
 
 #### EmbeddedFormBundle
 * In `Oro\Bundle\EmbeddedFormBundle\Controller\EmbeddedFormController::defaultDataAction`
@@ -956,50 +1809,50 @@ The widgets `collapse-widget`, `collapse-group-widget`, `rows-collapse-widget` w
   was removed. It is unneeded since the `doctrine.exclude_listener_connections` DIC parameter is no longer in use.
 
 #### CronBundle 
-* Removed `Oro\Bundle\CronBundle\Async\Topics`, use getName() of corresponding topic class from `Oro\Bundle\CronBundle\Async\Topic` namespace instead.
+* Removed `Oro\Bundle\CronBundle\Async\Topics`, use getName() of corresponding topic class from `Oro\Bundle\CronBundle\Async\Topic` namespace instead.[[f]](#upgrade-toolkit-coverage)
 
 #### DataAuditBundle
-* Removed `Oro\Bundle\DataAuditBundle\Async\Topics`, use getName() of corresponding topic class from `Oro\Bundle\DataAuditBundle\Async\Topic` namespace instead.
+* Removed `Oro\Bundle\DataAuditBundle\Async\Topics`, use getName() of corresponding topic class from `Oro\Bundle\DataAuditBundle\Async\Topic` namespace instead.[[f]](#upgrade-toolkit-coverage)
 
 #### EntityBundle
 * The service `oro_entity.abstract_entity_manager` was removed.
 * `Oro\Bundle\EntityBundle\Provider\EntityFieldProvider::getFields()` was removed,
-  use `Oro\Bundle\EntityBundle\Provider\EntityFieldProvider::getEntityFields()` instead.
+  use `Oro\Bundle\EntityBundle\Provider\EntityFieldProvider::getEntityFields()` instead.[[f]](#upgrade-toolkit-coverage)
 * `Oro\Bundle\EntityBundle\Helper\FieldHelper::getFields()` was removed,
-  use `Oro\Bundle\EntityBundle\Helper\FieldHelper::getEntityFields()` instead.
+  use `Oro\Bundle\EntityBundle\Helper\FieldHelper::getEntityFields()` instead.[[f]](#upgrade-toolkit-coverage)
 * The service `oro_entity.repository.factory` was removed.
 * The DIC compiler pass `Oro\Bundle\EntityBundle\DependencyInjection\Compiler\EntityRepositoryCompilerPass` was removed.
 
 #### EntityMergeBundle
-* The service `oro_entity_merge.accessor.delegate` was removed. Use `oro_entity_merge.accessor` instead.
-* The service `oro_entity_merge.strategy.delegate` was removed. Use `oro_entity_merge.strategy` instead.
+* The service `oro_entity_merge.accessor.delegate` was removed. Use `oro_entity_merge.accessor` instead.[[f]](#upgrade-toolkit-coverage)
+* The service `oro_entity_merge.strategy.delegate` was removed. Use `oro_entity_merge.strategy` instead.[[f]](#upgrade-toolkit-coverage)
 
 #### EmailBundle 
-* Removed `Oro\Bundle\EmailBundle\Async\Topics`, use getName() of corresponding topic class from `Oro\Bundle\EmailBundle\Async\Topic` namespace instead.
+* Removed `Oro\Bundle\EmailBundle\Async\Topics`, use getName() of corresponding topic class from `Oro\Bundle\EmailBundle\Async\Topic` namespace instead.[[f]](#upgrade-toolkit-coverage)
 
 #### NotificationBundle 
-* Removed `Oro\Bundle\NotificationBundle\Async\Topics`, use getName() of corresponding topic class from `Oro\Bundle\NotificationBundle\Async\Topic` namespace instead.
+* Removed `Oro\Bundle\NotificationBundle\Async\Topics`, use getName() of corresponding topic class from `Oro\Bundle\NotificationBundle\Async\Topic` namespace instead.[[f]](#upgrade-toolkit-coverage)
 
 #### ImapBundle 
-* Removed `Oro\Bundle\ImapBundle\Async\Topics`, use getName() of corresponding topic class from `Oro\Bundle\ImapBundle\Async\Topic` namespace instead.
+* Removed `Oro\Bundle\ImapBundle\Async\Topics`, use getName() of corresponding topic class from `Oro\Bundle\ImapBundle\Async\Topic` namespace instead.[[f]](#upgrade-toolkit-coverage)
 
 #### MessageQueueBundle 
-* Removed `Oro\Bundle\MessageQueueBundle\Async\Topics`, use getName() of corresponding topic class from `Oro\Bundle\MessageQueueBundle\Async\Topic` namespace instead.
+* Removed `Oro\Bundle\MessageQueueBundle\Async\Topics`, use getName() of corresponding topic class from `Oro\Bundle\MessageQueueBundle\Async\Topic` namespace instead.[[f]](#upgrade-toolkit-coverage)
 
 * Removed `Oro\Bundle\MessageQueueBundle\DependencyInjection\Compiler\AddTopicDescriptionPass`, declare topic 
   via `Oro\Component\MessageQueue\Topic\TopicInterface` as a service with tag `oro_message_queue.topic` instead.
   
 #### MessageQueue Component
-* Removed `Oro\Component\MessageQueue\Job\Topics`, use getName() of corresponding topic class from `Oro\Component\MessageQueue\Job\Topic` namespace instead.
+* Removed `Oro\Component\MessageQueue\Job\Topics`, use getName() of corresponding topic class from `Oro\Component\MessageQueue\Job\Topic` namespace instead.[[f]](#upgrade-toolkit-coverage)
 
 #### PlatformBundle
 * `doctrine.exclude_listener_connections` parameter is no longer in use.
 
 #### TranslationBundle 
-* Removed `Oro\Bundle\TranslationBundle\Async\Topics`, use getName() of corresponding topic class from `Oro\Bundle\TranslationBundle\Async\Topic` namespace instead.
+* Removed `Oro\Bundle\TranslationBundle\Async\Topics`, use getName() of corresponding topic class from `Oro\Bundle\TranslationBundle\Async\Topic` namespace instead.[[f]](#upgrade-toolkit-coverage)
 
 #### SearchBundle 
-* Removed `Oro\Bundle\SearchBundle\Async\Topics`, use getName() of corresponding topic class from `Oro\Bundle\SearchBundle\Async\Topic` namespace instead.
+* Removed `Oro\Bundle\SearchBundle\Async\Topics`, use getName() of corresponding topic class from `Oro\Bundle\SearchBundle\Async\Topic` namespace instead.[[f]](#upgrade-toolkit-coverage)
 
 * The DIC compiler pass `Oro\Bundle\SearchBundle\DependencyInjection\Compiler\ListenerExcludeSearchConnectionPass`
   was removed. It is unneeded since the `doctrine.exclude_listener_connections` DIC parameter is no longer in use.
@@ -1118,24 +1971,24 @@ The widgets `collapse-widget`, `collapse-group-widget`, `rows-collapse-widget` w
 * Removed `Oro\Bundle\EmailBundle\Async\TemplateEmailMessageSender`.
 * Removed `Oro\Bundle\EmailBundle\Event\SendEmailTransport`, use `X-Transport` email message header for configuring 
   mailer transport. See `Oro\Bundle\ImapBundle\EventListener\SetUserEmailOriginTransportListener`.
-* Removed `Oro\Bundle\EmailBundle\Mailer\DirectMailer`, use `Oro\Bundle\EmailBundle\Mailer\Mailer` instead.
-* Removed `Oro\Bundle\EmailBundle\Mailer\Processor`, use `Oro\Bundle\EmailBundle\Sender\EmailModelSender` instead.
+* Removed `Oro\Bundle\EmailBundle\Mailer\DirectMailer`, use `Oro\Bundle\EmailBundle\Mailer\Mailer` instead.[[f]](#upgrade-toolkit-coverage)
+* Removed `Oro\Bundle\EmailBundle\Mailer\Processor`, use `Oro\Bundle\EmailBundle\Sender\EmailModelSender` instead.[[f]](#upgrade-toolkit-coverage)
 * Removed unused `Oro\Bundle\EmailBundle\Util\MailerWrapper`.
-* Removed `Oro\Bundle\EmailBundle\Model\DTO\EmailAddressDTO`, use `\Oro\Bundle\EmailBundle\Model\Recipient` instead.
+* Removed `Oro\Bundle\EmailBundle\Model\DTO\EmailAddressDTO`, use `\Oro\Bundle\EmailBundle\Model\Recipient` instead.[[f]](#upgrade-toolkit-coverage)
 
 #### ImapBundle
 * Removed `Oro\Bundle\ImapBundle\EventListener\SendEmailTransportListener` in favor 
-  of `Oro\Bundle\ImapBundle\EventListener\SetUserEmailOriginTransportListener`.
+  of `Oro\Bundle\ImapBundle\EventListener\SetUserEmailOriginTransportListener`.[[f]](#upgrade-toolkit-coverage)
 
 #### LoggerBundle
-* Removed `Oro\Bundle\LoggerBundle\Mailer\NoRecipientPlugin` in favor of `Oro\Bundle\LoggerBundle\Monolog\ErrorLogNotificationHandlerWrapper`.
-* Removed `Oro\Bundle\LoggerBundle\Mailer\MessageFactory` in favor of `Oro\Bundle\LoggerBundle\Monolog\EmailFactory\ErrorLogNotificationEmailFactory`.
+* Removed `Oro\Bundle\LoggerBundle\Mailer\NoRecipientPlugin` in favor of `Oro\Bundle\LoggerBundle\Monolog\ErrorLogNotificationHandlerWrapper`.[[f]](#upgrade-toolkit-coverage)
+* Removed `Oro\Bundle\LoggerBundle\Mailer\MessageFactory` in favor of `Oro\Bundle\LoggerBundle\Monolog\EmailFactory\ErrorLogNotificationEmailFactory`.[[f]](#upgrade-toolkit-coverage)
 
 #### NotificationBundle
 * Removed `Oro\Bundle\NotificationBundle\Async\SendEmailMessageProcessor`. Use `Oro\Bundle\NotificationBundle\Async\SendEmailNotificationProcessor`
-  and `Oro\Bundle\NotificationBundle\Async\SendEmailNotificationTemplateProcessor` instead.
-* Removed `Oro\Bundle\NotificationBundle\Async\SendMassEmailMessageProcessor` in favor of `Oro\Bundle\NotificationBundle\Async\SendEmailNotificationProcessor`.
-* Removed `Oro\Bundle\NotificationBundle\Mailer\MassEmailDirectMailer`. Use `Oro\Bundle\NotificationBundle\Mailer\MassNotificationsMailer` instead.
+  and `Oro\Bundle\NotificationBundle\Async\SendEmailNotificationTemplateProcessor` instead.[[f]](#upgrade-toolkit-coverage)
+* Removed `Oro\Bundle\NotificationBundle\Async\SendMassEmailMessageProcessor` in favor of `Oro\Bundle\NotificationBundle\Async\SendEmailNotificationProcessor`.[[f]](#upgrade-toolkit-coverage)
+* Removed `Oro\Bundle\NotificationBundle\Mailer\MassEmailDirectMailer`. Use `Oro\Bundle\NotificationBundle\Mailer\MassNotificationsMailer` instead.[[f]](#upgrade-toolkit-coverage)
 * Removed unused `\Oro\Bundle\NotificationBundle\Entity\SpoolItem` entity, `\Oro\Bundle\NotificationBundle\Entity\Repository\SpoolItemRepository`.
 * Removed unused `Oro\Bundle\NotificationBundle\Provider\Mailer\DbSpool`. 
 
@@ -1145,22 +1998,22 @@ The widgets `collapse-widget`, `collapse-group-widget`, `rows-collapse-widget` w
 * Removed unused `Oro\Component\MessageQueue\Client\Config::getRouterMessageProcessorName()`,
   `Oro\Component\MessageQueue\Client\Config::getRouterQueueName()`.
 * Removed `Oro\Component\MessageQueue\Client\ContainerAwareMessageProcessorRegistry`, use instead
-  `Oro\Component\MessageQueue\Client\MessageProcessorRegistry` service locator.
+  `Oro\Component\MessageQueue\Client\MessageProcessorRegistry` service locator.[[f]](#upgrade-toolkit-coverage)
 * Removed `Oro\Component\MessageQueue\Client\DelegateMessageProcessor`, the extension
   `Oro\Component\MessageQueue\Client\ConsumptionExtension\MessageProcessorRouterExtension` is responsible for routing to
   message processor now.
 * Removed `Oro\Component\MessageQueue\Consumption::getMessageProcessor()` and
   `Oro\Component\MessageQueue\Consumption::setMessageProcessor()`, use instead
   `Oro\Component\MessageQueue\Consumption::getMessageProcessorName()`,
-  `Oro\Component\MessageQueue\Consumption::setMessageProcessorName()`.
+  `Oro\Component\MessageQueue\Consumption::setMessageProcessorName()`.[[f]](#upgrade-toolkit-coverage)
 * Removed `Oro\Component\MessageQueue\Log\ConsumerState`::getMessageProcessor() and
   `Oro\Component\MessageQueue\Log\ConsumerState`::setMessageProcessor(), use instead
   `Oro\Component\MessageQueue\Log\ConsumerState`::getMessageProcessorName(),
-  `Oro\Component\MessageQueue\Log\ConsumerState`::setMessageProcessorName() .
+  `Oro\Component\MessageQueue\Log\ConsumerState`::setMessageProcessorName() .[[f]](#upgrade-toolkit-coverage)
 * Removed `Oro\Component\MessageQueue\Client\Meta\TopicMeta::getDescription()`, use
-  `Oro\Component\MessageQueue\Client\Meta\TopicDescriptionProvider::getTopicDescription()` instead.
+  `Oro\Component\MessageQueue\Client\Meta\TopicDescriptionProvider::getTopicDescription()` instead.[[f]](#upgrade-toolkit-coverage)
 * Removed `\Oro\Component\MessageQueue\Log\MessageProcessorClassProvider::getMessageProcessorClass()`, use
-  `\Oro\Component\MessageQueue\Log\MessageProcessorClassProvider::getMessageProcessorClassByName()` instead.
+  `\Oro\Component\MessageQueue\Log\MessageProcessorClassProvider::getMessageProcessorClassByName()` instead.[[f]](#upgrade-toolkit-coverage)
 
 #### MessageQueueBundle
 * Removed unused `client.router_processor`, `client.router_destination` configuration options.
@@ -1244,15 +2097,15 @@ Third party dependencies such as [Font Awesome](https://fontawesome.com/v4.7/) a
 ### Changed
 
 #### AttachmentBundle
-* The service `oro_attachment.manager.media_cache_manager_registry` was renamed to `oro_attachment.media_cache_manager_registry`.
-* The service `oro_attachment.provider.attachment_file_name_provider` was renamed to `oro_attachment.provider.file_name`.
+* The service `oro_attachment.manager.media_cache_manager_registry` was renamed to `oro_attachment.media_cache_manager_registry`.[[f]](#upgrade-toolkit-coverage)
+* The service `oro_attachment.provider.attachment_file_name_provider` was renamed to `oro_attachment.provider.file_name`.[[f]](#upgrade-toolkit-coverage)
 
 #### DataGridBundle
 * The maximum number of items can be deleted at once during mass delete process was decreased to 100.
 
 #### EntityBundle
-* The service `oro_entity.virtual_field_provider.chain` was renamed to `oro_entity.virtual_field_provider`.
-* The service `oro_entity.virtual_relation_provider.chain` was renamed to `oro_entity.virtual_relation_provider`.
+* The service `oro_entity.virtual_field_provider.chain` was renamed to `oro_entity.virtual_field_provider`.[[f]](#upgrade-toolkit-coverage)
+* The service `oro_entity.virtual_relation_provider.chain` was renamed to `oro_entity.virtual_relation_provider`.[[f]](#upgrade-toolkit-coverage)
 
 #### FormBundle
 * Upgraded TinyMCE library to version 5.6.0, see [migration guide](https://www.tiny.cloud/blog/how-to-migrate-from-tinymce-4-to-tinymce-5/)
@@ -1277,7 +2130,7 @@ Third party dependencies such as [Font Awesome](https://fontawesome.com/v4.7/) a
   
 #### PlatformBundle
 * The handling of `priority` attribute for `oro_platform.console.global_options_provider` DIC tag
-  was changed to correspond Symfony recommendations.
+  was changed to correspond Symfony recommendations.[[f]](#upgrade-toolkit-coverage)
   If you have services with this tag, change the sign of the priority value for them.
   E.g. `{ name: oro_platform.console.global_options_provider, priority: 100 }` should be changed to
   `{ name: oro_platform.console.global_options_provider, priority: -100 }`
@@ -1287,12 +2140,12 @@ Third party dependencies such as [Font Awesome](https://fontawesome.com/v4.7/) a
   The state of all query converters was moved to "context" classes.
   The base context class is `Oro\Bundle\QueryDesignerBundle\QueryDesigner\QueryConverterContext`.
   If you have own query converters, update them according to new architecture.
-* The class `Oro\Bundle\QueryDesignerBundle\QueryDesigner\FilterProcessor` was renamed to `Oro\Bundle\SegmentBundle\Query\FilterProcessor`.
-* The service `oro_query_designer.query_designer.filter_processor` was renamed to `oro_segment.query.filter_processor`.
+* The class `Oro\Bundle\QueryDesignerBundle\QueryDesigner\FilterProcessor` was renamed to `Oro\Bundle\SegmentBundle\Query\FilterProcessor`.[[f]](#upgrade-toolkit-coverage)
+* The service `oro_query_designer.query_designer.filter_processor` was renamed to `oro_segment.query.filter_processor`.[[f]](#upgrade-toolkit-coverage)
 
 #### SecurityBundle
 * The handling of `priority` attribute for `oro.security.filter.acl_privilege` DIC tag
-  was changed to correspond Symfony recommendations.
+  was changed to correspond Symfony recommendations.[[f]](#upgrade-toolkit-coverage)
   If you have services with this tag, change the sign of the priority value for them.
   E.g. `{ name: oro.security.filter.acl_privilege, priority: 100 }` should be changed to
   `{ name: oro.security.filter.acl_privilege, priority: -100 }`
@@ -1303,11 +2156,11 @@ Third party dependencies such as [Font Awesome](https://fontawesome.com/v4.7/) a
 #### SSOBundle
 * The configuration option `oro_sso.enable_google_sso` was renamed to `oro_google_integration.enable_sso`.
 * The configuration option `oro_sso.domains` was renamed to `oro_google_integration.sso_domains`.
-* The service `oro_sso.oauth_provider` was renamed to `oro_sso.oauth_user_provider`.
+* The service `oro_sso.oauth_provider` was renamed to `oro_sso.oauth_user_provider`.[[f]](#upgrade-toolkit-coverage)
 
 #### UserBundle
 * The name for `/api/authstatuses` REST API resource was changed to `/api/userauthstatuses`.
-* The following changes were done in the `Oro\Bundle\UserBundle\Provider\RolePrivilegeCategoryProvider` class:
+* The following changes were done in the `Oro\Bundle\UserBundle\Provider\RolePrivilegeCategoryProvider` class:[[p]](#upgrade-toolkit-coverage)
   - the method `getPermissionCategories` was renamed to `getCategories`
   - the method `getTabList` was renamed to `getTabIds`
   - the following methods were removed `getAllCategories`, `getTabbedCategories`, `getCategory`,
@@ -1448,7 +2301,7 @@ Third party dependencies such as [Font Awesome](https://fontawesome.com/v4.7/) a
 * The DIC tag `oro_activity.activity_entity_delete_handler` was removed.
   Use decoration of `oro_activity.activity_entity_delete_handler_extension` service to instead.
 * The interface `Oro\Bundle\ActivityBundle\Entity\Manager\ActivityEntityDeleteHandlerInterface` was removed.
-  Use `Oro\Bundle\ActivityBundle\Handler\ActivityEntityDeleteHandlerExtensionInterface` instead.
+  Use `Oro\Bundle\ActivityBundle\Handler\ActivityEntityDeleteHandlerExtensionInterface` instead.[[p]](#upgrade-toolkit-coverage)
 
 #### ApiBundle
 * The section `relations` was removed from `Resources/config/oro/api.yml`. The action `get_relation_config` that
@@ -1458,11 +2311,11 @@ Third party dependencies such as [Font Awesome](https://fontawesome.com/v4.7/) a
   `Resources/config/oro/api_plain.yml` configuration files or create a processor for the `get_config` action.
 * The `delete_handler` configuration option was removed.
   The `Oro\Bundle\EntityBundle\Handler\EntityDeleteHandlerRegistry` class is used to get the deletion handler instead.
-* The class `Oro\Bundle\ApiBundle\Request\ApiActions` was renamed to `Oro\Bundle\ApiBundle\Request\ApiAction`.
+* The class `Oro\Bundle\ApiBundle\Request\ApiActions` was renamed to `Oro\Bundle\ApiBundle\Request\ApiAction`.[[f]](#upgrade-toolkit-coverage)
 * The constant `NORMALIZE_RESULT_GROUP` was removed from
   `Oro\Bundle\ApiBundle\Processor\NormalizeResultActionProcessor`
-  Use `NORMALIZE_RESULT` constant from `Oro\Bundle\ApiBundle\Request\ApiActionGroup` instead.
-* The following classes were moved from `Oro\Bundle\ApiBundle\Config` namespace to `Oro\Bundle\ApiBundle\Config\Extension`:
+  Use `NORMALIZE_RESULT` constant from `Oro\Bundle\ApiBundle\Request\ApiActionGroup` instead.[[f]](#upgrade-toolkit-coverage)
+* The following classes were moved from `Oro\Bundle\ApiBundle\Config` namespace to `Oro\Bundle\ApiBundle\Config\Extension`:[[f]](#upgrade-toolkit-coverage)
     - ConfigExtensionInterface
     - AbstractConfigExtension
     - ConfigExtensionRegistry
@@ -1471,7 +2324,7 @@ Third party dependencies such as [Font Awesome](https://fontawesome.com/v4.7/) a
     - FiltersConfigExtension
     - SortersConfigExtension
     - SubresourcesConfigExtension
-* The following classes were moved from `Oro\Bundle\ApiBundle\Config` namespace to `Oro\Bundle\ApiBundle\Config\Extra`:
+* The following classes were moved from `Oro\Bundle\ApiBundle\Config` namespace to `Oro\Bundle\ApiBundle\Config\Extra`:[[f]](#upgrade-toolkit-coverage)
     - ConfigExtraInterface
     - ConfigExtraSectionInterface
     - ConfigExtraCollection
@@ -1487,7 +2340,7 @@ Third party dependencies such as [Font Awesome](https://fontawesome.com/v4.7/) a
     - MetaPropertiesConfigExtra
     - RootPathConfigExtra
     - SortersConfigExtra
-* The following classes were moved from `Oro\Bundle\ApiBundle\Config` namespace to `Oro\Bundle\ApiBundle\Config\Loader`:
+* The following classes were moved from `Oro\Bundle\ApiBundle\Config` namespace to `Oro\Bundle\ApiBundle\Config\Loader`:[[f]](#upgrade-toolkit-coverage)
     - ConfigLoaderInterface
     - AbstractConfigLoader
     - ConfigLoaderFactory
@@ -1499,18 +2352,18 @@ Third party dependencies such as [Font Awesome](https://fontawesome.com/v4.7/) a
     - SortersConfigLoader
     - StatusCodesConfigLoader
     - SubresourcesConfigLoader
-* The following classes were moved from `Oro\Bundle\ApiBundle\Metadata` namespace to `Oro\Bundle\ApiBundle\Metadata\Extra`:
+* The following classes were moved from `Oro\Bundle\ApiBundle\Metadata` namespace to `Oro\Bundle\ApiBundle\Metadata\Extra`:[[f]](#upgrade-toolkit-coverage)
     - MetadataExtraInterface
     - MetadataExtraCollection
     - ActionMetadataExtra
     - HateoasMetadataExtra
 * All processors from `Oro\Bundle\ApiBundle\Processor\Config\GetConfig`
   and `Oro\Bundle\ApiBundle\Processor\Config\Shared` namespaces were moved
-  to `Oro\Bundle\ApiBundle\Processor\GetConfig` namespace.
+  to `Oro\Bundle\ApiBundle\Processor\GetConfig` namespace.[[f]](#upgrade-toolkit-coverage)
 * The class `ConfigProcessor` was moved from `Oro\Bundle\ApiBundle\Processor\Config` namespace
-  to `Oro\Bundle\ApiBundle\Processor\GetConfig` namespace.
+  to `Oro\Bundle\ApiBundle\Processor\GetConfig` namespace.[[f]](#upgrade-toolkit-coverage)
 * The class `ConfigContext` was moved from `Oro\Bundle\ApiBundle\Processor\Config` namespace
-  to `Oro\Bundle\ApiBundle\Processor\GetConfig` namespace.
+  to `Oro\Bundle\ApiBundle\Processor\GetConfig` namespace.[[f]](#upgrade-toolkit-coverage)
 * The priority of `oro_api.validate_included_forms` processor was changed from `-70` to `-68`.
 * The priority of `oro_api.validate_form` processor was changed from `-90` to `-70`.
 * The priority of `oro_api.post_validate_included_forms` processor was changed from `-96` to `-78`.
@@ -1522,14 +2375,14 @@ Third party dependencies such as [Font Awesome](https://fontawesome.com/v4.7/) a
 #### ConfigBundle
 * The handling of `priority` attribute for `oro_config.configuration_search_provider` DIC tag
   was changed to correspond Symfony recommendations.
-  If you have services with this tag, change the sign of the priority value for them.
+  If you have services with this tag, change the sign of the priority value for them.[[f]](#upgrade-toolkit-coverage)
   E.g. `{ name: oro_config.configuration_search_provider, priority: 100 }` should be changed to
   `{ name: oro_config.configuration_search_provider, priority: -100 }`
 
 #### DataGridBundle
 * The handling of `priority` attribute for `oro_datagrid.extension.action.provider` and
   `oro_datagrid.extension.mass_action.iterable_result_factory` DIC tags was changed to correspond Symfony recommendations.
-  If you have services with these tags, change the sign of the priority value for them.
+  If you have services with these tags, change the sign of the priority value for them.[[f]](#upgrade-toolkit-coverage)
   E.g. `{ name: oro_datagrid.extension.action.provider, priority: 100 }` should be changed to
   `{ name: oro_datagrid.extension.action.provider, priority: -100 }`
 
@@ -1555,42 +2408,42 @@ must be removed.
 
 #### OrganizationBundle
 * The constant `SCOPE_KEY` in `Oro\Bundle\OrganizationBundle\Provider\ScopeOrganizationCriteriaProvider`
-  was replaced with `ORGANIZATION`.
+  was replaced with `ORGANIZATION`.[[f]](#upgrade-toolkit-coverage)
 
 #### ScopeBundle
 * The method `getCriteriaByContext()` was removed from `Oro\Bundle\ScopeBundle\Manager\ScopeCriteriaProviderInterface`.
 * The method `getCriteriaForCurrentScope()` in `Oro\Bundle\ScopeBundle\Manager\ScopeCriteriaProviderInterface`
-  was replaced with `getCriteriaValue()`.
+  was replaced with `getCriteriaValue()`.[[f]](#upgrade-toolkit-coverage)
 * The class `Oro\Bundle\ScopeBundle\Manager\AbstractScopeCriteriaProvider` was removed.
   Use direct implementation of `Oro\Bundle\ScopeBundle\Manager\ScopeCriteriaProviderInterface` in your providers.
 
 #### SecurityBundle
 * The interface `Oro\Bundle\SecurityBundle\Authentication\Token\OrganizationContextTokenInterface`
-  was renamed to `Oro\Bundle\SecurityBundle\Authentication\Token\OrganizationAwareTokenInterface`.
+  was renamed to `Oro\Bundle\SecurityBundle\Authentication\Token\OrganizationAwareTokenInterface`.[[f]](#upgrade-toolkit-coverage)
   Also methods `getOrganizationContext` and `setOrganizationContext` were renamed to
-  `getOrganization` and `setOrganization`.
+  `getOrganization` and `setOrganization`.[[f]](#upgrade-toolkit-coverage)
 * The class `Oro\Bundle\SecurityBundle\Exception\ForbiddenException` was removed.
-  Use `Symfony\Component\Security\Core\Exception\AccessDeniedException` instead.
+  Use `Symfony\Component\Security\Core\Exception\AccessDeniedException` instead.[[f]](#upgrade-toolkit-coverage)
 
 #### SoapBundle
 * The interface `Oro\Bundle\SoapBundle\Handler\DeleteHandlerInterface` was replaced with
   `Oro\Bundle\EntityBundle\Handler\EntityDeleteHandlerInterface`
-  and `Oro\Bundle\EntityBundle\Handler\EntityDeleteHandlerExtensionInterface`.
+  and `Oro\Bundle\EntityBundle\Handler\EntityDeleteHandlerExtensionInterface`.[[p]](#upgrade-toolkit-coverage)
 
 #### TranslationBundle
 * The handling of `priority` attribute for `oro_translation.extension.translation_context_resolver` and
-  `oro_translation.extension.translation_strategy` DIC tags was changed to correspond Symfony recommendations.
+  `oro_translation.extension.translation_strategy` DIC tags was changed to correspond Symfony recommendations.[[f]](#upgrade-toolkit-coverage)
   If you have services with these tags, change the sign of the priority value for them.
   E.g. `{ name: oro_translation.extension.translation_context_resolver, priority: 100 }` should be changed to
   `{ name: oro_translation.extension.translation_context_resolver, priority: -100 }`
 
 #### UserBundle
 * The constant `SCOPE_KEY` in `Oro\Bundle\UserBundle\Provider\ScopeUserCriteriaProvider`
-  was replaced with `USER`.
+  was replaced with `USER`.[[f]](#upgrade-toolkit-coverage)
 
 #### WorkflowBundle
 * The handling of `priority` attribute for `oro.workflow.configuration.handler` and
-  `oro.workflow.definition_builder.extension` DIC tags was changed to correspond Symfony recommendations.
+  `oro.workflow.definition_builder.extension` DIC tags was changed to correspond Symfony recommendations.[[f]](#upgrade-toolkit-coverage)
   If you have services with these tags, change the sign of the priority value for them.
   E.g. `{ name: oro.workflow.configuration.handler, priority: 100 }` should be changed to
   `{ name: oro.workflow.configuration.handler, priority: -100 }`
@@ -1618,22 +2471,22 @@ instead of `'%oro_email.email.entity.class%'` (in service definitions, datagrid 
 * The DIC parameter `oro_datagrid.extension.orm_sorter.class` was removed.
   If you use `%oro_datagrid.extension.orm_sorter.class%::DIRECTION_ASC`
   or `%oro_datagrid.extension.orm_sorter.class%::DIRECTION_DESC` in `Resources/config/oro/datagrids.yml`,
-  replace them to `ASC` and `DESC` strings.
+  replace them to `ASC` and `DESC` strings.[[f]](#upgrade-toolkit-coverage)
 * The deprecated constant `Oro\Bundle\DataGridBundle\Datagrid\Builder::DATASOURCE_PATH` was removed.
-  Use `Oro\Bundle\DataGridBundle\Datagrid\Common\DatagridConfiguration::DATASOURCE_PATH` instead.
+  Use `Oro\Bundle\DataGridBundle\Datagrid\Common\DatagridConfiguration::DATASOURCE_PATH` instead.[[f]](#upgrade-toolkit-coverage)
 * The deprecated constant `Oro\Bundle\DataGridBundle\Datagrid\Builder::DATASOURCE_TYPE_PATH` was removed.
   Use `Oro\Bundle\DataGridBundle\Datagrid\Common\DatagridConfiguration::DATASOURCE_TYPE_PATH`
-  and `Oro\Bundle\DataGridBundle\Datagrid\Common\DatagridConfiguration::getDatasourceType()` instead.
+  and `Oro\Bundle\DataGridBundle\Datagrid\Common\DatagridConfiguration::getDatasourceType()` instead.[[p]](#upgrade-toolkit-coverage)
 * The deprecated constant `Oro\Bundle\DataGridBundle\Datagrid\Builder::DATASOURCE_ACL_PATH` was removed.
   Use `Oro\Bundle\DataGridBundle\Datagrid\Common\DatagridConfiguration::ACL_RESOURCE_PATH`
-  and `Oro\Bundle\DataGridBundle\Datagrid\Common\DatagridConfiguration::getAclResource()` instead.
+  and `Oro\Bundle\DataGridBundle\Datagrid\Common\DatagridConfiguration::getAclResource()` instead.[[p]](#upgrade-toolkit-coverage)
 * The deprecated constant `Oro\Bundle\DataGridBundle\Datagrid\Builder::BASE_DATAGRID_CLASS_PATH` was removed.
-  Use `Oro\Bundle\DataGridBundle\Datagrid\Common\DatagridConfiguration::BASE_DATAGRID_CLASS_PATH` instead.
+  Use `Oro\Bundle\DataGridBundle\Datagrid\Common\DatagridConfiguration::BASE_DATAGRID_CLASS_PATH` instead.[[f]](#upgrade-toolkit-coverage)
 * The deprecated constant `Oro\Bundle\DataGridBundle\Datagrid\Builder::DATASOURCE_SKIP_ACL_CHECK` was removed.
   Use `Oro\Bundle\DataGridBundle\Datagrid\Common\DatagridConfiguration::DATASOURCE_SKIP_ACL_APPLY_PATH`
-  and `Oro\Bundle\DataGridBundle\Datagrid\Common\DatagridConfiguration::isDatasourceSkipAclApply()` instead.
+  and `Oro\Bundle\DataGridBundle\Datagrid\Common\DatagridConfiguration::isDatasourceSkipAclApply()` instead.[[p]](#upgrade-toolkit-coverage)
 * The deprecated constant `Oro\Bundle\DataGridBundle\Datagrid\Builder::DATASOURCE_SKIP_COUNT_WALKER_PATH` was removed.
-  Use `Oro\Bundle\DataGridBundle\Datagrid\Common\DatagridConfiguration::DATASOURCE_SKIP_COUNT_WALKER_PATH` instead.
+  Use `Oro\Bundle\DataGridBundle\Datagrid\Common\DatagridConfiguration::DATASOURCE_SKIP_COUNT_WALKER_PATH` instead.[[f]](#upgrade-toolkit-coverage)
 * The deprecated class `Oro\Bundle\DataGridBundle\Tools\GridConfigurationHelper`
   and service `oro_datagrid.grid_configuration.helper` were removed.
 
@@ -1641,18 +2494,18 @@ instead of `'%oro_email.email.entity.class%'` (in service definitions, datagrid 
 * The `getType()` method was removed from `Oro\Bundle\EntityConfigBundle\Attribute\Type\AttributeTypeInterface`.
   Use the `type` attribute of the `oro_entity_config.attribute_type` DIC tag instead.
 * The deprecated class `Oro\Bundle\EntityConfigBundle\Event\PersistConfigEvent` was removed.
-  It was replaced with `Oro\Bundle\EntityConfigBundle\Event\PreFlushConfigEvent`.
+  It was replaced with `Oro\Bundle\EntityConfigBundle\Event\PreFlushConfigEvent`.[[f]](#upgrade-toolkit-coverage)
 * The deprecated class `Oro\Bundle\EntityConfigBundle\Event\FlushConfigEvent` was removed.
-  It was replaced with `Oro\Bundle\EntityConfigBundle\Event\PostFlushConfigEvent`.
+  It was replaced with `Oro\Bundle\EntityConfigBundle\Event\PostFlushConfigEvent`.[[f]](#upgrade-toolkit-coverage)
 
 #### EntityExtendBundle
 * Removed *HTML* field type, all HTML fields were converted to Text fields.
 
 #### Math component
-* The deprecated method `Oro\Component\Math\BigDecimal::withScale()` was removed. Use `toScale()` method instead.
+* The deprecated method `Oro\Component\Math\BigDecimal::withScale()` was removed. Use `toScale()` method instead.[[f]](#upgrade-toolkit-coverage)
 
 #### MigrationBundle
-* The deprecated method `Oro\Bundle\MigrationBundle\Migration\Extension\DataStorageExtension::put()` was removed. Use `set()` method instead.
+* The deprecated method `Oro\Bundle\MigrationBundle\Migration\Extension\DataStorageExtension::put()` was removed. Use `set()` method instead.[[f]](#upgrade-toolkit-coverage)
 * The deprecated constants `MAIN_FIXTURES_PATH` and `DEMO_FIXTURES_PATH` were removed from `Oro\Bundle\MigrationBundle\Command\LoadDataFixturesCommand`.
   Use `oro_migration.locator.fixture_path_locator` service instead.
 
@@ -1667,10 +2520,10 @@ instead of `'%oro_email.email.entity.class%'` (in service definitions, datagrid 
 * The bundle was completely removed, see [tips](https://doc.oroinc.com/bundles/platform/AssetBundle/#migration-from-requirejs-to-jsmodules) how to migrate to Webpack builder
 
 #### SoapBundle
-* The deprecated `Oro\Bundle\SoapBundle\Request\Parameters\Filter\HttpEntityNameParameterFilter` class was removed. Use `Oro\Bundle\SoapBundle\Request\Parameters\Filter\EntityClassParameterFilter` instead.
+* The deprecated `Oro\Bundle\SoapBundle\Request\Parameters\Filter\HttpEntityNameParameterFilter` class was removed. Use `Oro\Bundle\SoapBundle\Request\Parameters\Filter\EntityClassParameterFilter` instead.[[f]](#upgrade-toolkit-coverage)
 
 #### SecurityBundle
-* The deprecated method `Oro\Bundle\SecurityBundle\Owner\Metadata\OwnershipMetadataInterface::getGlobalOwnerFieldName()` was removed. Use `getOrganizationFieldName()` method instead.
+* The deprecated method `Oro\Bundle\SecurityBundle\Owner\Metadata\OwnershipMetadataInterface::getGlobalOwnerFieldName()` was removed. Use `getOrganizationFieldName()` method instead.[[f]](#upgrade-toolkit-coverage)
 
 #### TagBundle
 * The deprecated constant `Oro\Bundle\TagBundle\Grid\AbstractTagsExtension::GRID_NAME_PATH` was removed.
@@ -2332,3 +3185,10 @@ datagrids:
 
 ## 2.1.0 (2017-03-30)
 [Show detailed list of changes](incompatibilities-2-1.md)
+
+---
+###### Upgrade-Toolkit coverage
+
+[f] - Fully covered with `oro/upgrade-toolkit`
+
+[p] - Partially covered with `oro/upgrade-toolkit`

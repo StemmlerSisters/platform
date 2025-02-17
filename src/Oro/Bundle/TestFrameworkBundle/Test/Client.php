@@ -2,7 +2,7 @@
 
 namespace Oro\Bundle\TestFrameworkBundle\Test;
 
-use Oro\Bundle\DataGridBundle\Datagrid\Manager;
+use Oro\Bundle\DataGridBundle\Datagrid\ManagerInterface;
 use Oro\Bundle\DataGridBundle\Exception\UserInputErrorExceptionInterface;
 use Oro\Bundle\NavigationBundle\Event\ResponseHashnavListener;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser as BaseKernelBrowser;
@@ -11,6 +11,7 @@ use Symfony\Component\BrowserKit\Request as InternalRequest;
 use Symfony\Component\BrowserKit\Response as InternalResponse;
 use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\HttpFoundation\Exception\SessionNotFoundException;
+use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -31,26 +32,25 @@ class Client extends BaseKernelBrowser
     protected $isHashNavigation = false;
 
     /**
-     * {@inheritdoc}
      * @SuppressWarnings(PHPMD.NPathComplexity)
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
+    #[\Override]
     public function request(
         string $method,
         string $uri,
         array $parameters = [],
         array $files = [],
         array $server = [],
-        string $content = null,
+        ?string $content = null,
         bool $changeHistory = true
     ): Crawler {
-        if (strpos($uri, 'http://') === false && strpos($uri, 'https://') === false) {
+        if (!str_starts_with($uri, 'http://') && !str_starts_with($uri, 'https://')) {
             $uri = self::LOCAL_URL . $uri;
         }
 
-        if ($this->getServerParameter('HTTP_X-WSSE', '') !== '' && !isset($server['HTTP_X-WSSE'])) {
-            // generate new WSSE header
-            $this->mergeServerParameters(WebTestCase::generateWsseAuthHeader());
+        if (!isset($server['HTTP_X-API-TEST']) && $this->getServerParameter('HTTP_X-API-TEST', '') !== '') {
+            $this->mergeServerParameters(WebTestCase::generateApiAuthHeader());
         }
 
         $hashNavigationHeader = $this->getHashNavigationHeader();
@@ -60,13 +60,19 @@ class Client extends BaseKernelBrowser
 
         $this->setSessionCookie($server);
 
-        if (($content === null || $content === '') && $parameters && in_array($method, ['POST', 'PATCH', 'PUT'])) {
+        if (($content === null || $content === '') && $parameters && \in_array($method, ['POST', 'PATCH', 'PUT'])) {
             $this->setServerParameter('CONTENT_TYPE', 'application/json');
             $this->setServerParameter('HTTP_ACCEPT', 'application/json');
-
             try {
-                $content = json_encode($parameters);
-                parent::request($method, $uri, [], $files, $server, $content, $changeHistory);
+                parent::request(
+                    $method,
+                    $uri,
+                    [],
+                    $files,
+                    $server,
+                    json_encode($parameters, JSON_THROW_ON_ERROR),
+                    $changeHistory
+                );
             } finally {
                 unset($this->server['CONTENT_TYPE'], $this->server['HTTP_ACCEPT']);
             }
@@ -75,8 +81,6 @@ class Client extends BaseKernelBrowser
         }
 
         if ($this->isHashNavigationResponse($this->response, $server)) {
-            /** @var InternalRequest $internalRequest */
-            $internalRequest = $this->internalRequest;
             /** @var Response $response */
             $response = $this->response;
 
@@ -87,20 +91,18 @@ class Client extends BaseKernelBrowser
                 // force regular redirect
                 if (!empty($content['fullRedirect'])) {
                     $this->internalRequest = new InternalRequest(
-                        $internalRequest->getUri(),
-                        $internalRequest->getMethod(),
-                        $internalRequest->getParameters(),
-                        $internalRequest->getFiles(),
-                        $internalRequest->getCookies(),
-                        array_merge($internalRequest->getServer(), [$hashNavigationHeader => 0]),
-                        $internalRequest->getContent()
+                        $this->internalRequest->getUri(),
+                        $this->internalRequest->getMethod(),
+                        $this->internalRequest->getParameters(),
+                        $this->internalRequest->getFiles(),
+                        $this->internalRequest->getCookies(),
+                        array_merge($this->internalRequest->getServer(), [$hashNavigationHeader => 0]),
+                        $this->internalRequest->getContent()
                     );
                 }
                 $response->setContent('');
                 $response->setStatusCode(302);
-                /** @var InternalResponse $internalResponse */
-                $internalResponse = $this->internalResponse;
-                $this->internalResponse = new InternalResponse('', 302, $internalResponse->getHeaders());
+                $this->internalResponse = new InternalResponse('', 302, $this->internalResponse->getHeaders());
                 if ($this->followRedirects && $this->redirect) {
                     return $this->crawler = $this->followRedirect();
                 }
@@ -110,7 +112,7 @@ class Client extends BaseKernelBrowser
                 $response->setContent($this->buildHtml($content));
                 $response->headers->set('Content-Type', 'text/html; charset=UTF-8');
                 $this->crawler = $this->createCrawlerFromContent(
-                    $internalRequest->getUri(),
+                    $this->internalRequest->getUri(),
                     $response->getContent(),
                     'text/html'
                 );
@@ -176,7 +178,7 @@ class Client extends BaseKernelBrowser
                 $request->attributes->set('_theme', 'default');
             }
 
-            /** @var Manager $gridManager */
+            /** @var ManagerInterface $gridManager */
             $gridManager = $container->get('oro_datagrid.datagrid.manager');
             $gridConfig  = $gridManager->getConfigurationForGrid($gridName);
             $acl         = $gridConfig->getAclResource();
@@ -218,6 +220,24 @@ class Client extends BaseKernelBrowser
         $isRealRequest = false,
     ): JsonResponse|Response {
         return $this->requestGrid($gridParameters, $filter, $isRealRequest, 'oro_frontend_datagrid_index');
+    }
+
+    #[\Override]
+    protected function filterRequest(InternalRequest $request): Request
+    {
+        $httpRequest = parent::filterRequest($request);
+        if (str_starts_with($httpRequest->headers->get('CONTENT_TYPE', ''), 'application/x-www-form-urlencoded')
+            && \is_string($httpRequest->getContent())
+            && \in_array(
+                strtoupper($httpRequest->server->get('REQUEST_METHOD', 'GET')),
+                ['POST', 'PUT', 'DELETE', 'PATCH']
+            )
+        ) {
+            parse_str($httpRequest->getContent(), $data);
+            $httpRequest->request = new InputBag($data);
+        }
+
+        return $httpRequest;
     }
 
     /**
@@ -388,7 +408,7 @@ class Client extends BaseKernelBrowser
 
     private function setSessionCookie(array &$server)
     {
-        if (array_key_exists('HTTP_X-WSSE', $server)) {
+        if (array_key_exists('HTTP_X-API-TEST', $server)) {
             return;
         }
 

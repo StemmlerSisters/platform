@@ -16,8 +16,9 @@ use Oro\Component\PhpUtils\ArrayUtil;
  */
 class QueryBuilderUtil
 {
-    const IN         = 'in';
-    const IN_BETWEEN = 'in_between';
+    public const IN = 'in';
+    public const IN_BETWEEN = 'in_between';
+    protected const SERIALIZED_QUERY_PART = 'CAST(JSON_EXTRACT(';
 
     /**
      * Calculates the page offset
@@ -100,6 +101,9 @@ class QueryBuilderUtil
             foreach ($selectPart->getParts() as $part) {
                 if (preg_match_all('#(\,\s*)*(?P<expr>.+?)\\s+AS\\s+(?P<alias>\\w+)#i', $part, $matches)) {
                     foreach ($matches['alias'] as $key => $val) {
+                        if (str_starts_with($part, self::SERIALIZED_QUERY_PART) && $val === $alias) {
+                            return substr($part, 0, strrpos($part, ')') + 1);
+                        }
                         if ($val === $alias) {
                             return $matches['expr'][$key];
                         }
@@ -124,16 +128,16 @@ class QueryBuilderUtil
     public static function getSingleRootAlias(QueryBuilder $qb, $throwException = true)
     {
         $rootAliases = $qb->getRootAliases();
-        if (count($rootAliases) === 1) {
+        if (\count($rootAliases) === 1) {
             return $rootAliases[0];
         }
 
         if ($throwException) {
             throw new QueryException(sprintf(
                 'Can\'t get single root alias for the given query. Reason: %s.',
-                count($rootAliases) === 0
+                \count($rootAliases) === 0
                     ? 'the query has no any root aliases'
-                    : sprintf('the query has several root aliases: %s.', implode(', ', $rootAliases))
+                    : sprintf('the query has several root aliases: %s', implode(', ', $rootAliases))
             ));
         }
 
@@ -153,16 +157,16 @@ class QueryBuilderUtil
     public static function getSingleRootEntity(QueryBuilder $qb, $throwException = true)
     {
         $rootEntities = $qb->getRootEntities();
-        if (count($rootEntities) === 1) {
+        if (\count($rootEntities) === 1) {
             return $rootEntities[0];
         }
 
         if ($throwException) {
             throw new QueryException(sprintf(
                 'Can\'t get single root entity for the given query. Reason: %s.',
-                count($rootEntities) === 0
+                \count($rootEntities) === 0
                     ? 'the query has no any root entities'
-                    : sprintf('the query has several root entities: %s.', implode(', ', $rootEntities))
+                    : sprintf('the query has several root entities: %s', implode(', ', $rootEntities))
             ));
         }
 
@@ -278,13 +282,27 @@ class QueryBuilderUtil
         return $result;
     }
 
-    /**
-     * @param string $prefix
-     *
-     * @return string
-     */
-    public static function generateParameterName($prefix)
+    public static function generateParameterName(string $prefix, ?QueryBuilder $qb = null): string
     {
+        if (null !== $qb) {
+            if (!$prefix) {
+                throw new \InvalidArgumentException('Empty value passed');
+            }
+            self::checkField($prefix);
+
+            if (null === $qb->getParameter($prefix)) {
+                return $prefix;
+            }
+
+            $i = 0;
+            do {
+                $i++;
+                $parameterName = $prefix . $i;
+            } while (null !== $qb->getParameter($parameterName));
+
+            return $parameterName;
+        }
+
         self::checkField($prefix);
         static $n = 0;
         $n++;
@@ -310,13 +328,23 @@ class QueryBuilderUtil
         $qb->setParameters($usedParameters);
     }
 
-    /**
-     * @param QueryBuilder $qb
-     * @param Expr\Join $join
-     *
-     * @return string
-     */
-    public static function getJoinClass(QueryBuilder $qb, Expr\Join $join)
+    public static function findClassByAlias(QueryBuilder $qb, string $alias): ?string
+    {
+        foreach ($qb->getRootAliases() as $i => $rootAlias) {
+            if ($rootAlias === $alias) {
+                return $qb->getRootEntities()[$i];
+            }
+        }
+
+        $join = self::findJoinByAlias($qb, $alias);
+        if (null !== $join) {
+            return self::getJoinClass($qb, $join);
+        }
+
+        return null;
+    }
+
+    public static function getJoinClass(QueryBuilder $qb, Expr\Join $join): string
     {
         if (class_exists($join->getJoin())) {
             return $join->getJoin();

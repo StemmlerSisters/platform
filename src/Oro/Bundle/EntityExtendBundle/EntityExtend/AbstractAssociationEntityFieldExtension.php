@@ -18,11 +18,11 @@ abstract class AbstractAssociationEntityFieldExtension implements EntityFieldExt
     protected const METHOD_INDEX = 1;
     public const TYPE_INDEX = 2;
 
-    abstract protected function isApplicable(EntityFieldProcessTransport $transport): bool;
+    abstract public function isApplicable(EntityFieldProcessTransport $transport): bool;
 
-    abstract protected function getRelationKind(): ?string;
+    abstract public function getRelationKind(): ?string;
 
-    abstract protected function getRelationType(): string;
+    abstract public function getRelationType(): string;
 
     protected function getMethodsData(EntityFieldProcessTransport $transport): array
     {
@@ -85,6 +85,7 @@ abstract class AbstractAssociationEntityFieldExtension implements EntityFieldExt
         return $methods;
     }
 
+    #[\Override]
     public function getMethods(EntityFieldProcessTransport $transport): array
     {
         return array_keys($this->getMethodsData($transport));
@@ -102,49 +103,47 @@ abstract class AbstractAssociationEntityFieldExtension implements EntityFieldExt
 
     protected function callSupport(EntityFieldProcessTransport $transport): void
     {
-        $result = AssociationExtendEntity::support($transport->getObject(), $transport->getArgument(0));
+        $result = AssociationExtendEntity::support($transport->getObject(), $transport->getArgument(0), $this);
         $transport->setResult($result);
     }
 
     protected function callGetTargets(EntityFieldProcessTransport $transport): void
     {
-        $result = AssociationExtendEntity::getTargets($transport->getObject(), $transport->getArgument(0));
+        $result = AssociationExtendEntity::getTargets($transport->getObject(), $this, $transport->getArgument(0));
         $transport->setResult($result);
     }
 
     protected function callGetTarget(EntityFieldProcessTransport $transport): void
     {
-        $result = AssociationExtendEntity::getTarget($transport->getObject());
+        $result = AssociationExtendEntity::getTarget($transport->getObject(), $this);
         $transport->setResult($result);
     }
 
     protected function callSetTarget(EntityFieldProcessTransport $transport): void
     {
-        AssociationExtendEntity::setTarget($transport->getObject(), $transport->getArgument(0));
+        AssociationExtendEntity::setTarget($transport->getObject(), $this, $transport->getArgument(0));
         $transport->setResult($transport->getObject());
     }
 
     protected function callHasTarget(EntityFieldProcessTransport $transport): void
     {
-        $result = AssociationExtendEntity::hasTarget($transport->getObject(), $transport->getArgument(0));
+        $result = AssociationExtendEntity::hasTarget($transport->getObject(), $transport->getArgument(0), $this);
         $transport->setResult($result);
     }
 
     protected function callAddTarget(EntityFieldProcessTransport $transport): void
     {
-        AssociationExtendEntity::addTarget($transport->getObject(), $transport->getArgument(0));
+        AssociationExtendEntity::addTarget($transport->getObject(), $transport->getArgument(0), $this);
         $transport->setResult($transport->getObject());
     }
 
     protected function callRemoveTarget(EntityFieldProcessTransport $transport): void
     {
-        AssociationExtendEntity::removeTarget($transport->getObject(), $transport->getArgument(0));
+        AssociationExtendEntity::removeTarget($transport->getObject(), $transport->getArgument(0), $this);
         $transport->setResult($transport->getObject());
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[\Override]
     public function get(EntityFieldProcessTransport $transport): void
     {
         if (!$this->isApplicable($transport)) {
@@ -159,9 +158,7 @@ abstract class AbstractAssociationEntityFieldExtension implements EntityFieldExt
         $transport->setProcessed(true);
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[\Override]
     public function set(EntityFieldProcessTransport $transport): void
     {
         if (!$this->isApplicable($transport)) {
@@ -178,9 +175,7 @@ abstract class AbstractAssociationEntityFieldExtension implements EntityFieldExt
         $transport->setProcessed(true);
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[\Override]
     public function call(EntityFieldProcessTransport $transport): void
     {
         if (!$this->isApplicable($transport)) {
@@ -200,16 +195,13 @@ abstract class AbstractAssociationEntityFieldExtension implements EntityFieldExt
         }
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[\Override]
     public function isset(EntityFieldProcessTransport $transport): void
     {
+        $this->propertyExists($transport);
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[\Override]
     public function propertyExists(EntityFieldProcessTransport $transport): void
     {
         if (!$this->isApplicable($transport)) {
@@ -222,6 +214,7 @@ abstract class AbstractAssociationEntityFieldExtension implements EntityFieldExt
         }
     }
 
+    #[\Override]
     public function methodExists(EntityFieldProcessTransport $transport): void
     {
         if (!$this->isApplicable($transport)) {
@@ -235,6 +228,7 @@ abstract class AbstractAssociationEntityFieldExtension implements EntityFieldExt
         }
     }
 
+    #[\Override]
     public function getMethodInfo(EntityFieldProcessTransport $transport): void
     {
         $methods = $this->getMethodsData($transport);

@@ -1,8 +1,6 @@
 {% set linkTitle = params.frontendOptions.title is defined ? params.frontendOptions.title|trans : '' %}
 {% set linkLabel = params.label|trans %}
 {% set linkAriaLabel = params.frontendOptions.options.ariaLabel is defined ? params.frontendOptions.options.ariaLabel|trans : '' %}
-{% set noLinkLabel = params.frontendOptions.options.noLinkLabel|default(false) %}
-{% set isAjax = false %}
 
 {% block button %}
     {% set options = oro_action_frontend_options(button) %}
@@ -11,8 +9,8 @@
     {% block link %}
         {% set classes = 'icons-holder-text operation-button ' ~ params.buttonOptions.class|default('')|trim ~ ' ' ~ aClass|default('')|trim ~ ' ' ~ params.buttonOptions.aCss|default('')|trim  %}
         {% set classes = classes|split(' ')|array_unique|join(' ') %}
-        <button {% if (params.id is defined) %}id="{{ params.id }}"{% endif %}
-           type="button"
+        <{% if 'link' == linkType|default(null) %}a href="#"{% else %}button type="button"{% endif %}
+           {% if (params.id is defined) %}id="{{ params.id }}"{% endif %}
            class="{{ classes }}"
            {% if linkTitle is not empty %}
                title="{{ linkTitle }}"
@@ -33,23 +31,33 @@
            {% if not button.buttonContext.enabled %}
                disabled="disabled"
            {% endif %}
-            {% if (params.name is defined) %}
-                data-action-name="{{ params.name }}"
-            {% endif %}
+           {% if (params.name is defined) %}
+               data-action-name="{{ params.name }}"
+           {% endif %}
         >
-            {% if params.buttonOptions.icon is defined or params.buttonOptions.iCss is defined %}
+            {# Rendering fa icons for backoffice #}
+            {% if app.request.attributes.get('_layout')|default(false) == false and params.buttonOptions.icon is defined or params.buttonOptions.iCss is defined %}
                 <span class="{{ params.buttonOptions.icon|default('') }} {{ params.buttonOptions.iCss|default('') }} hide-text" aria-hidden="true"></span>
             {% endif %}
-            {% if params.frontendOptions.options.icon is defined %}
+            {# Rendering icons for storefront #}
+            {% if app.request.attributes.get('_layout')|default(false) and params.frontendOptions.options.icon is defined %}
                 {% import '@OroUI/layouts/renderIcon.html.twig' as renderIcon %}
                 {{ renderIcon.icon({
-                    name: params.frontendOptions.options.icon
+                    name: params.frontendOptions.options.icon,
+                    extraClass: params.frontendOptions.options.iconSize is defined ? params.frontendOptions.options.iconSize : ''
                 }) }}
             {% endif %}
-            {% if not noLinkLabel %}
-                {{- linkLabel|trim -}}
+            {% if not params.frontendOptions.options.noLinkLabel|default(false) %}
+                {% set renderLinkLabel %}
+                    {{- linkLabel|trim -}}
+                {% endset %}
+                {% if params.frontendOptions.options.labelClass is defined %}
+                    <span class="{{ params.frontendOptions.options.labelClass }}">{{ renderLinkLabel }}</span>
+                {% else %}
+                    {{ renderLinkLabel }}
+                {% endif %}
             {% endif %}
-        </button>
+        </{% if 'link' == linkType|default(null) %}a{% else %}button{% endif %}>
     {% endblock %}
     {% if not onlyLink|default(false) %}</div>{% endif %}
 {% endblock %}

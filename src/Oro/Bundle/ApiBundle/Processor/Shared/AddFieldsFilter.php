@@ -34,9 +34,7 @@ class AddFieldsFilter implements ProcessorInterface
         $this->valueNormalizer = $valueNormalizer;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function process(ContextInterface $context): void
     {
         /** @var Context $context */
@@ -54,8 +52,8 @@ class AddFieldsFilter implements ProcessorInterface
             return;
         }
 
-        $filters = $context->getFilters();
-        if ($filters->has($filterGroupName)) {
+        $filterCollection = $context->getFilters();
+        if ($filterCollection->has($filterGroupName)) {
             // filters have been already set
             return;
         }
@@ -64,31 +62,37 @@ class AddFieldsFilter implements ProcessorInterface
         if (ApiActionGroup::INITIALIZE === $context->getLastGroup()) {
             // add "fields" filters for the primary entity and all associated entities,
             // it is required to display them on the API Sandbox
-            $this->addFiltersForDocumentation($context, $filterTemplate);
+            $this->addFiltersForDocumentation($context, $filterTemplate, $config->isInclusionEnabled());
         } else {
             // add all requested "fields" filters
-            $filterValues = $context->getFilterValues()->getGroup($filterGroupName);
-            foreach ($filterValues as $filterValue) {
-                $this->addFilter($filterTemplate, $filters, $filterValue->getPath());
+            $allFilterValues = $context->getFilterValues()->getGroup($filterGroupName);
+            foreach ($allFilterValues as $filterValues) {
+                $this->addFilter($filterTemplate, $filterCollection, end($filterValues)->getPath());
             }
         }
     }
 
-    private function addFiltersForDocumentation(Context $context, string $filterTemplate): void
-    {
+    private function addFiltersForDocumentation(
+        Context $context,
+        string $filterTemplate,
+        bool $isInclusionEnabled
+    ): void {
         $metadata = $context->getMetadata();
         if (null === $metadata) {
             // the metadata does not exist
             return;
         }
 
-        $filters = $context->getFilters();
+        $filterCollection = $context->getFilters();
         $requestType = $context->getRequestType();
 
         // the "fields" filter for the primary entity
-        $this->addFilterForEntityClass($filterTemplate, $filters, $context->getClassName(), $requestType);
+        $this->addFilterForEntityClass($filterTemplate, $filterCollection, $context->getClassName(), $requestType);
 
         // the "fields" filters for associated entities
+        if (!$isInclusionEnabled) {
+            return;
+        }
         $config = $context->getConfig();
         $associations = $metadata->getAssociations();
         foreach ($associations as $associationName => $association) {
@@ -98,31 +102,34 @@ class AddFieldsFilter implements ProcessorInterface
             }
             $targetClasses = $association->getAcceptableTargetClassNames();
             foreach ($targetClasses as $targetClass) {
-                $this->addFilterForEntityClass($filterTemplate, $filters, $targetClass, $requestType);
+                $this->addFilterForEntityClass($filterTemplate, $filterCollection, $targetClass, $requestType);
             }
         }
     }
 
     private function addFilterForEntityClass(
         string $filterTemplate,
-        FilterCollection $filters,
+        FilterCollection $filterCollection,
         string $entityClass,
         RequestType $requestType
     ): void {
         $entityType = $this->convertToEntityType($entityClass, $requestType);
         if ($entityType) {
-            $this->addFilter($filterTemplate, $filters, $entityType);
+            $this->addFilter($filterTemplate, $filterCollection, $entityType);
         }
     }
 
-    private function addFilter(string $filterTemplate, FilterCollection $filters, string $entityType): void
+    private function addFilter(string $filterTemplate, FilterCollection $filterCollection, string $entityType): void
     {
-        $filter = new FieldsFilter(
-            DataType::STRING,
-            sprintf(self::FILTER_DESCRIPTION_TEMPLATE, $entityType)
-        );
-        $filter->setArrayAllowed(true);
-        $filters->add(sprintf($filterTemplate, $entityType), $filter, false);
+        $key = sprintf($filterTemplate, $entityType);
+        if (null === $filterCollection->get($key)) {
+            $filter = new FieldsFilter(
+                DataType::STRING,
+                sprintf(self::FILTER_DESCRIPTION_TEMPLATE, $entityType)
+            );
+            $filter->setArrayAllowed(true);
+            $filterCollection->add($key, $filter, false);
+        }
     }
 
     private function convertToEntityType(string $entityClass, RequestType $requestType): ?string

@@ -50,7 +50,7 @@ class ImapMessageIterator implements \Iterator, \Countable
      * @param int[]|null $ids
      * @param bool       $uidMode
      */
-    public function __construct(Imap $imap, array $ids = null, $uidMode = false)
+    public function __construct(Imap $imap, ?array $ids = null, $uidMode = false)
     {
         $this->imap = $imap;
         $this->ids  = $ids;
@@ -86,7 +86,7 @@ class ImapMessageIterator implements \Iterator, \Countable
      * @param \Closure|null $callback The callback function is called when a batch is loaded
      *                                function (Message[] $batch)
      */
-    public function setBatchCallback(\Closure $callback = null)
+    public function setBatchCallback(?\Closure $callback = null)
     {
         $this->onBatchLoaded = $callback;
     }
@@ -99,7 +99,7 @@ class ImapMessageIterator implements \Iterator, \Countable
      * @param \Closure|null $callback The callback function.
      *                                function (\Exception)
      */
-    public function setConvertErrorCallback(\Closure $callback = null)
+    public function setConvertErrorCallback(?\Closure $callback = null)
     {
         if (null !== $callback) {
             $this->imap->setConvertErrorCallback($callback);
@@ -109,6 +109,7 @@ class ImapMessageIterator implements \Iterator, \Countable
     /**
      * The number of messages in this iterator
      */
+    #[\Override]
     public function count(): int
     {
         $this->ensureInitialized();
@@ -123,6 +124,7 @@ class ImapMessageIterator implements \Iterator, \Countable
      *
      * @return Message
      */
+    #[\Override]
     public function current(): mixed
     {
         return $this->batch[$this->iterationPos];
@@ -131,6 +133,7 @@ class ImapMessageIterator implements \Iterator, \Countable
     /**
      * Move forward to next element
      */
+    #[\Override]
     public function next(): void
     {
         $this->increasePosition($this->iterationPos);
@@ -171,6 +174,7 @@ class ImapMessageIterator implements \Iterator, \Countable
      *
      * @return int on success, or null on failure.
      */
+    #[\Override]
     public function key(): mixed
     {
         return $this->iterationPos;
@@ -181,6 +185,7 @@ class ImapMessageIterator implements \Iterator, \Countable
      *
      * @return boolean Returns true on success or false on failure.
      */
+    #[\Override]
     public function valid(): bool
     {
         $this->ensureInitialized();
@@ -191,6 +196,7 @@ class ImapMessageIterator implements \Iterator, \Countable
     /**
      * Rewind the Iterator to the first element
      */
+    #[\Override]
     public function rewind(): void
     {
         $this->initialize();

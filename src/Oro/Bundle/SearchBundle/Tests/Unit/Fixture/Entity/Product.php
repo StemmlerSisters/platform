@@ -102,7 +102,7 @@ class Product
      *
      * @return Product
      */
-    public function setManufacturer(Manufacturer $manufacturer = null)
+    public function setManufacturer(?Manufacturer $manufacturer = null)
     {
         $this->manufacturer = $manufacturer;
 
@@ -177,6 +177,7 @@ class Product
         return $this->createDate;
     }
 
+    #[\Override]
     public function __toString()
     {
         return (string)$this->name;

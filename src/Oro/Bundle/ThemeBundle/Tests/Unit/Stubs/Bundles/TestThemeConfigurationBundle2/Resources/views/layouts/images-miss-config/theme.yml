@@ -1,0 +1,35 @@
+label: Image miss config
+description: Image miss config.
+groups: [ commerce ]
+icon: bundles/testthemeconfiguration2/default/images/favicon.ico
+logo: bundles/testthemeconfiguration2/default/images/logo/demob2b-logo.svg
+rtl_support: true
+configuration:
+  sections:
+    general:
+      label: 'General Settings'
+      options:
+        palette:
+          label: 'Color Palette'
+          type: select
+          default: modern
+          values:
+            modern: 'Lightweight colors optimized for modern high screen resolutions'
+            traditional: 'More contrasting color selections that work well on all types of screens'
+          previews:
+            modern: 'bundles/testthemeconfiguration2/images/previews/modern-palette.png'
+            traditional: 'bundles/testthemeconfiguration2/images/previews/tradition-pallete.jpg'
+        rounding:
+          label: 'Rounded Controls'
+          type: checkbox
+          default: unchecked
+          previews:
+            checked: 'bundles/testthemeconfiguration2/images/previews/rounded-controls.png'
+            unchecked: 'bundles/testthemeconfiguration2/images/previews/square-controls.jpeg'
+        button_color:
+          label: 'Primary Call-To-Action Buttons Color'
+          type: radio
+          default: blue
+          values:
+            blue: 'Deep ocean blue'
+            green: 'Forest green'

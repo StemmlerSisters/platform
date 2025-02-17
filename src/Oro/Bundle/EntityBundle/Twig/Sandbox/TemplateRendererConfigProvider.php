@@ -27,6 +27,7 @@ class TemplateRendererConfigProvider implements TemplateRendererConfigProviderIn
         $this->configCacheKey = $configCacheKey;
     }
 
+    #[\Override]
     public function getConfiguration(): array
     {
         if (null === $this->configuration) {
@@ -38,6 +39,7 @@ class TemplateRendererConfigProvider implements TemplateRendererConfigProviderIn
         return $this->configuration;
     }
 
+    #[\Override]
     public function getSystemVariableValues(): array
     {
         if (null === $this->systemVariables) {
@@ -47,6 +49,7 @@ class TemplateRendererConfigProvider implements TemplateRendererConfigProviderIn
         return $this->systemVariables;
     }
 
+    #[\Override]
     public function getEntityVariableProcessors(string $entityClass): array
     {
         if (!isset($this->entityVariableProcessors[$entityClass])) {
@@ -57,6 +60,7 @@ class TemplateRendererConfigProvider implements TemplateRendererConfigProviderIn
         return $this->entityVariableProcessors[$entityClass];
     }
 
+    #[\Override]
     public function clearCache(): void
     {
         $this->cache->delete($this->configCacheKey);
@@ -99,7 +103,7 @@ class TemplateRendererConfigProvider implements TemplateRendererConfigProviderIn
                     // Register related class in methods to allow __toString
                     if (!empty($getter[self::RELATED_ENTITY])) {
                         if (!array_key_exists(self::METHODS, $configuration)) {
-                            $configuration[self::METHODS]= [];
+                            $configuration[self::METHODS] = [];
                         }
                         $relatedClass = $getter[self::RELATED_ENTITY];
                         if (!array_key_exists($relatedClass, $configuration[self::METHODS])) {

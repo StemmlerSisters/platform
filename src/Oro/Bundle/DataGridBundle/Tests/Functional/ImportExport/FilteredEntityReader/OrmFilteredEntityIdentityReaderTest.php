@@ -3,7 +3,7 @@
 namespace Oro\Bundle\DataGridBundle\Tests\Functional\ImportExport\FilteredEntityReader;
 
 use Oro\Bundle\DataGridBundle\Datagrid\DatagridInterface;
-use Oro\Bundle\DataGridBundle\Datagrid\Manager;
+use Oro\Bundle\DataGridBundle\Datagrid\ManagerInterface;
 use Oro\Bundle\DataGridBundle\Datagrid\ParameterBag;
 use Oro\Bundle\DataGridBundle\ImportExport\FilteredEntityReader\OrmFilteredEntityIdentityReader;
 use Oro\Bundle\DataGridBundle\Tests\Functional\DataFixtures\LoadGridViewData;
@@ -17,15 +17,17 @@ class OrmFilteredEntityIdentityReaderTest extends WebTestCase
 {
     private OrmFilteredEntityIdentityReader $reader;
 
+    #[\Override]
     protected function setUp(): void
     {
-        $this->initClient([], $this->generateWsseAuthHeader());
+        $this->initClient([], self::generateApiAuthHeader());
         $this->loadFixtures([LoadGridViewData::class, LoadUser::class]);
         $this->setSecurityToken();
         $this->reader = self::getContainer()
             ->get('oro_datagrid.importexport.filtered_entity.orm_entity_identity_reader');
     }
 
+    #[\Override]
     protected function tearDown(): void
     {
         self::getContainer()->get('security.token_storage')->setToken(null);
@@ -137,7 +139,7 @@ class OrmFilteredEntityIdentityReaderTest extends WebTestCase
         return $this->getDatagridManager()->getDatagrid($name, [ParameterBag::MINIFIED_PARAMETERS => $parameters]);
     }
 
-    private function getDatagridManager(): Manager
+    private function getDatagridManager(): ManagerInterface
     {
         return self::getContainer()->get('oro_datagrid.datagrid.manager');
     }

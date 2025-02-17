@@ -19,9 +19,7 @@ use Symfony\Component\Form\Extension\Core\Type\IntegerType;
  */
 class Configuration implements ConfigurationInterface
 {
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function getConfigTreeBuilder(): TreeBuilder
     {
         $treeBuilder = new TreeBuilder('oro_api');
@@ -40,9 +38,12 @@ class Configuration implements ConfigurationInterface
         $this->appendConfigExtensionsNode($node);
         $this->appendApiDocCacheNode($node);
         $this->appendApiDocViewsNode($node);
+        $this->appendOpenApiNode($node);
         $this->appendActionsNode($node);
         $this->appendFiltersNode($node);
         $this->appendFilterOperatorsNode($node);
+        $this->appendFilterDisallowArrayDataTypes($node);
+        $this->appendFilterDisallowRangeDataTypes($node);
         $this->appendFormTypesNode($node);
         $this->appendFormTypeExtensionsNode($node);
         $this->appendFormTypeGuessersNode($node);
@@ -383,14 +384,95 @@ class Configuration implements ConfigurationInterface
             ->end();
     }
 
+    private function appendOpenApiNode(NodeBuilder $node): void
+    {
+        $node
+            ->arrayNode('open_api')
+                ->info('The configuration of OpenAPI specification generation.')
+                ->addDefaultsIfNotSet()
+                ->children()
+                    ->scalarNode('version')->end()
+                    ->arrayNode('data_types')
+                        ->info('The map between data-types and their representation in OpenAPI specification.')
+                        ->example(['float' => ['number'], 'text' => ['string', ['format' => 'text']]])
+                        ->useAttributeAsKey('name')
+                        ->normalizeKeys(false)
+                        ->prototype('variable')->end()
+                    ->end()
+                    ->arrayNode('data_type_aliases')
+                        ->info(
+                            'The list of data-type aliases.'
+                            . ' It is used to prevent several definition of identical data-types.'
+                        )
+                        ->example(['json' => 'object', 'blob' => 'binary'])
+                        ->useAttributeAsKey('name')
+                        ->normalizeKeys(false)
+                        ->prototype('scalar')->cannotBeEmpty()->end()
+                    ->end()
+                    ->arrayNode('data_type_plural_map')
+                        ->info(
+                            'The map between plural and singular data-type names.'
+                            . ' It is used to resolve data-type by expressions like "array of integers".'
+                        )
+                        ->example(['strings' => 'string', 'integers' => 'integer'])
+                        ->useAttributeAsKey('name')
+                        ->normalizeKeys(false)
+                        ->prototype('scalar')->cannotBeEmpty()->end()
+                    ->end()
+                    ->arrayNode('data_type_pattern_map')
+                        ->info(
+                            'The map between a regex and corresponding data-type.'
+                            . ' It is used to resolve data-type by its regex representation.'
+                        )
+                        ->example(['-?\d+' => 'integer', '\d+' => 'unsignedInteger'])
+                        ->useAttributeAsKey('name')
+                        ->normalizeKeys(false)
+                        ->prototype('scalar')->cannotBeEmpty()->end()
+                    ->end()
+                    ->arrayNode('data_type_range_value_patterns')
+                        ->info(
+                            'The map between a data-type and its regex.'
+                            . ' It is used to build regex for range data-type.'
+                        )
+                        ->example(['integer' => '-?\d+', 'unsignedInteger' => '\d+'])
+                        ->useAttributeAsKey('name')
+                        ->normalizeKeys(false)
+                        ->prototype('scalar')->cannotBeEmpty()->end()
+                    ->end()
+                    ->arrayNode('cors')
+                        ->info('The configuration of CORS requests to download published OpenAPI specifications.')
+                        ->addDefaultsIfNotSet()
+                        ->children()
+                            ->integerNode('preflight_max_age')
+                                ->info(
+                                    'The amount of seconds the user agent is allowed to cache CORS preflight requests.'
+                                )
+                                ->defaultValue(600)
+                                ->min(0)
+                            ->end()
+                            ->arrayNode('allow_origins')
+                                ->info('The list of origins that are allowed to send CORS requests.')
+                                ->example(['https://foo.com', 'https://bar.com'])
+                                ->prototype('scalar')->cannotBeEmpty()->end()
+                            ->end()
+                            ->arrayNode('allow_headers')
+                                ->info('The list of headers that are allowed to send by CORS requests.')
+                                ->example(['X-Foo', 'X-Bar'])
+                                ->prototype('scalar')->cannotBeEmpty()->end()
+                            ->end()
+                        ->end()
+                    ->end()
+                ->end()
+            ->end();
+    }
+
     private function appendConfigExtensionsNode(NodeBuilder $node): void
     {
         $node
             ->arrayNode('config_extensions')
                 ->info('The configuration extensions for "Resources/config/oro/api.yml".')
                 ->example(['oro_api.config_extension.filters', 'oro_api.config_extension.sorters'])
-                ->prototype('scalar')
-                ->end()
+                ->prototype('scalar')->cannotBeEmpty()->end()
             ->end();
     }
 
@@ -467,8 +549,27 @@ class Configuration implements ConfigurationInterface
                     'regexp' => null
                 ])
                 ->useAttributeAsKey('name')
-                ->prototype('scalar')
-                ->end()
+                ->prototype('scalar')->end()
+            ->end();
+    }
+
+    private function appendFilterDisallowArrayDataTypes(NodeBuilder $node): void
+    {
+        $node
+            ->arrayNode('filter_disallow_array_data_types')
+                ->info('The data types for which it is disallowed to use an array filter.')
+                ->example(['string', 'text'])
+                ->prototype('scalar')->cannotBeEmpty()->end()
+            ->end();
+    }
+
+    private function appendFilterDisallowRangeDataTypes(NodeBuilder $node): void
+    {
+        $node
+            ->arrayNode('filter_disallow_range_data_types')
+                ->info('The data types for which it is disallowed to use a range filter.')
+                ->example(['string', 'text'])
+                ->prototype('scalar')->cannotBeEmpty()->end()
             ->end();
     }
 
@@ -537,12 +638,8 @@ class Configuration implements ConfigurationInterface
         $node
             ->arrayNode('form_types')
                 ->info('The form types that can be reused in API.')
-                ->example([
-                    FormType::class,
-                    'oro_api.form.type.entity'
-                ])
-                ->prototype('scalar')
-                ->end()
+                ->example([FormType::class, 'oro_api.form.type.entity'])
+                ->prototype('scalar')->end()
             ->end();
     }
 
@@ -552,8 +649,7 @@ class Configuration implements ConfigurationInterface
             ->arrayNode('form_type_extensions')
                 ->info('The form type extensions that can be reused in API.')
                 ->example(['form.type_extension.form.http_foundation'])
-                ->prototype('scalar')
-                ->end()
+                ->prototype('scalar')->end()
             ->end();
     }
 
@@ -563,8 +659,7 @@ class Configuration implements ConfigurationInterface
             ->arrayNode('form_type_guessers')
                 ->info('The form type guessers that can be reused in API.')
                 ->example(['form.type_guesser.validator'])
-                ->prototype('scalar')
-                ->end()
+                ->prototype('scalar')->end()
             ->end();
     }
 
@@ -572,7 +667,7 @@ class Configuration implements ConfigurationInterface
     {
         $node
             ->arrayNode('form_type_guesses')
-                ->info('The definition of data type to form type guesses.')
+                ->info('The definition of data-type to form type guesses.')
                 ->example(
                     [
                         'integer' => [
@@ -672,6 +767,9 @@ class Configuration implements ConfigurationInterface
             ->end();
     }
 
+    /**
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
+     */
     private function appendBatchApiNode(NodeBuilder $node): void
     {
         $batchApiNode = $node
@@ -726,7 +824,7 @@ class Configuration implements ConfigurationInterface
                     . ' for a specific entity type and use the default chunk size for it.'
                 )
                 ->example([User::class => 10]);
-        $this->configureChunkSizePerEntity($chunkSizePerEntityNode);
+        $this->configureLimitPerEntity($chunkSizePerEntityNode);
 
         $includedDataChunkSizePerEntityNode = $batchApiNode
             ->arrayNode('included_data_chunk_size_per_entity')
@@ -738,10 +836,56 @@ class Configuration implements ConfigurationInterface
                     . ' for a specific entity type and use the default chunk size for it.'
                 )
                 ->example([User::class => 20]);
-        $this->configureChunkSizePerEntity($includedDataChunkSizePerEntityNode);
+        $this->configureLimitPerEntity($includedDataChunkSizePerEntityNode);
+
+        $batchApiNode
+            ->integerNode('sync_processing_wait_timeout')
+                ->info(
+                    'The maximum number of seconds that API waits for a synchronous batch API operation finished.'
+                    . ' If the operation is not finished within this time interval it is processed'
+                    . ' as an asynchronous operation.'
+                )
+                ->min(1) // 1 second
+                ->defaultValue(25) // 25 seconds
+            ->end()
+            ->integerNode('sync_processing_limit')
+                ->info('The default maximum number of entities that can be processed by synchronous batch API.')
+                ->min(1)
+                ->defaultValue(100)
+            ->end()
+            ->integerNode('sync_processing_included_data_limit')
+                ->info(
+                    'The default maximum number of included entities that can be processed by synchronous batch API.'
+                )
+                ->min(1)
+                ->defaultValue(50)
+            ->end();
+
+        $syncProcessingDataLimitPerEntityNode = $batchApiNode
+            ->arrayNode('sync_processing_limit_per_entity')
+                ->info(
+                    'The maximum number of entities of a specific type that can be processed by synchronous batch API.'
+                    . "\n"
+                    . 'The null value can be used to revert already configured limit'
+                    . ' for a specific entity type and use the default limit for it.'
+                )
+                ->example([User::class => 10]);
+        $this->configureLimitPerEntity($syncProcessingDataLimitPerEntityNode);
+
+        $syncProcessingIncludedDataLimitPerEntityNode = $batchApiNode
+            ->arrayNode('sync_processing_included_data_limit_per_entity')
+                ->info(
+                    'The maximum number of included entities that can be processed by synchronous batch API'
+                    . ' for a specific primary entity type.'
+                    . "\n"
+                    . 'The null value can be used to revert already configured limit'
+                    . ' for a specific entity type and use the default limit for it.'
+                )
+                ->example([User::class => 20]);
+        $this->configureLimitPerEntity($syncProcessingIncludedDataLimitPerEntityNode);
     }
 
-    private function configureChunkSizePerEntity(ArrayNodeDefinition $node): void
+    private function configureLimitPerEntity(ArrayNodeDefinition $node): void
     {
         $node
             ->useAttributeAsKey('name')

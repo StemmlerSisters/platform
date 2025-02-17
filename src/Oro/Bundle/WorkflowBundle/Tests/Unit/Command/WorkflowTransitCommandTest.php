@@ -32,6 +32,7 @@ class WorkflowTransitCommandTest extends \PHPUnit\Framework\TestCase
     /** @var WorkflowTransitCommand */
     private $command;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->repo = $this->createMock(EntityRepository::class);
@@ -66,8 +67,8 @@ class WorkflowTransitCommandTest extends \PHPUnit\Framework\TestCase
         string|int $id,
         ?string $transition,
         array $expectedOutput,
-        \Exception $exception = null,
-        \Exception $expectedException = null
+        ?\Exception $exception = null,
+        ?\Exception $expectedException = null
     ) {
         $this->input->expects($this->exactly(2))
             ->method('getOption')

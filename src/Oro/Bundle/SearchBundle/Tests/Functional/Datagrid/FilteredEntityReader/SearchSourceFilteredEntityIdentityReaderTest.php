@@ -3,7 +3,7 @@
 namespace Oro\Bundle\SearchBundle\Tests\Functional\Datagrid\FilteredEntityReader;
 
 use Oro\Bundle\DataGridBundle\Datagrid\DatagridInterface;
-use Oro\Bundle\DataGridBundle\Datagrid\Manager;
+use Oro\Bundle\DataGridBundle\Datagrid\ManagerInterface;
 use Oro\Bundle\DataGridBundle\Datagrid\ParameterBag;
 use Oro\Bundle\OrganizationBundle\Entity\Organization;
 use Oro\Bundle\SearchBundle\Datagrid\FilteredEntityReader\SearchSourceFilteredEntityIdentityReader;
@@ -22,6 +22,7 @@ class SearchSourceFilteredEntityIdentityReaderTest extends SearchBundleWebTestCa
 
     protected SearchSourceFilteredEntityIdentityReader $reader;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->initClient();
@@ -129,7 +130,7 @@ class SearchSourceFilteredEntityIdentityReaderTest extends SearchBundleWebTestCa
         return $this->getDatagridManager()->getDatagrid($name, [ParameterBag::MINIFIED_PARAMETERS => $parameters]);
     }
 
-    private function getDatagridManager(): Manager
+    private function getDatagridManager(): ManagerInterface
     {
         return $this->client->getContainer()->get('oro_datagrid.datagrid.manager');
     }

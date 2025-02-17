@@ -35,6 +35,7 @@ class FlushDataTest extends BatchUpdateProcessorTestCase
     /** @var FlushData */
     private $processor;
 
+    #[\Override]
     protected function setUp(): void
     {
         parent::setUp();
@@ -74,7 +75,7 @@ class FlushDataTest extends BatchUpdateProcessorTestCase
         BatchFlushDataHandlerInterface|\PHPUnit\Framework\MockObject\MockObject $flushDataHandler,
         array $items,
         bool $flushDataCall = true,
-        \Exception $flushDataError = null
+        ?\Exception $flushDataError = null
     ): void {
         $finished = null;
 

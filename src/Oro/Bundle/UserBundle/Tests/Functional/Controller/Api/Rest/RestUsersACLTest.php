@@ -9,6 +9,7 @@ class RestUsersACLTest extends WebTestCase
 {
     private const DEFAULT_USER_ID = '1';
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->initClient();
@@ -33,7 +34,7 @@ class RestUsersACLTest extends WebTestCase
             'POST',
             $this->getUrl('oro_api_post_user'),
             $request,
-            $this->generateWsseAuthHeader(LoadUserData::USER_NAME, LoadUserData::USER_PASSWORD)
+            self::generateApiAuthHeader(LoadUserData::USER_NAME)
         );
         $result = $this->client->getResponse();
         $this->assertJsonResponseStatusCodeEquals($result, 403);
@@ -46,7 +47,7 @@ class RestUsersACLTest extends WebTestCase
             'GET',
             $this->getUrl('oro_api_get_users', ['limit' => 100]),
             [],
-            $this->generateWsseAuthHeader(LoadUserData::USER_NAME, LoadUserData::USER_PASSWORD)
+            self::generateApiAuthHeader(LoadUserData::USER_NAME)
         );
         $result = $this->client->getResponse();
         $this->assertJsonResponseStatusCodeEquals($result, 403);
@@ -59,7 +60,7 @@ class RestUsersACLTest extends WebTestCase
             'GET',
             $this->getUrl('oro_api_get_user', ['id' => self::DEFAULT_USER_ID]),
             [],
-            $this->generateWsseAuthHeader(LoadUserData::USER_NAME, LoadUserData::USER_PASSWORD)
+            self::generateApiAuthHeader(LoadUserData::USER_NAME)
         );
         $result = $this->client->getResponse();
         $this->assertJsonResponseStatusCodeEquals($result, 403);
@@ -82,7 +83,7 @@ class RestUsersACLTest extends WebTestCase
             'PUT',
             $this->getUrl('oro_api_put_user', ['id' => self::DEFAULT_USER_ID]),
             $request,
-            $this->generateWsseAuthHeader(LoadUserData::USER_NAME, LoadUserData::USER_PASSWORD)
+            self::generateApiAuthHeader(LoadUserData::USER_NAME)
         );
         $result = $this->client->getResponse();
         $this->assertJsonResponseStatusCodeEquals($result, 403);
@@ -94,7 +95,7 @@ class RestUsersACLTest extends WebTestCase
             'DELETE',
             $this->getUrl('oro_api_delete_user', ['id' => self::DEFAULT_USER_ID]),
             [],
-            $this->generateWsseAuthHeader(LoadUserData::USER_NAME, LoadUserData::USER_PASSWORD)
+            self::generateApiAuthHeader(LoadUserData::USER_NAME)
         );
         $result = $this->client->getResponse();
         $this->assertJsonResponseStatusCodeEquals($result, 403);

@@ -41,19 +41,16 @@ class TooltipFormExtension extends AbstractTypeExtension
     ) {
         $this->entityConfigProvider = $entityConfigProvider;
         $this->translator = $translator;
+        $this->translator->setDisableResetCatalogues(true);
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setDefined($this->optionalParameters);
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function buildView(FormView $view, FormInterface $form, array $options)
     {
         if (!$form->getParent()) {

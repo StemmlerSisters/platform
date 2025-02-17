@@ -49,10 +49,10 @@ class AssociationMetadata extends PropertyMetadata
     }
 
     /**
-     * {@inheritDoc}
      * @SuppressWarnings(PHPMD.NPathComplexity)
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
+    #[\Override]
     public function toArray(): array
     {
         $result = array_merge(
@@ -119,7 +119,7 @@ class AssociationMetadata extends PropertyMetadata
     /**
      * Gets metadata for the given association target class.
      */
-    public function getTargetMetadata(string $targetClassName = null): ?EntityMetadata
+    public function getTargetMetadata(?string $targetClassName = null): ?EntityMetadata
     {
         if (null === $this->targetMetadataAccessor
             || !$this->associationPath

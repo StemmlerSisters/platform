@@ -18,18 +18,14 @@ class MultiCurrencyNormalizer implements ContextAwareNormalizerInterface
         $this->formatter = $formatter;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function supportsNormalization($data, string $format = null, array $context = []): bool
+    #[\Override]
+    public function supportsNormalization($data, ?string $format = null, array $context = []): bool
     {
         return $data instanceof MultiCurrency;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function normalize($object, string $format = null, array $context = [])
+    #[\Override]
+    public function normalize($object, ?string $format = null, array $context = [])
     {
         return $this->formatter->formatCurrency($object->getValue(), $object->getCurrency());
     }

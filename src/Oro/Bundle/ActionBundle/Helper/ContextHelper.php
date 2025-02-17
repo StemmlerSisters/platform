@@ -36,7 +36,7 @@ class ContextHelper
     public function __construct(
         DoctrineHelper $doctrineHelper,
         PropertyAccessorInterface $propertyAccessor,
-        RequestStack $requestStack = null
+        ?RequestStack $requestStack = null
     ) {
         $this->doctrineHelper = $doctrineHelper;
         $this->propertyAccessor = $propertyAccessor;
@@ -47,7 +47,7 @@ class ContextHelper
      * @param array|null $context
      * @return array
      */
-    public function getContext(array $context = null)
+    public function getContext(?array $context = null)
     {
         if (null === $context) {
             $route = $this->getRequestParameter(self::ROUTE_PARAM) ?: $this->getRequestParameter('_route');
@@ -75,7 +75,7 @@ class ContextHelper
     {
         $request = $this->requestStack->getMainRequest();
         if (!$request) {
-            throw new \RuntimeException('Master Request is not defined');
+            throw new \RuntimeException('The main request is not defined.');
         }
         $params = [
             self::ROUTE_PARAM => $request->attributes->get('_route'),
@@ -102,7 +102,7 @@ class ContextHelper
      * @param array|null $context
      * @return ActionData
      */
-    public function getActionData(array $context = null)
+    public function getActionData(?array $context = null)
     {
         $context = $this->getContext($context);
 

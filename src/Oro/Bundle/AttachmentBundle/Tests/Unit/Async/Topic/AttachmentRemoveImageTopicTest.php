@@ -10,11 +10,13 @@ use Symfony\Component\OptionsResolver\Exception\MissingOptionsException;
 
 class AttachmentRemoveImageTopicTest extends AbstractTopicTestCase
 {
+    #[\Override]
     protected function getTopic(): TopicInterface
     {
         return new AttachmentRemoveImageTopic();
     }
 
+    #[\Override]
     public function validBodyDataProvider(): array
     {
         $requiredOptionsSet = [
@@ -22,7 +24,7 @@ class AttachmentRemoveImageTopicTest extends AbstractTopicTestCase
                 [
                     'id' => 1,
                     'fileName' => 'foo.bar',
-                    'originalFileName'=> 'baz.bar',
+                    'originalFileName' => 'baz.bar',
                     'parentEntityClass' => \stdClass::class,
                 ],
             ],
@@ -39,7 +41,7 @@ class AttachmentRemoveImageTopicTest extends AbstractTopicTestCase
                         [
                             'id' => 1,
                             'fileName' => 'foo.bar',
-                            'originalFileName'=> null,
+                            'originalFileName' => null,
                             'parentEntityClass' => \stdClass::class,
                         ],
                     ],
@@ -49,7 +51,7 @@ class AttachmentRemoveImageTopicTest extends AbstractTopicTestCase
                         [
                             'id' => 1,
                             'fileName' => 'foo.bar',
-                            'originalFileName'=> 'foo.bar',
+                            'originalFileName' => 'foo.bar',
                             'parentEntityClass' => \stdClass::class,
                         ],
                     ],
@@ -58,6 +60,7 @@ class AttachmentRemoveImageTopicTest extends AbstractTopicTestCase
         ];
     }
 
+    #[\Override]
     public function invalidBodyDataProvider(): array
     {
         return [
@@ -90,7 +93,7 @@ class AttachmentRemoveImageTopicTest extends AbstractTopicTestCase
                         [
                             'id' => '1',
                             'fileName' => 'foo.bar',
-                            'originalFileName'=> 'baz.bar',
+                            'originalFileName' => 'baz.bar',
                             'parentEntityClass' => \stdClass::class,
                         ],
                     ],
@@ -105,7 +108,7 @@ class AttachmentRemoveImageTopicTest extends AbstractTopicTestCase
                         [
                             'id' => 1,
                             'fileName' => 1,
-                            'originalFileName'=> 'baz.bar',
+                            'originalFileName' => 'baz.bar',
                             'parentEntityClass' => \stdClass::class,
                         ],
                     ],
@@ -120,7 +123,7 @@ class AttachmentRemoveImageTopicTest extends AbstractTopicTestCase
                         [
                             'id' => 1,
                             'fileName' => 'foo.bar',
-                            'originalFileName'=> 1,
+                            'originalFileName' => 1,
                             'parentEntityClass' => \stdClass::class,
                         ],
                     ],
@@ -135,7 +138,7 @@ class AttachmentRemoveImageTopicTest extends AbstractTopicTestCase
                         [
                             'id' => 1,
                             'fileName' => 'foo.bar',
-                            'originalFileName'=> 'baz.bar',
+                            'originalFileName' => 'baz.bar',
                             'parentEntityClass' => 1,
                         ],
                     ],

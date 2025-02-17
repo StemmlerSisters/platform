@@ -15,6 +15,7 @@ class CloneObjectTest extends \PHPUnit\Framework\TestCase
     /** @var CloneObject */
     private $action;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->action = new CloneObject(new ContextAccessor());
@@ -79,7 +80,7 @@ class CloneObjectTest extends \PHPUnit\Framework\TestCase
     /**
      * @dataProvider executeDataProvider
      */
-    public function testExecute(array $options, array $contextData = [], array $expectedData = null)
+    public function testExecute(array $options, array $contextData = [], ?array $expectedData = null)
     {
         $context = new ItemStub($contextData);
         $attributeName = (string)$options['attribute'];

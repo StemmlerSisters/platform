@@ -196,6 +196,7 @@ class Tag implements ExtendEntityInterface
      *
      * @return string
      */
+    #[\Override]
     public function __toString()
     {
         return (string) $this->getName();
@@ -245,7 +246,7 @@ class Tag implements ExtendEntityInterface
      * @param Organization|null $organization
      * @return Tag
      */
-    public function setOrganization(Organization $organization = null)
+    public function setOrganization(?Organization $organization = null)
     {
         $this->organization = $organization;
 

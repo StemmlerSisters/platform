@@ -25,9 +25,7 @@ class BuildFormBuilder implements ProcessorInterface
         $this->formHelper = $formHelper;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function process(ContextInterface $context): void
     {
         /** @var ChangeRelationshipContext $context */
@@ -87,6 +85,6 @@ class BuildFormBuilder implements ProcessorInterface
         }
         $options[CustomizeFormDataHandler::API_CONTEXT] = $context;
 
-        return $options;
+        return array_merge($options, $context->getFormOptions() ?? []);
     }
 }

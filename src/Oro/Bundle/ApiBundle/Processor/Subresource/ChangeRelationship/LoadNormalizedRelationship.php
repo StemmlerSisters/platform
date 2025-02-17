@@ -28,9 +28,7 @@ class LoadNormalizedRelationship implements ProcessorInterface
         $this->processorBag = $processorBag;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function process(ContextInterface $context): void
     {
         /** @var ChangeRelationshipContext $context */
@@ -93,10 +91,12 @@ class LoadNormalizedRelationship implements ProcessorInterface
             $getConfig = $getContext->getConfig()?->getField($associationName)?->getTargetEntity();
             if (null !== $getConfig) {
                 $context->setConfig($getConfig);
+                $context->setNormalizedConfig($getConfig);
             }
             $getMetadata = $getContext->getMetadata()?->getAssociation($associationName)?->getTargetMetadata();
             if (null !== $getMetadata) {
                 $context->setMetadata($getMetadata);
+                $context->setNormalizedMetadata($getMetadata);
             }
 
             $data = $getContext->getResult();

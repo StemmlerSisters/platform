@@ -35,7 +35,6 @@ aliases:
     jquery.mousewheel$: jquery-mousewheel/jquery.mousewheel
     jquery.multiselect$: jquery-ui-multiselect-widget/src/jquery.multiselect.min
     jquery.multiselect.filter$: jquery-ui-multiselect-widget/src/jquery.multiselect.filter.min
-    jquery.numeric$: jquery-numeric/jquery.numeric
     jquery.select2$: '@oroinc/select2/select2'
     jquery.simplecolorpicker$: oroui/lib/simplecolorpicker/jquery.simplecolorpicker
     jquery.timepicker$: timepicker/jquery.timepicker
@@ -80,10 +79,11 @@ configs:
     oroui/js/app/plugins/styled-scroll-bar: {}
     oroui/js/app/views/content-sidebar-view: {}
     oroui/js/app/views/jstree/action-manager-view: {}
-    oroui/js/app/views/input-widget/uniform-file: {}
     oroui/js/app/views/page/messages-view: {}
+    oroui/js/app/views/input-widget/uniform-file: {}
     oroui/js/app/views/tab-collection-view: {}
     oroui/js/app/views/tab-item-view: {}
+    oroui/js/app/views/page-layout-view: {}
     oroui/js/component-shortcuts-manager: {}
     oroui/js/content-processor/dropdown-button: {}
     oroui/js/delete-confirmation: {}
@@ -105,6 +105,7 @@ dynamic-imports:
         - jquery.cookie
         - oro/block-widget
         - oroui/js/app/components/ajax-button
+        - oroui/js/app/components/post-button
         - oroui/js/app/components/app-loading-bar-component
         - oroui/js/app/components/app-loading-mask-component
         - oroui/js/app/components/hidden-redirect-component
@@ -114,6 +115,7 @@ dynamic-imports:
         - oroui/js/app/components/viewport-component
         - oroui/js/app/components/widget-component
         - oroui/js/app/components/widget-form-component
+        - oroui/js/app/views/backdrop-view
         - oroui/js/app/views/content-sidebar-view
         - oroui/js/app/views/datepicker/datepicker-view
         - oroui/js/app/views/datepicker/datetimepicker-view
@@ -183,6 +185,7 @@ map:
         tooltip.js: bootstrap-tooltip
         underscore: oroui/js/extend/underscore
         util.js: bootstrap-util
+        oroui/templates/delete-confirmation.html: oroui/templates/modal-dialog.html
     chaplin:
         backbone: backbone
     extend-popper:

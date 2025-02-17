@@ -30,9 +30,7 @@ class MicrosoftOAuthProvider extends AbstractOAuthProvider
         $this->urlGenerator = $urlGenerator;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function getAuthorizationUrl(): string
     {
         return str_replace(
@@ -42,9 +40,7 @@ class MicrosoftOAuthProvider extends AbstractOAuthProvider
         );
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function getRedirectUrl(): string
     {
         return $this->urlGenerator->generate(
@@ -54,9 +50,7 @@ class MicrosoftOAuthProvider extends AbstractOAuthProvider
         );
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     protected function getAccessTokenUrl(): string
     {
         return str_replace(
@@ -66,17 +60,13 @@ class MicrosoftOAuthProvider extends AbstractOAuthProvider
         );
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     protected function getResourceOwnerName(): string
     {
         return 'office365';
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     protected function getCommonParameters(): array
     {
         return [
@@ -87,10 +77,8 @@ class MicrosoftOAuthProvider extends AbstractOAuthProvider
         ];
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    protected function getAccessTokenParameters(string $code, array $scopes = null): array
+    #[\Override]
+    protected function getAccessTokenParameters(string $code, ?array $scopes = null): array
     {
         $parameters = parent::getAccessTokenParameters($code, $scopes);
         $parameters['redirect_uri'] = $this->getRedirectUrl();

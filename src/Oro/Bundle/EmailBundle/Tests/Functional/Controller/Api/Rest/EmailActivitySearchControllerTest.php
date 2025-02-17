@@ -10,11 +10,12 @@ class EmailActivitySearchControllerTest extends WebTestCase
     /** @var string */
     private $baseUrl;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->markTestSkipped('Due to BAP-8365');
 
-        $this->initClient([], $this->generateWsseAuthHeader());
+        $this->initClient([], self::generateApiAuthHeader());
         $this->loadFixtures([LoadEmailActivityData::class]);
         $this->baseUrl = $this->getUrl('oro_api_get_email_search_relations');
     }

@@ -211,12 +211,6 @@ services:
         arguments:
             - !tagged_iterator oro_form.extension.js_validation.constraint_converter
 
-    Oro\Bundle\FormBundle\Form\Extension\JsValidation\ConstraintConverter:
-        alias: oro_form.extension.js_validation.constraint_converter
-
-    Oro\Bundle\FormBundle\Form\Extension\JsValidation\ConstraintConverterInterface:
-        alias: oro_form.extension.js_validation.constraint_converter
-
     oro_form.extension.js_validation.constraint_converter.generic:
         class: Oro\Bundle\FormBundle\Form\Extension\JsValidation\GenericConstraintConverter
         arguments:
@@ -404,3 +398,10 @@ services:
             - '@oro_entity.tools.entity_state_checker'
         tags:
             - { name: validator.constraint_validator }
+
+    oro_form.ajax_reload_handler:
+        class: Oro\Bundle\FormBundle\Form\Handler\FormWithAjaxReloadHandler
+        arguments:
+            - '@doctrine'
+        tags:
+            - { name: oro_form.form.handler, alias: ajax_reload_form_handler }

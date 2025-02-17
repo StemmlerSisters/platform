@@ -35,26 +35,20 @@ class FileNormalizer implements ContextAwareNormalizerInterface, ContextAwareDen
         $this->attachmentEntityConfigProvider = $attachmentEntityConfigProvider;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function supportsDenormalization($data, string $type, string $format = null, array $context = []): bool
+    #[\Override]
+    public function supportsDenormalization($data, string $type, ?string $format = null, array $context = []): bool
     {
         return File::class === $type;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function supportsNormalization($data, string $format = null, array $context = []): bool
+    #[\Override]
+    public function supportsNormalization($data, ?string $format = null, array $context = []): bool
     {
         return $data instanceof File;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function denormalize($data, string $type, string $format = null, array $context = [])
+    #[\Override]
+    public function denormalize($data, string $type, ?string $format = null, array $context = [])
     {
         return $this->createFileEntity(
             $data['uri'] ?? '',
@@ -64,11 +58,11 @@ class FileNormalizer implements ContextAwareNormalizerInterface, ContextAwareDen
     }
 
     /**
-     * {@inheritdoc}
      *
      * @param File $object
      */
-    public function normalize($object, string $format = null, array $context = [])
+    #[\Override]
+    public function normalize($object, ?string $format = null, array $context = [])
     {
         $fileUrl = null;
         // It is impossible to generate URL for a file without ID.

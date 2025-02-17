@@ -56,10 +56,10 @@ class EntityDefinitionConfig extends EntityConfig
     }
 
     /**
-     * {@inheritDoc}
      * @SuppressWarnings(PHPMD.NPathComplexity)
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
+    #[\Override]
     public function toArray(): array
     {
         $result = parent::toArray();
@@ -92,6 +92,9 @@ class EntityDefinitionConfig extends EntityConfig
         if (isset($result[ConfigUtil::DISABLE_SORTING]) && false === $result[ConfigUtil::DISABLE_SORTING]) {
             unset($result[ConfigUtil::DISABLE_SORTING]);
         }
+        if (isset($result[ConfigUtil::ENABLE_VALIDATION]) && false === $result[ConfigUtil::ENABLE_VALIDATION]) {
+            unset($result[ConfigUtil::ENABLE_VALIDATION]);
+        }
         if (isset($result[ConfigUtil::COLLAPSE]) && false === $result[ConfigUtil::COLLAPSE]) {
             unset($result[ConfigUtil::COLLAPSE]);
         }
@@ -122,9 +125,7 @@ class EntityDefinitionConfig extends EntityConfig
         return $result;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function __clone()
     {
         parent::__clone();
@@ -167,11 +168,12 @@ class EntityDefinitionConfig extends EntityConfig
      * Adds the configuration of a field.
      *
      * @param string                           $fieldName
-     * @param EntityDefinitionFieldConfig|null $field
+     * @param FieldConfigInterface|null $field
      *
      * @return EntityDefinitionFieldConfig
      */
-    public function addField(string $fieldName, FieldConfigInterface $field = null): EntityDefinitionFieldConfig
+    #[\Override]
+    public function addField(string $fieldName, ?FieldConfigInterface $field = null): EntityDefinitionFieldConfig
     {
         if (null === $field) {
             $field = new EntityDefinitionFieldConfig();
@@ -183,12 +185,33 @@ class EntityDefinitionConfig extends EntityConfig
     /**
      * Sets the configuration value.
      */
+    #[\Override]
     public function set(string $key, mixed $value): void
     {
         if (null !== $value) {
             $this->items[$key] = $value;
         } else {
             unset($this->items[$key]);
+        }
+    }
+
+    /**
+     * Gets the class name of an API resource.
+     */
+    public function getResourceClass(): ?string
+    {
+        return $this->get(ConfigUtil::RESOURCE_CLASS);
+    }
+
+    /**
+     * Sets the class name of an API resource.
+     */
+    public function setResourceClass(?string $resourceClass): void
+    {
+        if ($resourceClass) {
+            $this->items[ConfigUtil::RESOURCE_CLASS] = $resourceClass;
+        } else {
+            unset($this->items[ConfigUtil::RESOURCE_CLASS]);
         }
     }
 
@@ -733,6 +756,38 @@ class EntityDefinitionConfig extends EntityConfig
     }
 
     /**
+     * Indicates whether the "enable_validation" option is set explicitly.
+     */
+    public function hasEnableValidation(): bool
+    {
+        return $this->has(ConfigUtil::ENABLE_VALIDATION);
+    }
+
+    /**
+     * Indicates whether a validation is enabled.
+     */
+    public function isValidationEnabled(): bool
+    {
+        return $this->get(ConfigUtil::ENABLE_VALIDATION, false);
+    }
+
+    /**
+     * Enables a validation.
+     */
+    public function enableValidation(): void
+    {
+        $this->items[ConfigUtil::ENABLE_VALIDATION] = true;
+    }
+
+    /**
+     * Disables a validation.
+     */
+    public function disableValidation(): void
+    {
+        $this->items[ConfigUtil::ENABLE_VALIDATION] = false;
+    }
+
+    /**
      * Indicates whether the default page size is set.
      */
     public function hasPageSize(): bool
@@ -790,6 +845,7 @@ class EntityDefinitionConfig extends EntityConfig
      *
      * @return int|null The requested maximum number of items, NULL or -1 if not limited
      */
+    #[\Override]
     public function getMaxResults(): ?int
     {
         return $this->get(ConfigUtil::MAX_RESULTS);
@@ -802,6 +858,7 @@ class EntityDefinitionConfig extends EntityConfig
      *
      * @param int|null $maxResults The maximum number of items, NULL or -1 to set unlimited
      */
+    #[\Override]
     public function setMaxResults(?int $maxResults): void
     {
         if (null === $maxResults) {

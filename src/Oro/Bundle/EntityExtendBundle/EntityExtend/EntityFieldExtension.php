@@ -37,8 +37,10 @@ class EntityFieldExtension extends AbstractEntityFieldExtension implements Entit
 
             return true;
         }
+
         $entityMetadata = $transport->getEntityMetadata();
-        $isCustom = !$entityMetadata->get('inherit') && $entityMetadata->get('schema')['type'] === 'Custom';
+        $schema = $entityMetadata->get('schema', false, []);
+        $isCustom = !$entityMetadata->get('inherit') && isset($schema['type']) && $schema['type'] === 'Custom';
 
         if ($transport->getName() === 'id' && $isCustom) {
             $this->setBoolCacheItem($transport, $this, true);
@@ -94,8 +96,11 @@ class EntityFieldExtension extends AbstractEntityFieldExtension implements Entit
             return $cachedValue;
         }
         $result = [];
+
         $entityMetadata = $transport->getEntityMetadata();
-        $isCustom = !$entityMetadata->get('inherit') && $entityMetadata->get('schema')['type'] === 'Custom';
+        $schema = $entityMetadata->get('schema', false, []);
+        $isCustom = !$entityMetadata->get('inherit') && isset($schema['type']) && $schema['type'] === 'Custom';
+
         if ($isCustom) {
             $result['getId'] = 'id';
         }
@@ -186,9 +191,7 @@ class EntityFieldExtension extends AbstractEntityFieldExtension implements Entit
         return $result;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[\Override]
     public function get(EntityFieldProcessTransport $transport): void
     {
         if (!$this->isPropertyExists($transport)) {
@@ -201,9 +204,7 @@ class EntityFieldExtension extends AbstractEntityFieldExtension implements Entit
         $transport->setResult($result);
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[\Override]
     public function set(EntityFieldProcessTransport $transport): void
     {
         if (!$this->isPropertyExists($transport)) {
@@ -219,9 +220,7 @@ class EntityFieldExtension extends AbstractEntityFieldExtension implements Entit
         }
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[\Override]
     public function call(EntityFieldProcessTransport $transport): void
     {
         $this->processGetCall($transport);
@@ -321,9 +320,7 @@ class EntityFieldExtension extends AbstractEntityFieldExtension implements Entit
         }
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[\Override]
     public function isset(EntityFieldProcessTransport $transport): void
     {
         if (is_object($transport->getObject()) &&
@@ -342,9 +339,7 @@ class EntityFieldExtension extends AbstractEntityFieldExtension implements Entit
         $transport->setResult(true);
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[\Override]
     public function propertyExists(EntityFieldProcessTransport $transport): void
     {
         if ($this->isPropertyExists($transport)) {
@@ -353,9 +348,7 @@ class EntityFieldExtension extends AbstractEntityFieldExtension implements Entit
         }
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[\Override]
     public function methodExists(EntityFieldProcessTransport $transport): void
     {
         $rules = [
@@ -381,6 +374,7 @@ class EntityFieldExtension extends AbstractEntityFieldExtension implements Entit
         }
     }
 
+    #[\Override]
     protected function getMethodsData(EntityFieldProcessTransport $transport): array
     {
         return array_merge(
@@ -391,6 +385,7 @@ class EntityFieldExtension extends AbstractEntityFieldExtension implements Entit
         );
     }
 
+    #[\Override]
     public function getMethods(EntityFieldProcessTransport $transport): array
     {
         return array_keys($this->getMethodsData($transport));

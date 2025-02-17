@@ -77,7 +77,7 @@ class ImapEmailIterator implements \Iterator, \Countable
      * @param \Closure|null $callback The callback function is called when a batch is loaded
      *                                function (Email[] $batch)
      */
-    public function setBatchCallback(\Closure $callback = null)
+    public function setBatchCallback(?\Closure $callback = null)
     {
         if ($callback === null) {
             // restore default callback
@@ -98,31 +98,25 @@ class ImapEmailIterator implements \Iterator, \Countable
      * @param \Closure|null $callback The callback function.
      *                                function (\Exception)
      */
-    public function setConvertErrorCallback(\Closure $callback = null)
+    public function setConvertErrorCallback(?\Closure $callback = null)
     {
         $this->onConvertError = $callback;
         $this->iterator->setConvertErrorCallback($callback);
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function count(): int
     {
         return $this->iterator->count();
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function current(): mixed
     {
         return $this->batch[$this->iterationPos] ?? null;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function next(): void
     {
         $this->iterationPos++;
@@ -138,25 +132,19 @@ class ImapEmailIterator implements \Iterator, \Countable
         }
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function key(): mixed
     {
         return $this->iterationPos;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function valid(): bool
     {
         return isset($this->batch[$this->iterationPos]);
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function rewind(): void
     {
         $this->iterationPos = 0;

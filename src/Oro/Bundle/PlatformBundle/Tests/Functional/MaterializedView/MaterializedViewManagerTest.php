@@ -15,6 +15,7 @@ class MaterializedViewManagerTest extends WebTestCase
 
     private MaterializedViewManager $materializedViewManager;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->initClient([], self::generateBasicAuthHeader());
@@ -22,6 +23,7 @@ class MaterializedViewManagerTest extends WebTestCase
         $this->materializedViewManager = self::getContainer()->get('oro_platform.materialized_view.manager');
     }
 
+    #[\Override]
     public static function tearDownAfterClass(): void
     {
         self::deleteAllMaterializedViews(self::getContainer());
@@ -43,8 +45,13 @@ class MaterializedViewManagerTest extends WebTestCase
 
         $materializedViewInfo = self::getMaterializedViewInfo(self::getContainer(), $materializedViewName);
         self::assertNotNull($materializedViewInfo);
+        $expectedSql = mb_strtolower(QueryUtil::getExecutableSql($query));
+        // strip table alias, because postgresql 16 does this as well when inserting the materialized view,
+        // if only one table is used, to simplify the query
+        $expectedSql = str_replace('o0_.', '', $expectedSql);
+
         self::assertEquals(
-            mb_strtolower(QueryUtil::getExecutableSql($query)),
+            $expectedSql,
             mb_strtolower(preg_replace('/\s+/', ' ', trim($materializedViewInfo['definition'], ' ;')))
         );
         self::assertTrue($materializedViewInfo['ispopulated']);

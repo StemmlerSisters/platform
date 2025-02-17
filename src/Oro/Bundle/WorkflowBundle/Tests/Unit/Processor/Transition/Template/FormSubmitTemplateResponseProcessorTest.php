@@ -27,6 +27,7 @@ class FormSubmitTemplateResponseProcessorTest extends \PHPUnit\Framework\TestCas
     /** @var FormSubmitTemplateResponseProcessor */
     private $processor;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->workflowItemSerializer = $this->createMock(WorkflowItemSerializerInterface::class);
@@ -42,8 +43,8 @@ class FormSubmitTemplateResponseProcessorTest extends \PHPUnit\Framework\TestCas
 
     private function createContext(
         string $message,
-        int $code = null,
-        WorkflowItem $workflowItem = null
+        ?int $code = null,
+        ?WorkflowItem $workflowItem = null
     ): TransitionContext {
         $context = new TransitionContext();
         $context->setResultType(new TemplateResultType());

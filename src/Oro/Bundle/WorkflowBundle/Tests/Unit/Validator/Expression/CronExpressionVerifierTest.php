@@ -10,6 +10,7 @@ class CronExpressionVerifierTest extends \PHPUnit\Framework\TestCase
     /** @var CronExpressionVerifier */
     private $verifier;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->verifier = new CronExpressionVerifier();
@@ -18,7 +19,7 @@ class CronExpressionVerifierTest extends \PHPUnit\Framework\TestCase
     /**
      * @dataProvider validateExpressionDataProvider
      */
-    public function testExpression(string $expression, \Exception $exception = null)
+    public function testExpression(string $expression, ?\Exception $exception = null)
     {
         if ($exception) {
             $this->expectException(get_class($exception));

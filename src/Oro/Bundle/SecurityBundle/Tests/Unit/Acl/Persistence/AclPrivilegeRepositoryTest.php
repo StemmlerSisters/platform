@@ -53,6 +53,7 @@ class AclPrivilegeRepositoryTest extends \PHPUnit\Framework\TestCase
     /** @var AclPrivilegeRepository */
     private $repository;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->extension = $this->createMock(AclExtensionInterface::class);
@@ -915,7 +916,7 @@ class AclPrivilegeRepositoryTest extends \PHPUnit\Framework\TestCase
         $this->validateExpectationsForDeletePermission();
     }
 
-    private static function getMask(array $masks, MaskBuilder $maskBuilder = null): int
+    private static function getMask(array $masks, ?MaskBuilder $maskBuilder = null): int
     {
         if ($maskBuilder === null) {
             $maskBuilder = new EntityMaskBuilder(0, ['VIEW', 'CREATE', 'EDIT']);

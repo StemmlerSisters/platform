@@ -28,9 +28,9 @@ class EntityFieldFallbackValueNormalizer implements ContextAwareNormalizerInterf
     /**
      * @param EntityFieldFallbackValue $object
      *
-     * {@inheritdoc}
      */
-    public function normalize($object, string $format = null, array $context = [])
+    #[\Override]
+    public function normalize($object, ?string $format = null, array $context = [])
     {
         if (!$object instanceof EntityFieldFallbackValue) {
             return null;
@@ -39,10 +39,8 @@ class EntityFieldFallbackValueNormalizer implements ContextAwareNormalizerInterf
         return [self::VIRTUAL_FIELD_NAME => $object->getFallback() ?: $object->getOwnValue()];
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function denormalize($data, string $type, string $format = null, array $context = [])
+    #[\Override]
+    public function denormalize($data, string $type, ?string $format = null, array $context = [])
     {
         $object = new EntityFieldFallbackValue();
         if (is_array($data) && array_key_exists(self::VIRTUAL_FIELD_NAME, $data)) {
@@ -64,18 +62,14 @@ class EntityFieldFallbackValueNormalizer implements ContextAwareNormalizerInterf
         return $object;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function supportsDenormalization($data, string $type, string $format = null, array $context = []): bool
+    #[\Override]
+    public function supportsDenormalization($data, string $type, ?string $format = null, array $context = []): bool
     {
         return is_a($type, EntityFieldFallbackValue::class, true);
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function supportsNormalization($data, string $format = null, array $context = []): bool
+    #[\Override]
+    public function supportsNormalization($data, ?string $format = null, array $context = []): bool
     {
         return $data instanceof EntityFieldFallbackValue;
     }

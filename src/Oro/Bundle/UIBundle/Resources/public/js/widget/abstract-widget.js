@@ -165,6 +165,12 @@ define(function(require) {
                 this._wid = this.options.wid;
             }
 
+            const saOrgIdSelector = $('input#_sa_org_id');
+            const saOrgId = saOrgIdSelector ? saOrgIdSelector.val() : null;
+            if (saOrgId !== null && saOrgId > 0) {
+                systemAccessModeOrganizationProvider.setOrganizationId(saOrgId);
+            }
+
             this.on('adoptedFormSubmitClick', this._onAdoptedFormSubmitClick.bind(this));
             this.on('adoptedFormResetClick', this._onAdoptedFormResetClick.bind(this));
             this.on('adoptedFormSubmit', this._onAdoptedFormSubmit.bind(this));
@@ -303,22 +309,24 @@ define(function(require) {
                 _.each(actions, function(action, idx) {
                     const $action = $(action);
                     let actionId = $action.data('action-name') || 'adopted_action_' + idx;
-                    switch (action.type && action.type.toLowerCase()) {
-                        case 'submit':
-                            const submitReplacement = $('<input type="submit" tabindex="-1" aria-hidden="true"/>');
-                            submitReplacement.css({
-                                position: 'absolute',
-                                [_.isRTL() ? 'right' : 'left']: '-9999px',
-                                top: '-9999px',
-                                width: '1px',
-                                height: '1px'
-                            });
-                            form.prepend(submitReplacement);
-                            actionId = 'form_submit';
-                            break;
-                        case 'reset':
-                            actionId = 'form_reset';
-                            break;
+                    if (actionId !== 'delete') {
+                        switch (action.type && action.type.toLowerCase()) {
+                            case 'submit':
+                                const submitReplacement = $('<input type="submit" tabindex="-1" aria-hidden="true"/>');
+                                submitReplacement.css({
+                                    position: 'absolute',
+                                    [_.isRTL() ? 'right' : 'left']: '-9999px',
+                                    top: '-9999px',
+                                    width: '1px',
+                                    height: '1px'
+                                });
+                                form.prepend(submitReplacement);
+                                actionId = 'form_submit';
+                                break;
+                            case 'reset':
+                                actionId = 'form_reset';
+                                break;
+                        }
                     }
                     self.actions.adopted[actionId] = $action;
                 });
@@ -665,7 +673,7 @@ define(function(require) {
          * @param {String} content
          */
         setContent: function(content) {
-            const widgetContent = $(content).filter('.widget-content:first');
+            const widgetContent = $(content).filter('.widget-content').first();
 
             this.actionsEl = null;
             this.actions = {};
@@ -830,7 +838,7 @@ define(function(require) {
             }
 
             try {
-                return $.parseJSON(content);
+                return JSON.parse(content);
             } catch (e) {}
 
             return null;

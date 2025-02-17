@@ -13,8 +13,11 @@ define(function(require, exports, module) {
         ? require('oroform/js/validate-topmost-label-mixin') : null;
     const messageTemplate = require('tpl-loader!oroform/templates/error-template.html');
 
-    const original = _.pick($.validator.prototype, 'init', 'showLabel', 'defaultShowErrors', 'resetElements');
+    const original = _.pick($.validator.prototype,
+        'init', 'showLabel', 'defaultShowErrors', 'resetElements', 'elementValue'
+    );
 
+    const rCRLF = /\r?\n/g;
     const ERROR_CLASS_NAME = 'error';
 
     /**
@@ -181,7 +184,7 @@ define(function(require, exports, module) {
             $(this.currentForm)
                 .find('[name^="temp-validation-name-"]')
                 .each(function() {
-                    $(this).removeAttr('name');
+                    $(this).attr('name', null);
                 });
         }
         return isValid;
@@ -217,7 +220,7 @@ define(function(require, exports, module) {
 
         if ($elem.is('.select2[type=hidden]') || $elem.is('select.select2')) {
             $elem.parent().find('input.select2-focusser')
-                .focus()
+                .trigger('focus')
                 .trigger('focusin');
         } else if (!$elem.filter(':visible').length && $firstValidationError.length) {
             $firstValidationError[0].scrollIntoView({block: 'center'});
@@ -540,6 +543,17 @@ define(function(require, exports, module) {
             }
         },
 
+        elementValue: function(element) {
+            const value = original.elementValue.call(this, element);
+
+            // Add CRLF for multiline text
+            if (element.type === 'textarea') {
+                return value.replace(rCRLF, '\r\n');
+            }
+
+            return value;
+        },
+
         /**
          * @inheritdoc
          */
@@ -703,6 +717,14 @@ define(function(require, exports, module) {
             if (element.name in this.submitted || element.name in this.invalid) {
                 this.element(element);
             }
+        },
+        normalizer(value) {
+            // Add CRLF for multiline text
+            if (this.type === 'textarea') {
+                return value.replace(rCRLF, '\r\n');
+            }
+
+            return value;
         }
     });
 
@@ -751,7 +773,7 @@ define(function(require, exports, module) {
      */
     $.validator.addMethod = _.wrap($.validator.addMethod, function(addMethod, name, method, message) {
         method = _.wrap(method, function(method, value, element, params) {
-            if (!_.isArray(params)) {
+            if (!Array.isArray(params)) {
                 return method.call(this, value, element, params);
             }
             return _.every(params, function(param, index) {
@@ -765,7 +787,7 @@ define(function(require, exports, module) {
 
         if (_.isFunction(message)) {
             message = _.wrap(message, function(message, params, element) {
-                if (!_.isArray(params)) {
+                if (!Array.isArray(params)) {
                     return message.call(this, params, element);
                 }
                 const param = params[params.failedIndex];

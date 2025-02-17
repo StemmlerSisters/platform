@@ -7,6 +7,7 @@ $btn-fa-icon-line-height: $btn-line-height - 2 !default;
 $btn-fa-icon-vertical-align: middle !default;
 
 $btn-not-btn-icon-fa-offset: 0 $content-padding-small 0 0 !default;
+$btn-not-btn-icon-fa-offset-end: 0 0 0 $content-padding-small !default;
 $btn-not-btn-icon-end-fa-offset: 0 0 0 $content-padding-small !default;
 
 $btn-icon-width: 32px !default;
@@ -17,6 +18,10 @@ $btn-icon-position: relative !default;
 $btn-icon-inner-offset: 0 !default;
 $btn-icon-text-indent: -9999px !default;
 $btn-icon-gold-color: $warning !default;
+
+$btn-icon-small-width: 24px !default;
+$btn-icon-small-height: 24px !default;
+$btn-icon-small-font-size: 14px !default;
 
 $btn-icon-fa-offset: 0 !default;
 $btn-icon-fa-text-indent: 0 !default;

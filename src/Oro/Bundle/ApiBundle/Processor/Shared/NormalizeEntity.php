@@ -4,6 +4,7 @@ namespace Oro\Bundle\ApiBundle\Processor\Shared;
 
 use Oro\Bundle\ApiBundle\Normalizer\ObjectNormalizer;
 use Oro\Bundle\ApiBundle\Processor\Context;
+use Oro\Bundle\ApiBundle\Processor\FormContext;
 use Oro\Component\ChainProcessor\ContextInterface;
 use Oro\Component\ChainProcessor\ProcessorInterface;
 
@@ -19,9 +20,7 @@ class NormalizeEntity implements ProcessorInterface
         $this->objectNormalizer = $objectNormalizer;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function process(ContextInterface $context): void
     {
         /** @var Context $context */
@@ -39,7 +38,7 @@ class NormalizeEntity implements ProcessorInterface
 
         $data = $this->objectNormalizer->normalizeObjects(
             [$data],
-            $context->getConfig(),
+            $context instanceof FormContext ? $context->getNormalizedConfig() : $context->getConfig(),
             $context->getNormalizationContext()
         );
         $context->setResult(reset($data));

@@ -3,7 +3,6 @@
 namespace Oro\Bundle\ApiBundle\Tests\Functional;
 
 use Oro\Bundle\ApiBundle\Request\Rest\RestDocumentBuilder as RestApiDoc;
-use Oro\Component\PhpUtils\ArrayUtil;
 use Oro\Component\Testing\Assert\ArrayContainsConstraint;
 
 /**
@@ -11,16 +10,14 @@ use Oro\Component\Testing\Assert\ArrayContainsConstraint;
  */
 class RestPlainDocContainsConstraint extends ArrayContainsConstraint
 {
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     protected function matches($other): bool
     {
         if (parent::matches($other)
             && \is_array($this->expected)
             && \is_array($other)
             && !empty($this->expected)
-            && !ArrayUtil::isAssoc($this->expected)
+            && !$this->isAssocArray($this->expected)
             && \count($this->expected) !== \count($other)
         ) {
             try {
@@ -39,9 +36,7 @@ class RestPlainDocContainsConstraint extends ArrayContainsConstraint
         return empty($this->errors);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     protected function matchAssocArray(array $expected, array $actual, array $path): void
     {
         parent::matchAssocArray($expected, $actual, $path);

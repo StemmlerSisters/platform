@@ -43,7 +43,7 @@ define(function(require) {
             if (!this.options.pageReload) {
                 this.$el.on(
                     'change',
-                    'input[data-needs-page-reload]',
+                    ':input[data-needs-page-reload]',
                     this._onNeedsReloadChange.bind(this)
                 );
             }
@@ -121,7 +121,7 @@ define(function(require) {
                     .prop('checked', true)
                     .attr('checked', true);
 
-                this.$el.find(':input').change();
+                this.$el.find(':input').trigger('change');
 
                 this.$el.find(':input').each(function() {
                     const $field = $(this);

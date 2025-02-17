@@ -2,8 +2,9 @@
 
 namespace Oro\Bundle\SecurityBundle\Authentication\Authenticator;
 
-use Exception;
+use Oro\Bundle\FormBundle\Captcha\CaptchaSettingsProviderInterface;
 use Oro\Bundle\SecurityBundle\Authentication\Guesser\OrganizationGuesserInterface;
+use Oro\Bundle\SecurityBundle\Authentication\Passport\Badge\CaptchaBadge;
 use Oro\Bundle\SecurityBundle\Authentication\Token\UsernamePasswordOrganizationTokenFactoryInterface;
 use Oro\Bundle\UserBundle\Entity\User;
 use Oro\Bundle\UserBundle\Exception\BadCredentialsException as BadUserCredentialsException;
@@ -28,6 +29,8 @@ class UsernamePasswordOrganizationAuthenticator extends FormLoginAuthenticator
 {
     private UsernamePasswordOrganizationTokenFactoryInterface $tokenFactory;
     private OrganizationGuesserInterface $organizationGuesser;
+    private ?CaptchaSettingsProviderInterface $captchaSettingsProvider = null;
+    private array $firewallToLoginForm = [];
 
     public function __construct(
         HttpUtils $httpUtils,
@@ -51,6 +54,17 @@ class UsernamePasswordOrganizationAuthenticator extends FormLoginAuthenticator
         $this->organizationGuesser = $organizationGuesser;
     }
 
+    public function setCaptchaSettingsProvider(CaptchaSettingsProviderInterface $captchaSettingsProvider)
+    {
+        $this->captchaSettingsProvider = $captchaSettingsProvider;
+    }
+
+    public function mapFirewallToLoginForm(string $firewallName, string $formName)
+    {
+        $this->firewallToLoginForm[$firewallName] = $formName;
+    }
+
+    #[\Override]
     public function authenticate(Request $request): Passport
     {
         $passport = parent::authenticate($request);
@@ -61,9 +75,14 @@ class UsernamePasswordOrganizationAuthenticator extends FormLoginAuthenticator
         );
         $request->attributes->set('user', $this->getUser($passport));
 
+        if ($this->isCaptchaProtected()) {
+            $passport->addBadge(new CaptchaBadge($request->request->get('captcha')));
+        }
+
         return $passport;
     }
 
+    #[\Override]
     public function createToken(Passport $passport, string $firewallName): TokenInterface
     {
         if (null === $this->tokenFactory) {
@@ -88,6 +107,7 @@ class UsernamePasswordOrganizationAuthenticator extends FormLoginAuthenticator
         );
     }
 
+    #[\Override]
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception): Response
     {
         if ($exception instanceof BadCredentialsException && isset($this->errorMessageOptions[$this->firewallName])) {
@@ -112,8 +132,19 @@ class UsernamePasswordOrganizationAuthenticator extends FormLoginAuthenticator
     {
         try {
             return $passport->getUser();
-        } catch (Exception $exception) {
+        } catch (\Exception $e) {
             return null;
         }
+    }
+
+    private function isCaptchaProtected(): bool
+    {
+        $formName = $this->firewallToLoginForm[$this->firewallName] ?? null;
+        if (!$formName) {
+            return false;
+        }
+
+        return $this->captchaSettingsProvider?->isProtectionAvailable()
+            && $this->captchaSettingsProvider?->isFormProtected($formName);
     }
 }

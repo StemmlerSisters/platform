@@ -17,8 +17,8 @@ class FilesystemCache extends FilesystemAdapter implements DirectoryAwareFileCac
     public function __construct(
         string $namespace = '',
         int $defaultLifetime = 0,
-        string $directory = null,
-        MarshallerInterface $marshaller = null
+        ?string $directory = null,
+        ?MarshallerInterface $marshaller = null
     ) {
         if ($directory) {
             $this->setDirectory($directory . DIRECTORY_SEPARATOR . $namespace);

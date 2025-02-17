@@ -18,6 +18,7 @@ class ActivityAccessorTest extends \PHPUnit\Framework\TestCase
     /** @var ActivityAccessor */
     private $accessor;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->doctrine = $this->createMock(ManagerRegistry::class);
@@ -64,7 +65,7 @@ class ActivityAccessorTest extends \PHPUnit\Framework\TestCase
         ];
     }
 
-    private function getFieldMetadata(string $fieldName = null, array $options = []): FieldMetadata
+    private function getFieldMetadata(?string $fieldName = null, array $options = []): FieldMetadata
     {
         $result = $this->createMock(FieldMetadata::class);
         $result->expects($this->any())

@@ -18,7 +18,7 @@ class DeduplicationHandlerCacheWarmer implements CacheWarmerInterface
      */
     private $deduplicationHandler;
 
-    public function __construct(DeduplicationHandler $deduplicationHandler = null)
+    public function __construct(?DeduplicationHandler $deduplicationHandler = null)
     {
         $this->deduplicationHandler = $deduplicationHandler;
     }
@@ -26,6 +26,7 @@ class DeduplicationHandlerCacheWarmer implements CacheWarmerInterface
     /**
      * {inheritdoc}
      */
+    #[\Override]
     public function warmUp($cacheDir): array
     {
         if ($this->deduplicationHandler) {
@@ -37,6 +38,7 @@ class DeduplicationHandlerCacheWarmer implements CacheWarmerInterface
     /**
      * {inheritdoc}
      */
+    #[\Override]
     public function isOptional(): bool
     {
         return false;

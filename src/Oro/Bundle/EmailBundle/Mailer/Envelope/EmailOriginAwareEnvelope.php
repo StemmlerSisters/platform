@@ -17,27 +17,31 @@ class EmailOriginAwareEnvelope extends Envelope
 
     private ?EmailOrigin $emailOrigin;
 
-    public function __construct(RawMessage $message, EmailOrigin $emailOrigin = null)
+    public function __construct(RawMessage $message, ?EmailOrigin $emailOrigin = null)
     {
         $this->envelope = parent::create($message);
         $this->emailOrigin = $emailOrigin;
     }
 
+    #[\Override]
     public function setSender(SymfonyAddress $sender): void
     {
         $this->envelope->setSender($sender);
     }
 
+    #[\Override]
     public function getSender(): SymfonyAddress
     {
         return $this->envelope->getSender();
     }
 
+    #[\Override]
     public function setRecipients(array $recipients): void
     {
         $this->envelope->setRecipients($recipients);
     }
 
+    #[\Override]
     public function getRecipients(): array
     {
         return $this->envelope->getRecipients();
@@ -56,6 +60,7 @@ class EmailOriginAwareEnvelope extends Envelope
     /**
      * @see \Symfony\Component\Mailer\Envelope::create()
      */
+    #[\Override]
     public static function create(RawMessage $message): self
     {
         if (\get_class($message) === RawMessage::class) {

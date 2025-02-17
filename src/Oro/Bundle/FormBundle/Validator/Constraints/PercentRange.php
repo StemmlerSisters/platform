@@ -19,7 +19,7 @@ use Symfony\Component\Validator\Exception\MissingOptionsException;
  * @Annotation
  * @Target({"PROPERTY", "METHOD", "ANNOTATION"})
  */
-#[Attribute(Attribute::TARGET_PROPERTY|Attribute::TARGET_METHOD)]
+#[Attribute(Attribute::TARGET_PROPERTY | Attribute::TARGET_METHOD)]
 class PercentRange extends Constraint
 {
     public const FRACTIONAL     = 'fractional';
@@ -43,7 +43,7 @@ class PercentRange extends Constraint
     /** @var string */
     public $type = self::FRACTIONAL;
 
-    public function __construct(array $options = null)
+    public function __construct(?array $options = null)
     {
         if (\is_array($options) && isset($options['min'], $options['max'])) {
             if (isset($options['minMessage']) || isset($options['maxMessage'])) {

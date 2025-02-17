@@ -18,6 +18,7 @@ class CompleteDefinitionHelperTestCase extends \PHPUnit\Framework\TestCase
 
     protected ConfigLoaderFactory $configLoaderFactory;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->configLoaderFactory = new ConfigLoaderFactory(new ConfigExtensionRegistry());
@@ -28,7 +29,7 @@ class CompleteDefinitionHelperTestCase extends \PHPUnit\Framework\TestCase
         return $this->configLoaderFactory->getLoader(ConfigUtil::DEFINITION)->load($config);
     }
 
-    protected function createRelationConfigObject(array $definition = null): Config
+    protected function createRelationConfigObject(?array $definition = null): Config
     {
         $config = new Config();
         if (null !== $definition) {
@@ -54,7 +55,7 @@ class CompleteDefinitionHelperTestCase extends \PHPUnit\Framework\TestCase
     }
 
     protected function getClassMetadataMock(
-        string $className = null
+        ?string $className = null
     ): ClassMetadata|\PHPUnit\Framework\MockObject\MockObject {
         if ($className) {
             $classMetadata = $this->getMockBuilder(ClassMetadata::class)
@@ -69,6 +70,7 @@ class CompleteDefinitionHelperTestCase extends \PHPUnit\Framework\TestCase
             ->willReturnCallback(function () use ($classMetadata) {
                 return ClassMetadata::INHERITANCE_TYPE_NONE === $classMetadata->inheritanceType;
             });
+        $classMetadata->expects(self::any())->method('getName')->willReturn($className);
 
         return $classMetadata;
     }

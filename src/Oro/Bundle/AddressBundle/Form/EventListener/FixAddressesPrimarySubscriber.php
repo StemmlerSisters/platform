@@ -27,15 +27,13 @@ class FixAddressesPrimarySubscriber implements EventSubscriberInterface
     /** @var PropertyAccessorInterface */
     private $propertyAccessor;
 
-    public function __construct(string $addressesPropertyPath, PropertyAccessorInterface $propertyAccessor = null)
+    public function __construct(string $addressesPropertyPath, ?PropertyAccessorInterface $propertyAccessor = null)
     {
         $this->addressesPropertyPath = $addressesPropertyPath;
         $this->propertyAccessor = $propertyAccessor ?? PropertyAccess::createPropertyAccessor();
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public static function getSubscribedEvents(): array
     {
         return [

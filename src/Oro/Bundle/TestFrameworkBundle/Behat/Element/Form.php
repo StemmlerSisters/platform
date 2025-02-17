@@ -59,6 +59,7 @@ class Form extends Element
     /**
      * @param string $label
      * @param string $value
+     *
      * @throws ElementNotFoundException
      */
     public function typeInField($label, $value, $clearField = true)
@@ -188,6 +189,7 @@ class Form extends Element
         $this->findElementInParents($field, '.entity-select-btn')->click();
     }
 
+    #[\Override]
     public function findField($locator)
     {
         $selector = is_array($locator)
@@ -211,8 +213,41 @@ class Form extends Element
     }
 
     /**
+     * @param string $locator
+     * @param string $value
+     */
+    public function setInnerHtmlForElement($label, $value): void
+    {
+        $this->closeOverlays();
+        $field = $this->findFieldUsingMapping($label, false);
+
+        if (null === $field) {
+            $field = $this->getPage()->find('named', ['field', $label]);
+        }
+
+        if (null === $field && $this->elementFactory->hasElement($label)) {
+            // try to find field among defined elements
+            $field = $this->elementFactory->createElement($label);
+        }
+
+        if (null === $field) {
+            throw new ElementNotFoundException(
+                $this->getDriver(),
+                'form field',
+                'id|name|label|value|placeholder',
+                $label
+            );
+        }
+
+        self::assertTrue($field->isVisible(), "Field with '$label' was found, but it not visible");
+
+        $this->getDriver()->setInnerHtmlForElement($field->getXpath(), $value);
+    }
+
+    /**
      * @param string $locator Label text
      * @param bool $failOnError
+     *
      * @return NodeElement|null
      * @throws ElementNotFoundException
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
@@ -228,7 +263,7 @@ class Form extends Element
             return null;
         }
         $sndParent = $label->getParent()->getParent();
-        $classes = preg_split('/\s+/', (string)$sndParent->getAttribute('class'), -1, PREG_SPLIT_NO_EMPTY);
+        $classes = preg_split('/\s+/', (string) $sndParent->getAttribute('class'), -1, PREG_SPLIT_NO_EMPTY);
 
         if (in_array('control-group-collection', $classes, true)) {
             $elementName = InflectorFactory::create()->singularize(trim($label->getText())) . 'Collection';
@@ -296,7 +331,7 @@ class Form extends Element
         }
 
         $type = $field->getAttribute('type');
-        $classes = preg_split('/\s+/', (string)$field->getAttribute('class'), -1, PREG_SPLIT_NO_EMPTY);
+        $classes = preg_split('/\s+/', (string) $field->getAttribute('class'), -1, PREG_SPLIT_NO_EMPTY);
         $isExternalFileField = $field->getAttribute('data-is-external-file') === '1';
 
         if ('file' === $type) {
@@ -308,7 +343,7 @@ class Form extends Element
         }
 
         if ('datetime' === $type
-            || (string)$field->getAttribute('data-bound-view') === 'oroui/js/app/views/datepicker/datepicker-view'
+            || (string) $field->getAttribute('data-bound-view') === 'oroui/js/app/views/datepicker/datepicker-view'
             || in_array('datepicker-input', $classes, true)
         ) {
             if (!in_array('input', $classes)) { // Skip frontend datepickers, because of the different UI
@@ -351,10 +386,15 @@ class Form extends Element
             if ($wysiwyg) {
                 return $this->elementFactory->wrapElement('WysiwygField', $field);
             }
+
+            $codemirror = $field->getParent()->find('css', '.cm-editor');
+            if ($codemirror) {
+                return $this->elementFactory->wrapElement('CodeMirrorField', $field);
+            }
         }
 
         if ('orodigitalasset/js/app/views/digital-asset-choose-form-view'
-            === (string)$field->getParent()->getAttribute('data-bound-view')
+            === (string) $field->getParent()->getAttribute('data-bound-view')
         ) {
             return $this->elementFactory->wrapElement('DigitalAssetManagerField', $field);
         }
@@ -364,6 +404,7 @@ class Form extends Element
 
     /**
      * @param array|string $value
+     *
      * @return array|string
      */
     public static function normalizeValue($value)
@@ -406,6 +447,7 @@ class Form extends Element
      *          "Daily every 5 days, end by <Date:next month>" <> value will be replaced as well
      *
      * @param $value
+     *
      * @return \DateTime|mixed
      * @throws BehatSecretsReaderException
      */
@@ -450,6 +492,7 @@ class Form extends Element
 
     /**
      * @param string $locator
+     *
      * @return NodeElement|null
      */
     protected function findFieldSetLabel($locator)
@@ -463,6 +506,7 @@ class Form extends Element
      * @param NodeElement $element
      * @param string $type etc. input|label|select
      * @param int $deep Count of parent elements that will be inspected for contains searched element type
+     *
      * @return NodeElement|null First found element with given type
      */
     protected function findElementInParents(NodeElement $element, $type, $deep = 3)
@@ -483,6 +527,7 @@ class Form extends Element
      * Retrieves validation error message text for provided field name
      *
      * @param string $fieldName
+     *
      * @return string
      */
     public function getFieldValidationErrors($fieldName)
@@ -561,6 +606,7 @@ class Form extends Element
      * Retrieves validation error message text for provided field name
      *
      * @param string $fieldName
+     *
      * @return array
      */
     public function getAllFieldValidationErrors($fieldName)
@@ -617,6 +663,7 @@ class Form extends Element
         }
     }
 
+    #[\Override]
     public function setOptions(array $options)
     {
         // Convert all mappings to lowercase

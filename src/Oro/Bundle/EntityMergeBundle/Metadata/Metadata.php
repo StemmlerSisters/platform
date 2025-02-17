@@ -16,9 +16,7 @@ class Metadata implements MetadataInterface
         $this->options = $options;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function get($code, $strict = false)
     {
         if (isset($this->options[$code])) {
@@ -32,34 +30,26 @@ class Metadata implements MetadataInterface
         return null;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function set($code, $value)
     {
         $this->options[$code] = $value;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function has($code)
     {
         return isset($this->options[$code]);
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function is($code, $value = true)
     {
         return $this->get($code) === null ? false : $this->get($code) == $value;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function all(\Closure $filter = null)
+    #[\Override]
+    public function all(?\Closure $filter = null)
     {
         if ($filter) {
             return array_filter($this->options, $filter);
@@ -68,9 +58,7 @@ class Metadata implements MetadataInterface
         return $this->options;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function merge($data, $override = true)
     {
         foreach ($this->convertToArray($data) as $code => $value) {

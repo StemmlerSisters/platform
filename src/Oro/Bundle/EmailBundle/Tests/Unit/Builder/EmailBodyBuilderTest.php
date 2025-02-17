@@ -13,6 +13,7 @@ class EmailBodyBuilderTest extends \PHPUnit\Framework\TestCase
     /** @var EmailBodyBuilder */
     private $emailBodyBuilder;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->configManager = $this->createMock(ConfigManager::class);
@@ -87,7 +88,8 @@ class EmailBodyBuilderTest extends \PHPUnit\Framework\TestCase
         );
 
         $body = $this->emailBodyBuilder->getEmailBody();
-        $this->assertEquals($expected, $body->getHasAttachments());
+        //Attachment metadata will be created in any case, only content dependent on settings
+        $this->assertEquals($expected, !empty($body->getAttachments()[0]->getContent()));
     }
 
     public function addAttachmentProvider(): array

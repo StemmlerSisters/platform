@@ -9,18 +9,15 @@ use Oro\Bundle\OrganizationBundle\Entity\Organization;
 use Oro\Bundle\OrganizationBundle\Migrations\Data\ORM\UpdateWithOrganization;
 use Oro\Bundle\UserBundle\Entity\Group;
 use Oro\Bundle\UserBundle\Entity\User;
-use Oro\Bundle\UserBundle\Entity\UserApi;
 
 /**
- * Sets a default organization to User, Group and UserApi entities.
+ * Sets a default organization to User and Group entities.
  */
 class UpdateUserEntitiesWithOrganization extends UpdateWithOrganization implements DependentFixtureInterface
 {
     private const BATCH_SIZE = 200;
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function getDependencies(): array
     {
         return [
@@ -29,14 +26,11 @@ class UpdateUserEntitiesWithOrganization extends UpdateWithOrganization implemen
         ];
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function load(ObjectManager $manager): void
     {
         $this->update($manager, User::class);
         $this->update($manager, Group::class);
-        $this->update($manager, UserApi::class);
 
         $organization = $manager->getRepository(Organization::class)->getFirst();
         $usersQB = $manager->getRepository(User::class)->createQueryBuilder('u');

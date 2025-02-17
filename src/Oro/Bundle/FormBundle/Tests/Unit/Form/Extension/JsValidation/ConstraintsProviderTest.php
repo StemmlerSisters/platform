@@ -25,6 +25,7 @@ class ConstraintsProviderTest extends \PHPUnit\Framework\TestCase
     /** @var ConstraintsProvider */
     private $constraintsProvider;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->metadataFactory = $this->createMock(MetadataFactoryInterface::class);
@@ -217,9 +218,9 @@ class ConstraintsProviderTest extends \PHPUnit\Framework\TestCase
 
     private function createForm(
         string $name,
-        string $dataClass = null,
+        ?string $dataClass = null,
         array $options = [],
-        FormInterface $parent = null
+        ?FormInterface $parent = null
     ): FormInterface {
         $eventDispatcher = $this->createMock(EventDispatcherInterface::class);
 

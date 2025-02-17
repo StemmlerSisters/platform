@@ -26,16 +26,14 @@ class DataFixturesExecutor extends ORMExecutor
 
     public function __construct(
         EntityManagerInterface $em,
-        Registry               $registry,
-        ?ORMPurgerInterface    $purger = null,
+        Registry $registry,
+        ?ORMPurgerInterface $purger = null,
     ) {
         parent::__construct($em, $purger);
         $this->registry = $registry;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function load(ObjectManager $manager, FixtureInterface $fixture)
     {
         if ($this->logger) {

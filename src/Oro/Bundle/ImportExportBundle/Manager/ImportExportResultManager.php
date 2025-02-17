@@ -27,8 +27,8 @@ class ImportExportResultManager
         int $jobId,
         string $type,
         string $entity,
-        User $owner = null,
-        string $fileName = null,
+        ?User $owner = null,
+        ?string $fileName = null,
         array $options = []
     ): ImportExportResult {
         $importExportResult = new ImportExportResult();

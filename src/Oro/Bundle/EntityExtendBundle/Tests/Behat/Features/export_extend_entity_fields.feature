@@ -2,7 +2,7 @@
 @ticket-BAP-20922
 
 Feature: Export extend entity fields
-  Сheck if the select and multi select fields are exported without problems with html symbols
+  Check if the select and multi select fields are exported without problems with html symbols
 
   Scenario: Feature background
     Given I login as administrator
@@ -29,10 +29,6 @@ Feature: Export extend entity fields
       | select_field       | Select       | Select field       |
       | multi_select_field | Multi-Select | Multi select field |
 
-  Scenario: Update schema
-    Given I click update schema
-    And I should see Schema updated flash message
-
   Scenario: Create a call record in the Calls grid
     Given go to Activities/ Calls
     And click "Log call"
@@ -44,11 +40,12 @@ Feature: Export extend entity fields
       | Duration            | 60s                                       |
       | Call date & time    | <DateTime:2016-10-31 08:00:00>            |
       | Select Field        | Carte d'identité                          |
-    And I take screenshot
-    And check "Carte d'identité"
+      | Multi Select Field  | Carte d'identité                          |
     And save and close form
     Then should see "Call saved" flash message
-    And I take screenshot
+    Then should see Call with:
+      | Select Field       | Carte d'identité |
+      | Multi select field | Carte d'identité |
 
   Scenario: Export call and check fields
     Given go to Activities/ Calls

@@ -29,9 +29,10 @@ class EntityPaginationExtensionTest extends \PHPUnit\Framework\TestCase
     /** @var EntityPaginationExtension */
     private $extension;
 
+    #[\Override]
     protected function setUp(): void
     {
-        $this->navigation =$this->createMock(EntityPaginationNavigation::class);
+        $this->navigation = $this->createMock(EntityPaginationNavigation::class);
         $this->dataCollector = $this->createMock(StorageDataCollector::class);
         $this->messageManager = $this->createMock(MessageManager::class);
         $this->requestStack = $this->createMock(RequestStack::class);
@@ -49,7 +50,7 @@ class EntityPaginationExtensionTest extends \PHPUnit\Framework\TestCase
     /**
      * @dataProvider getPagerDataProvider
      */
-    public function testGetPager(?array $expected, int $totalCount = null, int $currentNumber = null)
+    public function testGetPager(?array $expected, ?int $totalCount = null, ?int $currentNumber = null)
     {
         $entity = new \stdClass();
         $scope = 'test';

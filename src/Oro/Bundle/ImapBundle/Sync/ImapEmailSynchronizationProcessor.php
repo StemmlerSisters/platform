@@ -61,12 +61,12 @@ class ImapEmailSynchronizationProcessor extends AbstractEmailSynchronizationProc
     private ?int $processStartTime = null;
 
     public function __construct(
-        EntityManager                     $em,
-        EmailEntityBuilder                $emailEntityBuilder,
+        EntityManager $em,
+        EmailEntityBuilder $emailEntityBuilder,
         KnownEmailAddressCheckerInterface $knownEmailAddressChecker,
-        ImapEmailManager                  $manager,
-        ImapEmailRemoveManager            $removeManager,
-        ImapEmailFolderManagerFactory     $imapEmailFolderManagerFactory
+        ImapEmailManager $manager,
+        ImapEmailRemoveManager $removeManager,
+        ImapEmailFolderManagerFactory $imapEmailFolderManagerFactory
     ) {
         parent::__construct($em, $emailEntityBuilder, $knownEmailAddressChecker);
         $this->manager = $manager;
@@ -79,9 +79,7 @@ class ImapEmailSynchronizationProcessor extends AbstractEmailSynchronizationProc
         $this->emailErrorsLogger = $emailErrorsLogger;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function process(EmailOrigin $origin, $syncStartTime, EmailSyncNotificationBag $notificationBag): void
     {
         // make sure that the entity builder is empty
@@ -191,8 +189,8 @@ class ImapEmailSynchronizationProcessor extends AbstractEmailSynchronizationProc
      * @SuppressWarnings(PHPMD.NPathComplexity)
      */
     protected function syncEmails(
-        EmailOrigin              $origin,
-        ImapEmailFolder          $imapFolder,
+        EmailOrigin $origin,
+        ImapEmailFolder $imapFolder,
         EmailSyncNotificationBag $notificationBag
     ): array {
         $uid = 0;
@@ -405,9 +403,7 @@ class ImapEmailSynchronizationProcessor extends AbstractEmailSynchronizationProc
         $this->cleanUp();
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     protected function entitiesToClear(): array
     {
         return array_merge(
@@ -578,9 +574,9 @@ class ImapEmailSynchronizationProcessor extends AbstractEmailSynchronizationProc
      * Get email ids and create iterator
      */
     protected function getEmailIterator(
-        EmailOrigin     $origin,
+        EmailOrigin $origin,
         ImapEmailFolder $imapFolder,
-        EmailFolder     $folder
+        EmailFolder $folder
     ): ImapEmailIterator {
         $lastUid = null;
         if (false === $this->getSettings()->isForceMode()) {
@@ -639,7 +635,7 @@ class ImapEmailSynchronizationProcessor extends AbstractEmailSynchronizationProc
      * Process actions when email folder can't be selected.
      */
     protected function processUnselectableFolderException(
-        EmailFolder              $folder,
+        EmailFolder $folder,
         EmailSyncNotificationBag $notificationBag
     ): void {
         $folderName = $folder->getFullName();

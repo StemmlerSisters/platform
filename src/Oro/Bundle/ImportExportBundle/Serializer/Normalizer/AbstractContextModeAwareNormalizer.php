@@ -28,9 +28,9 @@ abstract class AbstractContextModeAwareNormalizer implements
     /**
      * Normalization depends on mode
      *
-     * {@inheritdoc}
      */
-    public function normalize($object, string $format = null, array $context = [])
+    #[\Override]
+    public function normalize($object, ?string $format = null, array $context = [])
     {
         $mode = $this->getMode($context);
         $method = 'normalize' . ucfirst($mode);
@@ -43,9 +43,9 @@ abstract class AbstractContextModeAwareNormalizer implements
     /**
      * Denormalization depends on mode
      *
-     * {@inheritdoc}
      */
-    public function denormalize($data, string $type, string $format = null, array $context = [])
+    #[\Override]
+    public function denormalize($data, string $type, ?string $format = null, array $context = [])
     {
         $mode = $this->getMode($context);
         $method = 'denormalize' . ucfirst($mode);

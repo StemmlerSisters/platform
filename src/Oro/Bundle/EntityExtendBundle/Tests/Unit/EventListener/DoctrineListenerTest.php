@@ -21,6 +21,7 @@ class DoctrineListenerTest extends OrmTestCase
     private ConfigProvider|MockObject $extendConfigProvider;
     private DoctrineListener $listener;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->reader = new AttributeReader();
@@ -40,7 +41,7 @@ class DoctrineListenerTest extends OrmTestCase
     public function testProcessFieldMappings(
         string $path,
         array $expectedValues,
-        string $expectedException = null
+        ?string $expectedException = null
     ) {
         if ($expectedException) {
             return;
@@ -85,7 +86,7 @@ class DoctrineListenerTest extends OrmTestCase
     public function testProcessDiscriminatorValues(
         string $path,
         array $expectedValues,
-        string $expectedException = null
+        ?string $expectedException = null
     ) {
         if (null !== $expectedException) {
             $this->expectException($expectedException);

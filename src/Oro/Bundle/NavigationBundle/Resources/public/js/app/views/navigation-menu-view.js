@@ -2,6 +2,8 @@ import $ from 'jquery';
 import _ from 'underscore';
 import BaseView from 'oroui/js/app/views/base/view';
 
+import tools from 'oroui/js/tools';
+
 import 'jquery-ui/scroll-parent';
 
 const KEY_CODES = {
@@ -15,6 +17,8 @@ const KEY_CODES = {
     UP: 38,
     DOWN: 40
 };
+
+const MAX_TRY_ATTEND = 1000;
 
 const MENU_BAR_ATTR = 'data-menu-bar';
 const MENU_ITEM_INDEX_ATTR = 'data-relative-index';
@@ -67,9 +71,10 @@ const NavigationMenuView = BaseView.extend({
         focusableElements: 'a:visible:not([data-ignore-navigation]), button:visible:not([data-ignore-navigation])',
         // Elements that are keyboard focusable but not part of the Tab sequence of the page.
         tabbableElements: 'a:visible, button:visible',
-        itemSelector: 'li, [role="listitem"]',
+        itemSelector: 'li, [role="listitem"], [data-role="list-item"]',
         linkSelector: 'a:first',
-        subMenus: 'ul, ol, nav, [data-role="sub-menu"]',
+        // Some menus might be filled in real-time or on resize, so we need to skip empty ones
+        subMenus: 'ul:not(:empty), ol:not(:empty), nav:not(:empty), [data-role="sub-menu"]:not(:empty)',
         popupMenuCriteria: '[aria-hidden]',
         closeMenu: '[data-role="close"]',
         listenToMouseEvents: true
@@ -101,7 +106,7 @@ const NavigationMenuView = BaseView.extend({
         if (this.isPlainMenu) {
             this.registerKey(KEY_CODES.LEFT, this.onPressedStartSide);
             this.registerKey(KEY_CODES.RIGHT, this.onPressedEndSide);
-            // For simple (plain) menu buttons TOP and BOTTOM are doing the some behaviour as LEFT and RIGHT
+            // For simple (plain) menu buttons TOP and BOTTOM are doing the same behaviour as LEFT and RIGHT
             this.registerKey(KEY_CODES.UP, this.onPressedStartSide);
             this.registerKey(KEY_CODES.DOWN, this.onPressedEndSide);
         } else {
@@ -131,11 +136,11 @@ const NavigationMenuView = BaseView.extend({
         delete this._keysMap;
         delete this._searchData;
         delete this.$lastFocusedElementInRow;
-        this.$(this.options.tabbableElements).removeAttr('tabindex');
+        this.$(this.options.tabbableElements).attr('tabindex', null);
         this.$el
-            .removeAttr(MENU_BAR_ATTR)
+            .attr(MENU_BAR_ATTR, null)
             .removeClass(this.plainMenuClass);
-        this.$el.children(this.options.subMenus).removeAttr(MENU_BAR_ATTR);
+        this.$el.children(this.options.subMenus).attr(MENU_BAR_ATTR, null);
 
         NavigationMenuView.__super__.dispose.call(this);
     },
@@ -145,7 +150,7 @@ const NavigationMenuView = BaseView.extend({
      * @param {function} callback
      */
     registerKey(keyCode, callback) {
-        if ($.isNumeric(keyCode) && typeof callback === 'function') {
+        if (tools.isNumeric(keyCode) && typeof callback === 'function') {
             this._keysMap[keyCode] = callback;
         }
     },
@@ -196,7 +201,7 @@ const NavigationMenuView = BaseView.extend({
             return false;
         }
 
-        return $menu.width() === $menu.children(':first').width();
+        return $menu.width() === $menu.children().first().width();
     },
 
     /**
@@ -738,7 +743,7 @@ const NavigationMenuView = BaseView.extend({
             ) {
                 $el
                     .attr('aria-hidden', true)
-                    .removeAttr(MENU_ITEM_INDEX_ATTR)
+                    .attr(MENU_ITEM_INDEX_ATTR, null)
                     .removeClass(this.options.openClass);
             }
         });
@@ -756,7 +761,14 @@ const NavigationMenuView = BaseView.extend({
         const $nextMenu = $menu.next(this.options.subMenus);
         let $nextParentMenu = $parentMenu.next(this.options.subMenus);
 
-        while (!$el.length) {
+        let attempt = 0;
+        while (!$el.length || attempt < MAX_TRY_ATTEND) {
+            if ($el.length) {
+                break;
+            }
+
+            attempt += 1;
+
             if ($nextMenu.length) {
                 $el = this.getFirstFocusableElement($nextMenu);
             } else if ($nextParentMenu.length) {
@@ -784,6 +796,17 @@ const NavigationMenuView = BaseView.extend({
                         ? $siblingMenu.add($menu).first() : $menu);
                 }
             }
+
+            if (tools.debug && attempt === MAX_TRY_ATTEND) {
+                console.warn(
+                    'Next relative sibling not found.\n',
+                    '$el ', $el, '\n',
+                    '$parentMenu ', $parentMenu, '\n',
+                    '$nextMenu ', $nextMenu, '\n',
+                    '$nextParentMenu ', $nextParentMenu
+                );
+                break;
+            }
         }
 
         this.setFocus($el);
@@ -801,7 +824,14 @@ const NavigationMenuView = BaseView.extend({
         const $prevMenu = $menu.prev(this.options.subMenus);
         let $prevParentMenu = $parentMenu.prev(this.options.subMenus);
 
-        while (!$el.length) {
+        let attempt = 0;
+        while (!$el.length || attempt < MAX_TRY_ATTEND) {
+            if ($el.length) {
+                break;
+            }
+
+            attempt += 1;
+
             if ($prevMenu.length) {
                 $el = this.getLastFocusableElement($prevMenu);
             } else if ($prevParentMenu.length) {
@@ -828,6 +858,17 @@ const NavigationMenuView = BaseView.extend({
                     $el = this.getLastDirectFocusableElement($siblingMenu.length
                         ? $siblingMenu.add($menu).last() : $menu);
                 }
+            }
+
+            if (tools.debug && attempt === MAX_TRY_ATTEND) {
+                console.warn(
+                    'Previous relative sibling not found.\n',
+                    '$el ', $el, '\n',
+                    '$parentMenu ', $parentMenu, '\n',
+                    '$prevMenu ', $prevMenu, '\n',
+                    '$prevParentMenu ', $prevParentMenu
+                );
+                break;
             }
         }
 
@@ -900,6 +941,10 @@ const NavigationMenuView = BaseView.extend({
      * @param {jQuery.Element} $element
      */
     scrollToEl($element) {
+        if (!$element.length) {
+            return;
+        }
+
         const $scrollParent = $element.scrollParent();
         const scrollBottom = $scrollParent.offset().top + $scrollParent.outerHeight(true);
         const elementTop = $element.offset().top;
@@ -972,7 +1017,7 @@ const NavigationMenuView = BaseView.extend({
         if (event.type === 'show') {
             $menu.attr(MENU_ITEM_INDEX_ATTR, this.getIndexForElement($(event.relatedTarget)));
         } else if (event.type === 'hide') {
-            $menu.removeAttr(MENU_ITEM_INDEX_ATTR);
+            $menu.attr(MENU_ITEM_INDEX_ATTR, null);
         }
     },
 

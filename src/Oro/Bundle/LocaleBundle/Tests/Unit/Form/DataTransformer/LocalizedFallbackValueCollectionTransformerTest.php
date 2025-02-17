@@ -25,6 +25,7 @@ class LocalizedFallbackValueCollectionTransformerTest extends \PHPUnit\Framework
     /** @var ManagerRegistry|\PHPUnit\Framework\MockObject\MockObject */
     private $doctrine;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->doctrine = $this->createMock(ManagerRegistry::class);
@@ -422,10 +423,10 @@ class LocalizedFallbackValueCollectionTransformerTest extends \PHPUnit\Framework
 
     private function createLocalizedFallbackValue(
         ?int $id,
-        int $localizationId = null,
-        string $fallback = null,
-        string $string = null,
-        string $text = null
+        ?int $localizationId = null,
+        ?string $fallback = null,
+        ?string $string = null,
+        ?string $text = null
     ): LocalizedFallbackValue {
         $value = new LocalizedFallbackValue();
         $this->setLocalizedFallbackValues($value, $id, $localizationId, $fallback, $string, $text);
@@ -435,10 +436,10 @@ class LocalizedFallbackValueCollectionTransformerTest extends \PHPUnit\Framework
 
     private function createCustomLocalizedFallbackValue(
         ?int $id,
-        int $localizationId = null,
-        string $fallback = null,
-        string $string = null,
-        string $text = null
+        ?int $localizationId = null,
+        ?string $fallback = null,
+        ?string $string = null,
+        ?string $text = null
     ): CustomLocalizedFallbackValueStub {
         $value = new CustomLocalizedFallbackValueStub();
         $this->setLocalizedFallbackValues($value, $id, $localizationId, $fallback, $string, $text);

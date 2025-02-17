@@ -22,7 +22,6 @@ use Symfony\Component\Security\Acl\Exception\AclNotFoundException;
 use Symfony\Component\Security\Acl\Exception\NotAllAclsFoundException;
 use Symfony\Component\Security\Acl\Model\AclInterface;
 use Symfony\Component\Security\Acl\Model\AclProviderInterface;
-use Symfony\Component\Security\Acl\Model\EntryInterface;
 use Symfony\Component\Security\Acl\Model\ObjectIdentityInterface;
 use Symfony\Component\Security\Acl\Model\PermissionGrantingStrategyInterface;
 use Symfony\Component\Security\Acl\Model\SecurityIdentityInterface;
@@ -67,7 +66,7 @@ class AclProvider implements AclProviderInterface
         Connection $connection,
         PermissionGrantingStrategyInterface $permissionGrantingStrategy,
         array $options,
-        AclCache $cache = null
+        ?AclCache $cache = null
     ) {
         $this->connection = $connection;
         $this->permissionGrantingStrategy = $permissionGrantingStrategy;
@@ -80,9 +79,7 @@ class AclProvider implements AclProviderInterface
         $this->sidConverter = $converter;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function findChildren(ObjectIdentityInterface $parentOid, $directChildrenOnly = false)
     {
         [$sql, $params, $types] = $this->getFindChildrenSql($parentOid, $directChildrenOnly);
@@ -95,20 +92,18 @@ class AclProvider implements AclProviderInterface
         return $children;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function findAcl(ObjectIdentityInterface $oid, array $sids = [])
     {
         return $this->findAcls([$oid], $sids)->offsetGet($oid);
     }
 
     /**
-     * {@inheritdoc}
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      * @SuppressWarnings(PHPMD.NPathComplexity)
      */
+    #[\Override]
     public function findAcls(array $oids, array $sids = [])
     {
         $result = new \SplObjectStorage();
@@ -167,7 +162,6 @@ class AclProvider implements AclProviderInterface
                         }
 
                         $this->loadedAcls[$oidKey][$sidKey] = $acl;
-                        $this->updateAceIdentityMap($acl);
                         $result->attach($oid, $acl);
                         $aclFound = true;
                     } else {
@@ -392,29 +386,6 @@ class AclProvider implements AclProviderInterface
     }
 
     /**
-     * This method is called when an ACL instance is retrieved from the cache.
-     */
-    private function updateAceIdentityMap(AclInterface $acl)
-    {
-        foreach (['classAces', 'classFieldAces', 'objectAces', 'objectFieldAces'] as $property) {
-            $reflection = new \ReflectionProperty($acl, $property);
-            $reflection->setAccessible(true);
-            $value = $reflection->getValue($acl);
-
-            if ('classAces' === $property || 'objectAces' === $property) {
-                $this->doUpdateAceIdentityMap($value);
-            } else {
-                foreach ($value as $field => $aces) {
-                    $this->doUpdateAceIdentityMap($value[$field]);
-                }
-            }
-
-            $reflection->setValue($acl, $value);
-            $reflection->setAccessible(false);
-        }
-    }
-
-    /**
      * Retrieves all the ids which need to be queried from the database
      * including the ids of parent ACLs.
      *
@@ -434,32 +405,6 @@ class AclProvider implements AclProviderInterface
         }
 
         return $ancestorIds;
-    }
-
-    /**
-     * Does either overwrite the passed ACE, or saves it in the global identity
-     * map to ensure every ACE only gets instantiated once.
-     *
-     * @param EntryInterface[] $aces
-     */
-    private function doUpdateAceIdentityMap(array &$aces)
-    {
-        foreach ($aces as $index => $ace) {
-            $aceId = $ace->getId();
-            $acl = $ace->getAcl();
-            if (isset($this->loadedAces[$aceId])) {
-                $loadedAces = $this->loadedAces[$aceId];
-                if ($loadedAces->contains($acl)) {
-                    $aces[$index] = $loadedAces->offsetGet($acl);
-                } else {
-                    $loadedAces->attach($acl, $ace);
-                }
-            } else {
-                $loadedAces = new \SplObjectStorage();
-                $loadedAces->attach($acl, $ace);
-                $this->loadedAces[$aceId] = $loadedAces;
-            }
-        }
     }
 
     /**
@@ -554,8 +499,8 @@ class AclProvider implements AclProviderInterface
             // has the ACL been hydrated during this hydration cycle?
             if (isset($acls[$aclId])) {
                 $acl = $acls[$aclId];
-            // has the ACL been hydrated during any previous cycle, or was possibly loaded
-            // from cache?
+                // has the ACL been hydrated during any previous cycle, or was possibly loaded
+                // from cache?
             } elseif (isset($this->loadedAcls[$oidKey][$sidKey])) {
                 $acl = $this->loadedAcls[$oidKey][$sidKey];
 
@@ -570,7 +515,7 @@ class AclProvider implements AclProviderInterface
                     $oidCache[$oidCacheKey] = $acl->getObjectIdentity();
                 }
                 $result->attach($oidCache[$oidCacheKey], $acl);
-            // so, this hasn't been hydrated yet
+                // so, this hasn't been hydrated yet
             } else {
                 // create object identity if we haven't done so yet
                 if (!isset($oidCache[$oidKey])) {

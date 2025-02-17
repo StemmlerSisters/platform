@@ -9,7 +9,7 @@ services:
             - '@oro_user.security.user_loader'
             - '@doctrine'
             - '@security.password_hasher_factory'
-            - '@oro_entity_extend.enum_value_provider'
+            - '@oro_entity_extend.enum_options_provider'
             - '@oro_user.manager.mailer_processor_link'
 
     oro_user.manager.mailer_processor_link:
@@ -38,7 +38,7 @@ services:
     oro_user.listener.password_changed_listener:
         class: Oro\Bundle\UserBundle\EventListener\PasswordChangedListener
         arguments:
-            - '@oro_entity_extend.enum_value_provider'
+            - '@oro_entity_extend.enum_options_provider'
         tags:
             - { name: doctrine.orm.entity_listener, entity: Oro\Bundle\UserBundle\Entity\User, event: prePersist}
             - { name: doctrine.orm.entity_listener, entity: Oro\Bundle\UserBundle\Entity\User, event: preUpdate}
@@ -350,7 +350,7 @@ services:
         lazy: true
         arguments:
             - '@oro_notification.model.notification_settings'
-            - '@oro_email.manager.template_email'
+            - '@oro_email.sender.email_template_sender'
 
     oro_user.placeholder.filter:
         class: Oro\Bundle\UserBundle\Placeholder\PlaceholderFilter
@@ -612,3 +612,11 @@ services:
             - '@oro_security.orm.ownership_sql_walker_builder'
         tags:
             - { name: oro_security.acl_helper.condition }
+
+    oro_user.provider.users_usage_stats_provider:
+        class: Oro\Bundle\UserBundle\Provider\UsersUsageStatsProvider
+        arguments:
+            - '@doctrine.orm.entity_manager'
+            - '@oro_organization.organization_restriction_provider'
+        tags:
+            - { name: oro_platform.usage_stats_provider, priority: 90 }

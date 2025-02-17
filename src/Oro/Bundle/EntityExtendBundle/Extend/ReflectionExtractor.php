@@ -21,12 +21,12 @@ class ReflectionExtractor extends BasicReflectionExtractor
     private Inflector $inflector;
 
     public function __construct(
-        array $mutatorPrefixes = null,
-        array $accessorPrefixes = null,
-        array $arrayMutatorPrefixes = null,
+        ?array $mutatorPrefixes = null,
+        ?array $accessorPrefixes = null,
+        ?array $arrayMutatorPrefixes = null,
         bool $enableConstructorExtraction = true,
         int $accessFlags = BasicReflectionExtractor::ALLOW_PUBLIC,
-        InflectorInterface $inflector = null,
+        ?InflectorInterface $inflector = null,
         int $magicMethodsFlags = BasicReflectionExtractor::ALLOW_MAGIC_GET | BasicReflectionExtractor::ALLOW_MAGIC_SET
     ) {
         parent::__construct(
@@ -41,9 +41,7 @@ class ReflectionExtractor extends BasicReflectionExtractor
         $this->inflector = InflectorFactory::create();
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getReadInfo(string $class, string $property, array $context = []): ?PropertyReadInfo
     {
         $info = parent::getReadInfo($class, $property, $context);
@@ -75,9 +73,7 @@ class ReflectionExtractor extends BasicReflectionExtractor
         return $info;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getWriteInfo(string $class, string $property, array $context = []): ?PropertyWriteInfo
     {
         $info = parent::getWriteInfo($class, $property, $context);

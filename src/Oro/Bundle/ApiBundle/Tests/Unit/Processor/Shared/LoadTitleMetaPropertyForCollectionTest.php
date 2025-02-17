@@ -3,27 +3,29 @@
 namespace Oro\Bundle\ApiBundle\Tests\Unit\Processor\Shared;
 
 use Oro\Bundle\ApiBundle\Config\EntityDefinitionConfig;
+use Oro\Bundle\ApiBundle\Processor\Shared\LoadTitleMetaProperty;
 use Oro\Bundle\ApiBundle\Processor\Shared\LoadTitleMetaPropertyForCollection;
-use Oro\Bundle\ApiBundle\Provider\EntityTitleProvider;
+use Oro\Bundle\ApiBundle\Provider\EntityTitleProviderInterface;
 use Oro\Bundle\ApiBundle\Provider\ExpandedAssociationExtractor;
 use Oro\Bundle\ApiBundle\Tests\Unit\Processor\GetList\GetListProcessorTestCase;
 
 class LoadTitleMetaPropertyForCollectionTest extends GetListProcessorTestCase
 {
-    /** @var \PHPUnit\Framework\MockObject\MockObject|EntityTitleProvider */
+    /** @var EntityTitleProviderInterface|\PHPUnit\Framework\MockObject\MockObject */
     private $entityTitleProvider;
 
-    /** @var \PHPUnit\Framework\MockObject\MockObject|ExpandedAssociationExtractor */
+    /** @var ExpandedAssociationExtractor|\PHPUnit\Framework\MockObject\MockObject */
     private $expandedAssociationExtractor;
 
     /** @var LoadTitleMetaPropertyForCollection */
     private $processor;
 
+    #[\Override]
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->entityTitleProvider = $this->createMock(EntityTitleProvider::class);
+        $this->entityTitleProvider = $this->createMock(EntityTitleProviderInterface::class);
         $this->expandedAssociationExtractor = $this->createMock(ExpandedAssociationExtractor::class);
 
         $this->processor = new LoadTitleMetaPropertyForCollection(
@@ -34,8 +36,7 @@ class LoadTitleMetaPropertyForCollectionTest extends GetListProcessorTestCase
     }
 
     /**
-     * The all other tests are in LoadTitleMetaPropertyForSingleItemTest
-     * @see \Oro\Bundle\ApiBundle\Tests\Unit\Processor\Shared\LoadTitleMetaPropertyForSingleItemTest
+     * The all other tests are in {@see LoadTitleMetaPropertyForSingleItemTest}
      */
     public function testProcessForPrimaryEntityOnly()
     {
@@ -76,5 +77,6 @@ class LoadTitleMetaPropertyForCollectionTest extends GetListProcessorTestCase
             ],
             $this->context->getResult()
         );
+        self::assertTrue($this->context->isProcessed(LoadTitleMetaProperty::OPERATION_NAME));
     }
 }

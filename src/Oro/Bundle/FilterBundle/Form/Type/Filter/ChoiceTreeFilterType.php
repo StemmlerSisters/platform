@@ -13,33 +13,24 @@ class ChoiceTreeFilterType extends AbstractType
     const TYPE_NOT_CONTAINS = 2;
     const NAME              = 'oro_type_choice_tree_filter';
 
-    /**
-     * {@inheritDoc}
-     */
     public function getName()
     {
         return $this->getBlockPrefix();
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getBlockPrefix(): string
     {
         return self::NAME;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function getParent(): ?string
     {
         return TextFilterType::class;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function configureOptions(OptionsResolver $resolver)
     {
         $choices = [
@@ -57,7 +48,7 @@ class ChoiceTreeFilterType extends AbstractType
                 'show_filter'      => false,
                 'autocomplete_url' => '',
                 'className' => '',
-                'data'=> array()
+                'data' => array()
             )
         )->setRequired(
             array(

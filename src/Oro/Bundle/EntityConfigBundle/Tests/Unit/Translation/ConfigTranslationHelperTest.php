@@ -20,6 +20,7 @@ class ConfigTranslationHelperTest extends \PHPUnit\Framework\TestCase
     /** @var ConfigTranslationHelper */
     private $helper;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->translator = $this->createMock(Translator::class);
@@ -76,7 +77,7 @@ class ConfigTranslationHelperTest extends \PHPUnit\Framework\TestCase
     /**
      * @dataProvider saveTranslationsDataProvider
      */
-    public function testSaveTranslations(array $translations, string $key = null, string $value = null)
+    public function testSaveTranslations(array $translations, ?string $key = null, ?string $value = null)
     {
         if ($translations) {
             $this->assertTranslationManagerCalled($key, $value);

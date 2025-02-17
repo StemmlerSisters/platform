@@ -48,6 +48,7 @@ class EmailActivityManagerTest extends \PHPUnit\Framework\TestCase
     /** @var EmailActivityManager */
     private $emailActivityManager;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->activityManager = $this->createMock(ActivityManager::class);
@@ -78,7 +79,7 @@ class EmailActivityManagerTest extends \PHPUnit\Framework\TestCase
         );
     }
 
-    private function getEmail(int $id = null, int $threadId = null): Email
+    private function getEmail(?int $id = null, ?int $threadId = null): Email
     {
         $email = new Email();
         if (null !== $id) {

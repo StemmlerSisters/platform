@@ -29,6 +29,8 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * Helper methods for import strategies.
+ *
+ * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
  */
 class ImportStrategyHelper
 {
@@ -188,9 +190,9 @@ class ImportStrategyHelper
      *                                    string in format "permission;descriptor"
      *                                    (VIEW;entity:AcmeDemoBundle:AcmeEntity, EDIT;action:acme_action)
      *                                    or something else, it depends on registered security voters
-     * @param  object|string $obj        A domain object, object identity or object identity descriptor
+     * @param object|string   $obj        A domain object, object identity or object identity descriptor
+     * @param string          $property
      *
-     * @param  string         $property
      * @return bool
      */
     public function isGranted($attributes, $obj, $property = null)
@@ -276,9 +278,17 @@ class ImportStrategyHelper
                 continue;
             }
 
-            $importedValue = $this->fieldHelper->getObjectValue($importedEntity, $propertyName);
-            $this->fieldHelper->setObjectValue($basicEntity, $propertyName, $importedValue);
+            $this->processImportedEntityProperty($basicEntity, $importedEntity, $propertyName);
         }
+    }
+
+    protected function processImportedEntityProperty(
+        object $targetEntity,
+        object $sourceEntity,
+        string $property
+    ): void {
+        $importedValue = $this->fieldHelper->getObjectValue($sourceEntity, $property);
+        $this->fieldHelper->setObjectValue($targetEntity, $property, $importedValue);
     }
 
     /**

@@ -27,7 +27,7 @@ class CountryRegionsController extends RestGetController
      * )
      * @return Response
      */
-    public function getAction(Country $country = null)
+    public function getAction(?Country $country = null)
     {
         if (null === $country) {
             return $this->handleView($this->view(null, Response::HTTP_NOT_FOUND));
@@ -42,14 +42,13 @@ class CountryRegionsController extends RestGetController
         return new JsonResponse($serializedRegions, Response::HTTP_OK);
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getManager()
     {
         return $this->container->get('oro_address.api.manager.region');
     }
 
+    #[\Override]
     public static function getSubscribedServices(): array
     {
         return array_merge(

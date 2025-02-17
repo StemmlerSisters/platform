@@ -13,6 +13,7 @@ class ReminderTest extends \PHPUnit\Framework\TestCase
     /** @var Reminder */
     private $entity;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->entity = new Reminder();
@@ -117,8 +118,8 @@ class ReminderTest extends \PHPUnit\Framework\TestCase
     public function testSettersAndGetters(
         mixed $value,
         string $property,
-        string $getter = null,
-        string $setter = null
+        ?string $getter = null,
+        ?string $setter = null
     ) {
         $getter = $getter ?: 'get' . \ucfirst($property);
         $setter = $setter ?: 'set' . \ucfirst($property);

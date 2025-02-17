@@ -177,6 +177,7 @@ class Taxonomy implements ExtendEntityInterface
      *
      * @return string
      */
+    #[\Override]
     public function __toString()
     {
         return (string) $this->getName();
@@ -225,7 +226,7 @@ class Taxonomy implements ExtendEntityInterface
      * @param Organization|null $organization
      * @return Taxonomy
      */
-    public function setOrganization(Organization $organization = null)
+    public function setOrganization(?Organization $organization = null)
     {
         $this->organization = $organization;
 

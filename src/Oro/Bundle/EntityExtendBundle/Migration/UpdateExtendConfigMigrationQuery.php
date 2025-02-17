@@ -7,6 +7,9 @@ use Oro\Bundle\MigrationBundle\Migration\ArrayLogger;
 use Oro\Bundle\MigrationBundle\Migration\MigrationQuery;
 use Psr\Log\LoggerInterface;
 
+/**
+ * Updates extend configs into DB from schema options.
+ */
 class UpdateExtendConfigMigrationQuery implements MigrationQuery
 {
     /**
@@ -39,9 +42,7 @@ class UpdateExtendConfigMigrationQuery implements MigrationQuery
         $this->configProcessorOptionsPath = $configProcessorOptionsPath;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getDescription()
     {
         $logger = new ArrayLogger();
@@ -50,9 +51,7 @@ class UpdateExtendConfigMigrationQuery implements MigrationQuery
         return $logger->getMessages();
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function execute(LoggerInterface $logger)
     {
         $this->runUpdateConfigCommand($logger);

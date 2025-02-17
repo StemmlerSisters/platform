@@ -21,6 +21,7 @@ class EngineSearchWeightTest extends SearchBundleWebTestCase
     /** @var callable */
     private $listener;
 
+    #[\Override]
     protected function setUp(): void
     {
         parent::setUp();
@@ -28,6 +29,7 @@ class EngineSearchWeightTest extends SearchBundleWebTestCase
         $this->initClient([], $this->generateBasicAuthHeader());
     }
 
+    #[\Override]
     protected function tearDown(): void
     {
         if ($this->listener) {
@@ -44,7 +46,7 @@ class EngineSearchWeightTest extends SearchBundleWebTestCase
     public function testSearchWeight(
         array $expectedItems,
         callable $listener,
-        Expression $condition = null,
+        ?Expression $condition = null,
         array $orderings = [],
         ?string $engine = null
     ) {

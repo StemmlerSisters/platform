@@ -12,17 +12,13 @@ abstract class AbstractConfigurationSection implements ConfigurationSectionInter
 {
     protected ConfigurationSettingsInterface $settings;
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function isApplicable(string $section): bool
     {
         return true;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function setSettings(ConfigurationSettingsInterface $settings): void
     {
         $this->settings = $settings;
@@ -39,7 +35,7 @@ abstract class AbstractConfigurationSection implements ConfigurationSectionInter
     protected function addPreProcessCallbacks(
         ArrayNodeDefinition $node,
         string $section,
-        callable $customPreProcessCallback = null
+        ?callable $customPreProcessCallback = null
     ): void {
         $node
             ->beforeNormalization()
@@ -61,7 +57,7 @@ abstract class AbstractConfigurationSection implements ConfigurationSectionInter
     protected function addPostProcessCallbacks(
         ArrayNodeDefinition $node,
         string $section,
-        callable $customPostProcessCallback = null
+        ?callable $customPostProcessCallback = null
     ): void {
         $node
             ->validate()

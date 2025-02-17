@@ -37,6 +37,7 @@ class IndexerTest extends \PHPUnit\Framework\TestCase
     /** @var Indexer */
     private $indexService;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->config = require rtrim(__DIR__, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'searchConfig.php';
@@ -210,7 +211,7 @@ class IndexerTest extends \PHPUnit\Framework\TestCase
         string $string,
         ?int $offset = 0,
         ?int $maxResults = 0,
-        string $from = null,
+        ?string $from = null,
         int $page = 0
     ) {
         $searchResults = ['one', 'two', 'three'];

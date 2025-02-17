@@ -28,8 +28,6 @@ use Oro\Bundle\UserBundle\Entity\User;
     routeView: 'oro_business_unit_view',
     routeCreate: 'oro_business_unit_create',
     defaultValues: [
-        'grouping' => ['groups' => ['dictionary']],
-        'dictionary' => ['search_fields' => ['name'], 'virtual_fields' => ['id'], 'activity_support' => true],
         'entity' => ['icon' => 'fa-building-o'],
         'ownership' => [
             'owner_type' => 'BUSINESS_UNIT',
@@ -97,6 +95,7 @@ class BusinessUnit implements
      *
      * @return integer
      */
+    #[\Override]
     public function getId()
     {
         return $this->id;
@@ -121,6 +120,7 @@ class BusinessUnit implements
      *
      * @return string
      */
+    #[\Override]
     public function getName()
     {
         return $this->name;
@@ -217,6 +217,7 @@ class BusinessUnit implements
      *
      * @return string
      */
+    #[\Override]
     public function getEmail()
     {
         return $this->email;
@@ -288,6 +289,7 @@ class BusinessUnit implements
     /**
      * @return string
      */
+    #[\Override]
     public function __toString()
     {
         return (string)$this->getName();
@@ -376,7 +378,7 @@ class BusinessUnit implements
      *
      * @return BusinessUnit
      */
-    public function setParentBusinessUnit(BusinessUnit $value = null)
+    public function setParentBusinessUnit(?BusinessUnit $value = null)
     {
         $this->setOwner($value);
 

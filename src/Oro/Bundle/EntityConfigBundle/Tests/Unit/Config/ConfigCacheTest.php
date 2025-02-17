@@ -44,6 +44,7 @@ class ConfigCacheTest extends \PHPUnit\Framework\TestCase
     /** @var ConfigCache */
     private $configCache;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->cache = $this->createMock(CacheItemPoolInterface::class);
@@ -430,13 +431,8 @@ class ConfigCacheTest extends \PHPUnit\Framework\TestCase
         $configId = new FieldConfigId(self::SCOPE, self::ENTITY_CLASS, self::FIELD_NAME, self::FIELD_TYPE);
         $config = new Config($configId);
 
-        $this->cache->expects($this->once())
-            ->method('getItem')
-            ->with(self::ENTITY_CLASS . '.' . self::SCOPE)
-            ->willReturn($this->cacheItem);
-        $this->cacheItem->expects($this->once())
-            ->method('isHit')
-            ->willReturn(false);
+        $this->cache->expects($this->never())
+            ->method('getItem');
         $this->cache->expects($this->never())
             ->method('save');
 
@@ -977,13 +973,8 @@ class ConfigCacheTest extends \PHPUnit\Framework\TestCase
     {
         $configId = new FieldConfigId(self::SCOPE, self::ENTITY_CLASS, self::FIELD_NAME, self::FIELD_TYPE);
 
-        $this->cache->expects($this->once())
-            ->method('getItem')
-            ->with(self::ENTITY_CLASS . '.' . self::SCOPE)
-            ->willReturn($this->cacheItem);
-        $this->cacheItem->expects($this->once())
-            ->method('isHit')
-            ->willReturn(false);
+        $this->cache->expects($this->never())
+            ->method('getItem');
         $this->configCache->saveConfig(new Config($configId), true);
 
         $this->cache->expects($this->exactly(3))
@@ -1008,13 +999,12 @@ class ConfigCacheTest extends \PHPUnit\Framework\TestCase
         );
         $anotherConfig = new Config($anotherConfigId, ['key2' => 'val2']);
 
-        $this->cache->expects($this->exactly(2))
+        $this->cache->expects($this->exactly(1))
             ->method('getItem')
             ->with(self::ENTITY_CLASS . '.' . self::SCOPE)
             ->willReturn($this->cacheItem);
-        $this->cacheItem->expects($this->once())
-            ->method('isHit')
-            ->willReturn(false);
+        $this->cacheItem->expects($this->never())
+            ->method('isHit');
         $this->cache->expects($this->once())
             ->method('save')
             ->with($this->cacheItem);

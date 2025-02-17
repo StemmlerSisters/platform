@@ -18,66 +18,48 @@ class JsonPartialFileSplitter extends JsonFileSplitter implements PartialFileSpl
     private int $chunkTime = 0;
     private int $chunkCount = 0;
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function isCompleted(): bool
     {
         return $this->completed;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function getTimeout(): int
     {
         return $this->timeout;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function setTimeout(int $milliseconds): void
     {
         $this->timeout = $milliseconds;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function getState(): array
     {
         return $this->state;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function setState(array $data): void
     {
         $this->state = $data;
-        $this->headerSectionData = $this->state['headerSection'] ?? null;
-        $this->targetFileIndex = $this->state['targetFileIndex'] ?? 0;
-        $this->targetFileFirstRecordOffset = $this->state['targetFileFirstRecordOffset'] ?? 0;
+        $this->updateFromState();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function splitFile(string $fileName, FileManager $srcFileManager, FileManager $destFileManager): array
     {
         try {
             return parent::splitFile($fileName, $srcFileManager, $destFileManager);
         } finally {
-            $this->headerSectionData = $this->state['headerSection'] ?? null;
-            $this->targetFileIndex = $this->state['targetFileIndex'] ?? 0;
-            $this->targetFileFirstRecordOffset = $this->state['targetFileFirstRecordOffset'] ?? 0;
+            $this->updateFromState();
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     protected function parse(Parser $parser): void
     {
         /** @var JsonPartialFileParser $parser */
@@ -99,23 +81,20 @@ class JsonPartialFileSplitter extends JsonFileSplitter implements PartialFileSpl
             }
             $this->state['targetFileIndex'] = $this->targetFileIndex;
             $this->state['targetFileFirstRecordOffset'] = $this->targetFileFirstRecordOffset;
+            $this->state['processedChunkCounts'] = $this->getProcessedChunkCounts();
             $this->chunkStartTime = null;
             $this->chunkTime = 0;
             $this->chunkCount = 0;
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     protected function getParser($stream): Parser
     {
         return new JsonPartialFileParser($stream, $this->getParserListener());
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     protected function getParserListener(): JsonPartialFileSplitterListener
     {
         return new JsonPartialFileSplitterListener(
@@ -133,9 +112,7 @@ class JsonPartialFileSplitter extends JsonFileSplitter implements PartialFileSpl
         );
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     protected function processItem(mixed $item): void
     {
         if (-1 !== $this->timeout && null === $this->chunkStartTime) {
@@ -145,9 +122,7 @@ class JsonPartialFileSplitter extends JsonFileSplitter implements PartialFileSpl
         parent::processItem($item);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     protected function saveChunk(): void
     {
         parent::saveChunk();
@@ -163,5 +138,13 @@ class JsonPartialFileSplitter extends JsonFileSplitter implements PartialFileSpl
                 throw new TimeoutExceededFileSplitterException();
             }
         }
+    }
+
+    protected function updateFromState(): void
+    {
+        $this->headerSectionData = $this->state['headerSection'] ?? null;
+        $this->targetFileIndex = $this->state['targetFileIndex'] ?? 0;
+        $this->targetFileFirstRecordOffset = $this->state['targetFileFirstRecordOffset'] ?? 0;
+        $this->setProcessedChunkCounts($this->state['processedChunkCounts'] ?? []);
     }
 }

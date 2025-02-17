@@ -82,9 +82,6 @@ class Localization implements DatesAwareInterface, ExtendEntityInterface
     #[ORM\OneToMany(mappedBy: 'parentLocalization', targetEntity: Localization::class)]
     protected ?Collection $childLocalizations = null;
 
-    /**
-     * {@inheritdoc}
-     */
     public function __construct()
     {
         $this->childLocalizations = new ArrayCollection();
@@ -94,6 +91,7 @@ class Localization implements DatesAwareInterface, ExtendEntityInterface
     /**
      * @return string
      */
+    #[\Override]
     public function __toString()
     {
         return (string)$this->getName();
@@ -196,7 +194,7 @@ class Localization implements DatesAwareInterface, ExtendEntityInterface
      *
      * @return $this
      */
-    public function setParentLocalization(Localization $parentLocalization = null)
+    public function setParentLocalization(?Localization $parentLocalization = null)
     {
         $this->parentLocalization = $parentLocalization;
 

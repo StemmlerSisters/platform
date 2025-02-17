@@ -2,7 +2,6 @@
 
 namespace Oro\Bundle\DigitalAssetBundle\Tests\Unit\Form\Extension;
 
-use GuzzleHttp\ClientInterface;
 use Oro\Bundle\AttachmentBundle\Entity\File;
 use Oro\Bundle\AttachmentBundle\Entity\FileItem;
 use Oro\Bundle\AttachmentBundle\Form\Type\FileType;
@@ -68,6 +67,7 @@ class DigitalAssetManagerExtensionTest extends FormIntegrationTestCase
     /** @var DigitalAssetManagerExtension */
     private $extension;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->attachmentEntityConfigProvider = $this->createMock(AttachmentEntityConfigProviderInterface::class);
@@ -88,14 +88,10 @@ class DigitalAssetManagerExtensionTest extends FormIntegrationTestCase
         parent::setUp();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     protected function getExtensions(): array
     {
-        $fileType = new FileType(
-            new ExternalFileFactory($this->createMock(ClientInterface::class))
-        );
+        $fileType = new FileType($this->createMock(ExternalFileFactory::class));
         $fileType->setEventSubscriber(new EventSubscriberStub());
 
         return [

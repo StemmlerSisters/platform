@@ -22,9 +22,7 @@ class ValidationExtension extends FormTypeValidatorExtension
     public const ENABLE_VALIDATION = 'enable_validation';
     public const ENABLE_FULL_VALIDATION = 'enable_full_validation';
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         if ($options[self::ENABLE_VALIDATION]) {
@@ -32,15 +30,15 @@ class ValidationExtension extends FormTypeValidatorExtension
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function configureOptions(OptionsResolver $resolver): void
     {
         parent::configureOptions($resolver);
 
         $resolver
             ->setDefault(self::ENABLE_VALIDATION, true)
-            ->setDefault(self::ENABLE_FULL_VALIDATION, false);
+            ->setDefault(self::ENABLE_FULL_VALIDATION, false)
+            ->setAllowedTypes(self::ENABLE_VALIDATION, 'bool')
+            ->setAllowedTypes(self::ENABLE_FULL_VALIDATION, ['bool', 'callable']);
     }
 }

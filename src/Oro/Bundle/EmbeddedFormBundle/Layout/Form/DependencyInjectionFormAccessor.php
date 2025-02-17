@@ -5,6 +5,10 @@ namespace Oro\Bundle\EmbeddedFormBundle\Layout\Form;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Form\FormInterface;
 
+/**
+ * This class retrieves a form from the Symfony dependency injection container
+ * and generates a unique hash for its configuration.
+ */
 class DependencyInjectionFormAccessor extends AbstractFormAccessor implements ConfigurableFormAccessorInterface
 {
     /** @var ContainerInterface */
@@ -22,14 +26,14 @@ class DependencyInjectionFormAccessor extends AbstractFormAccessor implements Co
     /**
      * @param ContainerInterface $container     The DI container
      * @param string             $formServiceId The id of the form service in DI container
-     * @param FormAction|null    $action        The submit action of the form
+     * @param FormAction|null $action        The submit action of the form
      * @param string|null        $method        The submit method of the form
      * @param string|null        $enctype       The encryption type of the form
      */
     public function __construct(
         ContainerInterface $container,
         $formServiceId,
-        FormAction $action = null,
+        ?FormAction $action = null,
         $method = null,
         $enctype = null
     ) {
@@ -42,9 +46,7 @@ class DependencyInjectionFormAccessor extends AbstractFormAccessor implements Co
         $this->hash = $this->buildHash($formServiceId, $action, $method, $enctype);
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getForm()
     {
         if (!$this->form) {
@@ -54,9 +56,7 @@ class DependencyInjectionFormAccessor extends AbstractFormAccessor implements Co
         return $this->form;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function toString()
     {
         return 'form_service_id:' . $this->formServiceId;
@@ -65,6 +65,7 @@ class DependencyInjectionFormAccessor extends AbstractFormAccessor implements Co
     /**
      * @param mixed $formData
      */
+    #[\Override]
     public function setFormData($formData)
     {
         if (!$this->getForm()->isSubmitted()) {
@@ -72,9 +73,7 @@ class DependencyInjectionFormAccessor extends AbstractFormAccessor implements Co
         }
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getHash()
     {
         return $this->hash;

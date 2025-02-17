@@ -6,9 +6,10 @@ use Oro\Bundle\TestFrameworkBundle\Test\WebTestCase;
 
 class ActivityListRoleControllerTest extends WebTestCase
 {
+    #[\Override]
     protected function setUp(): void
     {
-        $this->initClient([], $this->generateWsseAuthHeader());
+        $this->initClient([], self::generateApiAuthHeader());
         $this->loadFixtures([
             'Oro\Bundle\ActivityListBundle\Tests\Functional\DataFixtures\LoadActivityData',
             'Oro\Bundle\ActivityListBundle\Tests\Functional\DataFixtures\LoadUserData'

@@ -28,7 +28,7 @@ class OrganizationRememberMeAuthenticationAuthenticator extends RememberMeAuthen
         string $secret,
         TokenStorageInterface $tokenStorage,
         string $cookieName,
-        LoggerInterface $logger = null
+        ?LoggerInterface $logger = null
     ) {
         parent::__construct($rememberMeHandler, $secret, $tokenStorage, $cookieName, $logger);
         $this->secret = $secret;
@@ -44,6 +44,7 @@ class OrganizationRememberMeAuthenticationAuthenticator extends RememberMeAuthen
         $this->organizationGuesser = $organizationGuesser;
     }
 
+    #[\Override]
     public function authenticate(Request $request): Passport
     {
         $passport = parent::authenticate($request);
@@ -54,6 +55,7 @@ class OrganizationRememberMeAuthenticationAuthenticator extends RememberMeAuthen
         return $passport;
     }
 
+    #[\Override]
     public function createToken(Passport $passport, string $firewallName): TokenInterface
     {
         return $this->tokenFactory->create(

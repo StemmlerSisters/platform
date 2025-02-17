@@ -15,9 +15,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class PriceTypeTest extends FormIntegrationTestCase
 {
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     protected function getExtensions(): array
     {
         $currencyProvider = $this->createMock(CurrencyProviderInterface::class);
@@ -218,7 +216,7 @@ class PriceTypeTest extends FormIntegrationTestCase
                 'full_currency_list' => false,
                 'currency_empty_value' => 'oro.currency.currency.form.choose',
                 'compact' => false,
-                'validation_groups'=> ['Default'],
+                'validation_groups' => ['Default'],
                 'match_price_on_null' => true,
                 'readonly' => false
                 ]

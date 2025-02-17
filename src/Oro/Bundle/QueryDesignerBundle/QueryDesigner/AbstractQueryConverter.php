@@ -3,10 +3,14 @@
 namespace Oro\Bundle\QueryDesignerBundle\QueryDesigner;
 
 use Oro\Bundle\BatchBundle\ORM\QueryBuilder\QueryBuilderTools;
+use Oro\Bundle\EntityBundle\Provider\EnumVirtualFieldProvider;
 use Oro\Bundle\EntityBundle\Provider\VirtualFieldProviderInterface;
 use Oro\Bundle\EntityBundle\Provider\VirtualRelationProviderInterface;
+use Oro\Bundle\EntityExtendBundle\Entity\EnumOption;
+use Oro\Bundle\EntityExtendBundle\Tools\ExtendHelper;
 use Oro\Bundle\QueryDesignerBundle\Exception\InvalidConfigurationException;
 use Oro\Bundle\QueryDesignerBundle\Model\AbstractQueryDesigner;
+use Oro\Component\DoctrineUtils\ORM\QueryBuilderUtil;
 
 /**
  * Provides a base functionality to convert a query definition created by the query designer to another format.
@@ -18,12 +22,12 @@ use Oro\Bundle\QueryDesignerBundle\Model\AbstractQueryDesigner;
  */
 abstract class AbstractQueryConverter
 {
-    protected const MAX_ITERATIONS = 100;
+    protected const int MAX_ITERATIONS = 100;
 
-    protected const INNER_JOIN = 'inner';
-    protected const LEFT_JOIN  = 'left';
+    protected const string INNER_JOIN = 'inner';
+    protected const string LEFT_JOIN  = 'left';
 
-    protected const JOIN_CONDITION_TYPE_WITH = 'WITH';
+    protected const string JOIN_CONDITION_TYPE_WITH = 'WITH';
 
     /** @var FunctionProviderInterface */
     private $functionProvider;
@@ -42,6 +46,8 @@ abstract class AbstractQueryConverter
 
     /** @var JoinIdentifierHelper|null */
     private $joinIdHelper;
+
+    private ?EnumVirtualFieldProvider $enumVirtualFieldProvider = null;
 
     public function __construct(
         FunctionProviderInterface $functionProvider,
@@ -201,7 +207,7 @@ abstract class AbstractQueryConverter
     public function ensureChildTableJoined(
         string $tableAlias,
         string $joinByFieldName,
-        string $joinType = null
+        ?string $joinType = null
     ): string {
         $parentJoinId = $this->getJoinIdentifierByTableAlias($tableAlias);
         $joinId = $this->getJoinIdHelper()->buildJoinIdentifier(
@@ -445,6 +451,8 @@ abstract class AbstractQueryConverter
 
     /**
      * Performs conversion of JOIN statements
+     *
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
     protected function addJoinStatements(): void
     {
@@ -455,7 +463,9 @@ abstract class AbstractQueryConverter
             if (!empty($joinId)) {
                 $parentJoinId = $this->getParentJoinIdentifier($joinId);
                 $joinTableAlias = $tableAliases[$parentJoinId];
-
+                $entityClass = $this->getEntityClass($joinId);
+                $fieldName = $this->getFieldName($joinId);
+                $fieldType = null !== $entityClass ? $this->getFieldType($entityClass, $fieldName) : null;
                 $virtualRelation = $context->findJoinByVirtualRelationJoin($parentJoinId);
                 if (null !== $virtualRelation) {
                     $joinTableAlias = $context->getAlias($this->virtualRelationProvider->getTargetJoinAlias(
@@ -466,8 +476,6 @@ abstract class AbstractQueryConverter
                 }
 
                 if ($joinIdHelper->isUnidirectionalJoin($joinId)) {
-                    $entityClass = $this->getEntityClass($joinId);
-                    $joinFieldName = $this->getFieldName($joinId);
                     $this->addJoinStatement(
                         $this->getJoinType($joinId),
                         $entityClass,
@@ -475,7 +483,7 @@ abstract class AbstractQueryConverter
                         self::JOIN_CONDITION_TYPE_WITH,
                         $this->getUnidirectionalJoinCondition(
                             $joinTableAlias,
-                            $joinFieldName,
+                            $fieldName,
                             $joinAlias,
                             $entityClass
                         )
@@ -491,11 +499,19 @@ abstract class AbstractQueryConverter
                         $joinIdHelper->getJoinConditionType($joinId),
                         $joinIdHelper->getJoinCondition($joinId)
                     );
+                } elseif (null !== $fieldType && ExtendHelper::isSingleEnumType($fieldType)) {
+                    $this->addJoinStatement(
+                        $this->getJoinType($joinId),
+                        EnumOption::class,
+                        $joinAlias,
+                        self::JOIN_CONDITION_TYPE_WITH,
+                        $joinIdHelper->getEnumJoinCondition($joinTableAlias, $fieldName, $joinAlias)
+                    );
                 } else {
                     // bidirectional
                     $join = null === $this->getEntityClass($joinId)
                         ? $joinIdHelper->getJoin($joinId)
-                        : sprintf('%s.%s', $joinTableAlias, $this->getFieldName($joinId));
+                        : sprintf('%s.%s', $joinTableAlias, $fieldName);
                     $this->addJoinStatement(
                         $this->getJoinType($joinId),
                         $join,
@@ -515,7 +531,7 @@ abstract class AbstractQueryConverter
     {
         return $this->context()->hasVirtualColumnExpression($columnName)
             ? $this->context()->getVirtualColumnExpression($columnName)
-            : sprintf('%s.%s', $tableAlias, $fieldName);
+            : QueryBuilderUtil::getField($tableAlias, $fieldName);
     }
 
     /**
@@ -931,7 +947,7 @@ abstract class AbstractQueryConverter
         return $joins;
     }
 
-    private function registerTableAlias(string $joinId, string $tableAlias = null): void
+    private function registerTableAlias(string $joinId, ?string $tableAlias = null): void
     {
         if (!$this->context()->hasTableAlias($joinId)) {
             if (!$tableAlias) {
@@ -1139,7 +1155,7 @@ abstract class AbstractQueryConverter
         }
     }
 
-    protected function buildJoinIdentifier(array $join, string $parentJoinId, string $joinType = null): string
+    protected function buildJoinIdentifier(array $join, string $parentJoinId, ?string $joinType = null): string
     {
         return $this->getJoinIdHelper()->buildJoinIdentifier(
             $join['join'],
@@ -1150,7 +1166,7 @@ abstract class AbstractQueryConverter
         );
     }
 
-    final protected function buildColumnJoinIdentifier(string $columnName, string $entityClass = null): string
+    final protected function buildColumnJoinIdentifier(string $columnName, ?string $entityClass = null): string
     {
         return $this->getJoinIdHelper()->buildColumnJoinIdentifier($columnName, $entityClass);
     }
@@ -1407,8 +1423,16 @@ abstract class AbstractQueryConverter
                 $result = $this->context()->getVirtualColumnOption($columnJoinId, 'return_type');
             }
         }
+        if (null === $result && $this->enumVirtualFieldProvider) {
+            $result = $this->enumVirtualFieldProvider->getFieldType($entityClass, $fieldName);
+        }
 
         return $result;
+    }
+
+    public function setEnumVirtualFieldProvider(EnumVirtualFieldProvider $enumVirtualFieldProvider): void
+    {
+        $this->enumVirtualFieldProvider = $enumVirtualFieldProvider;
     }
 
     protected function isVirtualField(string $entityClass, string $fieldName): bool

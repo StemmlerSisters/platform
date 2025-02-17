@@ -1,4 +1,6 @@
+@regression
 @ticket-BB-11878
+@ticket-BAP-20370
 
 Feature: Create segment
   In order to manage segments
@@ -15,6 +17,7 @@ Feature: Create segment
       | Segment Type | Manual         |
     And I add the following columns:
       | Id |
+    And I should see "SegmentId Id"
     When I save form
     Then I should see "Segment saved" flash message
 
@@ -32,6 +35,7 @@ Feature: Create segment
       | Segment Type | Manual                              |
     And I add the following columns:
       | Id |
+    And I should see "SegmentId Id"
     And I add the following filters:
       | Apply segment | Segment 1 |
       | Apply segment | Segment 2 |
@@ -49,6 +53,7 @@ Feature: Create segment
       | Segment Type | Manual         |
     And I add the following columns:
       | Id |
+    And I should see "SegmentId Id"
     When I save form
     Then I should see "There is another segment with a similar name."
 

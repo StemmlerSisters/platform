@@ -5,6 +5,7 @@ namespace Oro\Bundle\TestFrameworkBundle\Tests\Behat\Context;
 use Behat\Behat\Hook\Scope\AfterStepScope;
 use Behat\Behat\Hook\Scope\BeforeStepScope;
 use Behat\Gherkin\Node\FeatureNode;
+use Behat\Gherkin\Node\PyStringNode;
 use Behat\Gherkin\Node\StepNode;
 use Behat\Gherkin\Node\TableNode;
 use Behat\Mink\Driver\Selenium2Driver;
@@ -70,11 +71,19 @@ class OroMainContext extends MinkContext implements
         '^(?:|I )should see .+ error message$|' .
         '^(?:|I )should see success message with number of records were deleted$|' .
         '^(?:|I )should see Schema updated flash message$' .
-    '/';
+        '/';
 
     private ?Stopwatch $stopwatch = null;
     private bool $debug = false;
     private string $rememberedURL = '';
+
+    const POSITION_MAP = [
+        'first' => 0,
+        'second' => 1,
+        'third' => 2,
+        'fourth' => 3,
+        'fifth' => 4,
+    ];
 
     /**
      * @BeforeScenario
@@ -84,9 +93,7 @@ class OroMainContext extends MinkContext implements
         $this->getSession()->resizeWindow(1920, 1080, 'current');
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getSession($name = null)
     {
         $session = parent::getSession($name);
@@ -299,6 +306,9 @@ class OroMainContext extends MinkContext implements
      */
     public function iShouldSeeFlashMessage($title, $flashMessageElement = 'Flash Message', $timeLimit = 30)
     {
+        if ($title === 'Schema updated') {
+            $timeLimit = 360;
+        }
         $flashMessage = $this->getFlashMessage($title, $flashMessageElement, $timeLimit);
 
         if ($title === 'Configuration saved') {
@@ -376,18 +386,28 @@ class OroMainContext extends MinkContext implements
      */
     public function iCloseAllFlashMessages($flashMessageElement = 'Flash Message', $timeLimit = 30)
     {
-        $flashMessages = $this->spin(
-            function (OroMainContext $context) use ($flashMessageElement) {
-                return $context->findAllElements($flashMessageElement);
-            },
-            $timeLimit
-        ) ?: [];
+        do {
+            try {
+                $messages = $this->spin(
+                    function (OroMainContext $context) use ($flashMessageElement) {
+                        return $context->findAllElements($flashMessageElement);
+                    },
+                    $timeLimit
+                ) ?: [];
 
-        /** @var NodeElement $closeButton */
-        foreach ($flashMessages as $flashMessage) {
-            $closeButton = $flashMessage->find('css', '[data-dismiss="alert"]');
-            $closeButton->press();
-        }
+                if (!count($messages)) {
+                    break;
+                }
+                $flashMessage = reset($messages);
+                /** @var NodeElement $closeButton */
+                $closeButton = $flashMessage->find('css', '[data-dismiss="alert"]');
+
+                if ($closeButton && $closeButton->isVisible() && $closeButton->isValid()) {
+                    $closeButton->press();
+                }
+            } catch (\Exception $e) {
+            }
+        } while ($this->findAllElements('Flash Message'));
     }
 
     /**
@@ -491,14 +511,21 @@ class OroMainContext extends MinkContext implements
      */
     public function iShouldSeeUpdateSchema()
     {
-        $this->iShouldSeeFlashMessage('Schema updated', 'Flash Message', 120);
+        $this->iShouldSeeFlashMessage('Schema updated', 'Flash Message', 360);
     }
 
     /**
-     * {@inheritdoc}
+     *
+     * @Then /^(?:|I )should see the following lines/
      */
+    #[\Override]
     public function assertPageContainsText($text)
     {
+        if ($text instanceof PyStringNode) {
+            // Prepares the text to match with the found on page text, see \Behat\Mink\Driver\Selenium2Driver::getText.
+            $text = (string)str_replace(["\r", "\r\n", "\n", '  '], ' ', $text->getRaw());
+        }
+
         $result = $this->spin(function (OroMainContext $context) use ($text) {
             $context->assertSession()->pageTextContains($this->fixStepArgument($text));
 
@@ -511,9 +538,7 @@ class OroMainContext extends MinkContext implements
         );
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function assertPageNotContainsText($text)
     {
         $result = $this->spin(function (OroMainContext $context) use ($text) {
@@ -845,7 +870,30 @@ class OroMainContext extends MinkContext implements
      */
     public function iClickOn($element)
     {
-        $this->createElement($element)->click();
+        $clickElement = $this->createElement($element);
+        $this->scrollToXpath($clickElement->getXpath());
+        $clickElement->click();
+    }
+
+    /**
+     * Example: When I click on the first "Help Icon"
+     *
+     * @When /^(?:|I )click on the (?P<rowNumber>[^"]*) "(?P<element>(?:[^"]|\\")*)"$/
+     */
+    public function iClickOnPositionElement(string $elementName, string $rowNumber)
+    {
+        $elements = $this->findAllElements($elementName);
+
+        $position = $this->getPosition($rowNumber);
+        if ($position === null) {
+            self::fail(sprintf('Invalid line number search key %s', $rowNumber));
+        }
+
+        if (!array_key_exists($position, $elements)) {
+            self::fail(sprintf('"%s" not available at position %s', $elementName, $rowNumber));
+        }
+
+        $elements[$position]->click();
     }
 
     /**
@@ -1083,6 +1131,18 @@ class OroMainContext extends MinkContext implements
     }
 
     /**
+     * Example: And I should see "Schedule Now" element with the url matches "/folder/" in top window
+     *
+     * @Then /^(?:|I )should see "(?P<elementName>[^"]+)" element with the url matches (?P<url>"[^"]+") in top window$/
+     */
+    public function iShouldSeeElementWithUrl($elementName, $url)
+    {
+        $elements = $this->findAllElements($elementName);
+        $element = reset($elements);
+        self::assertMatchesRegularExpression($url, $element->getAttribute('href'));
+    }
+
+    /**
      * Example: And I should see "file.jpg" file link with the url matches "/admin/"
      *
      * @Then /^(?:|I )should not see "(?P<text>[^"]+)" link with the url matches (?P<url>"[^"]+")$/
@@ -1143,7 +1203,10 @@ class OroMainContext extends MinkContext implements
      *
      * @When /^(?:|I )click "(?P<button>(?:[^"]|\\")*)"$/
      * @When /^(?:|I )click '(?P<button>(?:[^']|\\')*)'$/
+     *
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
+    #[\Override]
     public function pressButton($button)
     {
         if ($button === 'Change History') {
@@ -1152,6 +1215,15 @@ class OroMainContext extends MinkContext implements
         }
         for ($i = 0; $i < 2; $i++) {
             try {
+                $btnNodeElement = $this->getSession()->getPage()->findButton($button);
+                if ($btnNodeElement) {
+                    $this->scrollToXpath($btnNodeElement->getXpath());
+                }
+                $btnNodeElement = $this->getSession()->getPage()->findButton($button);
+                if ($btnNodeElement) {
+                    $this->scrollToXpath($btnNodeElement->getXpath());
+                }
+
                 parent::pressButton($button);
                 break;
             } catch (ElementNotFoundException $e) {
@@ -1218,9 +1290,7 @@ class OroMainContext extends MinkContext implements
         $this->getSession()->wait($timeout * 1000);
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function assertElementContainsText($element, $text)
     {
         $elementObject = $this->createElement($element);
@@ -1236,9 +1306,7 @@ class OroMainContext extends MinkContext implements
         self::assertTrue((bool)preg_match($regex, $actual), $message, $element);
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function assertElementNotContainsText($element, $text)
     {
         $elementObject = $this->createElement($element);
@@ -1335,31 +1403,6 @@ class OroMainContext extends MinkContext implements
                 throw $e;
             }
         }
-    }
-
-    /**
-     * Click on button in hamburger menu
-     * Example: When I click "Category 1" in hamburger menu
-     * @When /^(?:|I )click "(?P<button>(?:[^"]|\\")*)" in hamburger menu$/
-     */
-    public function pressButtonInHamburgerMenu($button)
-    {
-        $mainMenuTrigger = $this->createElement('Main Menu Button');
-        $sidebarMainMenuPopup = $this->createElement('Sidebar Main Menu Popup');
-        if ($mainMenuTrigger->isIsset() && !$sidebarMainMenuPopup->isIsset()) {
-            $mainMenuTrigger->click();
-        }
-
-        $this->spin(function () use ($button) {
-            try {
-                $this->pressButtonInModalWindow($button);
-                return true;
-            } catch (NoSuchElement $exception) {
-                return false;
-            }
-
-            return true;
-        }, 5);
     }
 
     /**
@@ -1633,9 +1676,7 @@ JS;
         }
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function selectOption($select, $option)
     {
         $select = $this->fixStepArgument($select);
@@ -1712,9 +1753,7 @@ JS;
         $this->assertTrue($optionElement->isSelected(), sprintf('Option %s is not selected', $option));
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function fillField($field, $value)
     {
         $field = $this->fixStepArgument($field);
@@ -1730,9 +1769,7 @@ JS;
         $this->createOroForm()->fillField($field, $value);
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function assertElementOnPage($element)
     {
         $isVisible = $this->spin(function (OroMainContext $context) use ($element) {
@@ -1745,9 +1782,7 @@ JS;
         );
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function assertElementNotOnPage($element)
     {
         $elementOnPage = $this->createElement($element);
@@ -1760,7 +1795,7 @@ JS;
         }, 3);
 
         self::assertTrue(
-            $result,
+            $result ?? true,
             sprintf('Element "%s" is present when it should not', $element)
         );
     }
@@ -2042,7 +2077,7 @@ JS;
     {
         try {
             $this->iClickUpdateSchema();
-            $this->iShouldSeeFlashMessage('Schema updated', 'Flash Message', 120);
+            $this->iShouldSeeFlashMessage('Schema updated', 'Flash Message', 360);
         } catch (\Exception $e) {
             throw $e;
         }
@@ -2539,12 +2574,11 @@ JS;
     }
 
     /**
-     * @Then /^(?:|I )should see "(?P<title>[\w\s]*)" button$/
+     * @Then /^(?:|I )should see "(?P<title>[^"]+)" button$/
      */
     public function iShouldSeeButton($title)
     {
         $button = $this->getPage()->findButton($title);
-
         if ($button) {
             return;
         }
@@ -2556,6 +2590,19 @@ JS;
         }
 
         self::fail(sprintf('Could not find button with "%s" title', $title));
+    }
+
+    /**
+     * @Then /^(?:|I )should not see "(?P<title>[^"]+)" button/
+     */
+    public function iShouldNotSeeButton($title)
+    {
+        $button = $this->getPage()->findButton($title);
+        if (!$button) {
+            return;
+        }
+
+        self::fail(sprintf('There is the button with "%s" title', $title));
     }
 
     /**
@@ -2703,7 +2750,7 @@ JS;
         self::assertTrue(
             $childElement->isIsset(),
             sprintf(
-                'Element "%s" not found inside iframe',
+                'Element "%s" not found inside iframe %s',
                 $childElementName,
                 $iframeName
             )
@@ -2711,7 +2758,7 @@ JS;
         self::assertTrue(
             $childElement->isVisible(),
             sprintf(
-                'Element "%s" found inside iframe, but it\'s not visible',
+                'Element "%s" found inside iframe %s, but it\'s not visible',
                 $childElementName,
                 $iframeName
             )
@@ -2881,17 +2928,22 @@ JS;
     public function iScrollToElement($elementName)
     {
         $element = $this->elementFactory->createElement($elementName);
-        $xpath = addslashes($element->getXpath());
+        $this->scrollToXpath($element->getXpath());
+        $element->focus();
+    }
+
+    public function scrollToXpath(string $xpath): void
+    {
+        $xpath = addslashes(str_replace("\n", '', $xpath));
         $javascipt = <<<JS
 (function() {
     document
         .evaluate("{$xpath}", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null)
         .singleNodeValue
-        .scrollIntoView(false);
+        ?.scrollIntoView({block: 'center'});
 })()
 JS;
         $this->getSession()->getDriver()->evaluateScript($javascipt);
-        $element->focus();
     }
 
     /**
@@ -2911,9 +2963,7 @@ JS;
         self::assertEquals($color, $element->getColor());
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function assertPageAddress($page)
     {
         $this->spin(function () use ($page) {
@@ -3023,6 +3073,7 @@ JS;
      *
      * @return string
      */
+    #[\Override]
     protected function fixStepArgument($argument)
     {
         return str_replace(['\\"', '\\#'], ['"', '#'], $argument);
@@ -3240,6 +3291,7 @@ JS;
      *
      * @Then /^the "(?P<field>(?:[^"]|\\")*)" field should contain:$/
      */
+    #[\Override]
     public function assertFieldContains($field, $value)
     {
         parent::assertFieldContains($field, $value);
@@ -3363,5 +3415,10 @@ JS;
 
         self::assertArrayHasKey($parameterName, $routeAttributes);
         VariableStorage::storeData($alias, $routeAttributes[$parameterName]);
+    }
+
+    public function getPosition(string $rowNumber): ?int
+    {
+        return self::POSITION_MAP[$rowNumber] ?? null;
     }
 }

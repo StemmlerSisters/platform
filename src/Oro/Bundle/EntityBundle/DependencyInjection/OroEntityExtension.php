@@ -13,9 +13,7 @@ class OroEntityExtension extends Extension
 {
     public const DEFAULT_QUERY_CACHE_LIFETIME_PARAM_NAME = 'oro_entity.default_query_cache_lifetime';
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function load(array $configs, ContainerBuilder $container): void
     {
         $this->loadHiddenFieldConfigs($container);
@@ -39,6 +37,11 @@ class OroEntityExtension extends Extension
 
         $container->getDefinition('oro_entity.entity_name_provider.configurable')
             ->setArgument('$fields', $config['entity_name_representation']);
+
+        $container->setParameter(
+            'oro_entity.do_not_lowercase_noun_locales',
+            $config['do_not_lowercase_noun_locales']
+        );
 
         $container->setParameter(
             self::DEFAULT_QUERY_CACHE_LIFETIME_PARAM_NAME,

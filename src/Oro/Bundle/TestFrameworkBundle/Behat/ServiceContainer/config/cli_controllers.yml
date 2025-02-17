@@ -16,6 +16,15 @@ services:
         tags:
             - { name: cli.controller, priority: 570 }
 
+    cli.controller.feature_topics:
+        class: Oro\Bundle\TestFrameworkBundle\Behat\Cli\FeaturesTopicController
+        arguments:
+            - '@suite.registry'
+            - '@specifications.finder'
+            - '%oro_test.feature_topics%'
+        tags:
+            - { name: cli.controller, priority: 400 }
+
     cli.controller.available_suites:
         class: Oro\Bundle\TestFrameworkBundle\Behat\Cli\AvailableSuitesController
         arguments:
@@ -46,6 +55,13 @@ services:
         tags:
             - { name: 'cli.controller', priority: 200 }
 
+    cli.controller.watch_mode:
+        class: Oro\Bundle\TestFrameworkBundle\Behat\Cli\WatchModeController
+        arguments:
+            - '@oro_test.behat.watch_mode.session_holder'
+        tags:
+            - { name: 'cli.controller', priority: 250 }
+
     cli.controller.health_check_controller:
         class: Oro\Bundle\TestFrameworkBundle\Behat\Cli\HealthCheckController
         arguments:
@@ -63,3 +79,23 @@ services:
             - '@oro_behat_extension.isolation.test_isolation_subscriber'
         tags:
             - { name: 'cli.controller', priority: 100 }
+
+    cli.controller.available_contexts_controller:
+        class: Oro\Bundle\TestFrameworkBundle\Behat\Cli\AvailableContextsController
+        arguments:
+            - '%oro_test.contexts%'
+        tags:
+            - { name: 'cli.controller', priority: 100 }
+
+    cli.controller.available_elements_controller:
+        class: Oro\Bundle\TestFrameworkBundle\Behat\Cli\AvailableElementsController
+        arguments:
+            - '%oro_test.elements%'
+        tags:
+            - { name: 'cli.controller', priority: 100 }
+
+    cli.controller.behat.exercise_controller_decorator:
+        class: Oro\Bundle\TestFrameworkBundle\Behat\Cli\ExerciseControllerDecorator
+        decorates: cli.controller.exercise
+        arguments:
+            - '@.inner'

@@ -43,6 +43,7 @@ class WorkflowNotificationHandlerTest extends \PHPUnit\Framework\TestCase
     /** @var WorkflowNotificationHandler */
     private $handler;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->manager = $this->createMock(EmailNotificationManager::class);
@@ -91,7 +92,6 @@ class WorkflowNotificationHandlerTest extends \PHPUnit\Framework\TestCase
             ->method('process')
             ->with(
                 $expected,
-                null,
                 [
                     'transitionRecord' => $record,
                     'transitionUser' => $user

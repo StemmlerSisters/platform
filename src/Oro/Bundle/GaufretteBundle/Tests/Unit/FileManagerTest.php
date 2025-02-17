@@ -36,6 +36,7 @@ class FileManagerTest extends \PHPUnit\Framework\TestCase
     /** @var Adapter|\PHPUnit\Framework\MockObject\MockObject */
     private $filesystemAdapter;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->filesystem = $this->createMock(Filesystem::class);
@@ -45,7 +46,7 @@ class FileManagerTest extends \PHPUnit\Framework\TestCase
             ->willReturn($this->filesystemAdapter);
     }
 
-    private function getFileManager(bool $useSubDirectory, string $subDirectory = null): FileManager
+    private function getFileManager(bool $useSubDirectory, ?string $subDirectory = null): FileManager
     {
         $fileManager = new FileManager(self::TEST_FILE_SYSTEM_NAME, $subDirectory);
         $fileManager->setProtocol(self::TEST_PROTOCOL);

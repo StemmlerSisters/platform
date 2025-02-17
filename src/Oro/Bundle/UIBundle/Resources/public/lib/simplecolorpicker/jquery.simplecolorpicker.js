@@ -30,7 +30,10 @@ define([
       self.type = type;
 
       self.$select = $(select);
-      self.$select.hide();
+
+      if (!options.show_input_control) {
+          self.$select.hide();
+      }
 
       self.options = $.extend({}, $.fn.simplecolorpicker.defaults, options);
 
@@ -266,11 +269,11 @@ define([
       }
       this.$select.prop('disabled', !enabled);
       if (enabled) {
-        $el.removeAttr('data-disabled');
+        $el.attr('data-disabled', null);
         $el.attr('tabindex', '0');
       } else {
         $el.attr('data-disabled', '');
-        $el.removeAttr('tabindex');
+        $el.attr('tabindex', null);
       }
     },
 
@@ -305,7 +308,7 @@ define([
 
       if (!this.options.table) {
         // Mark this span as the selected one
-        $colorSpan.siblings().removeAttr('data-selected');
+        $colorSpan.siblings().attr('data-selected', null);
         $colorSpan.attr('data-selected', '');
         $colorSpan.css('color', this.getContrastColor(color || this.options.emptyColor));
       }
@@ -326,7 +329,7 @@ define([
      * Remove selection from the given span inside $colorList.
      */
     unselectColorSpan: function($colorSpan) {
-      $colorSpan.removeAttr('data-selected');
+      $colorSpan.attr('data-selected', null);
     },
 
     /**

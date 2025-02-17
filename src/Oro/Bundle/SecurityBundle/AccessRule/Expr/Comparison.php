@@ -25,6 +25,7 @@ class Comparison implements ExpressionInterface
      * in the list from the right operand.
      */
     public const CONTAINS = 'CONTAINS';
+    public const MEMBEROF = 'MEMBEROF';
 
     /** @var Path|Value */
     private $leftOperand;
@@ -82,9 +83,7 @@ class Comparison implements ExpressionInterface
         return $this->op;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function visit(Visitor $visitor)
     {
         return $visitor->walkComparison($this);

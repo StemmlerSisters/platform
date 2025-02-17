@@ -2,8 +2,10 @@
 
 namespace Oro\Bundle\ApiBundle\Processor\Subresource\ChangeSubresource;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Oro\Bundle\ApiBundle\Config\EntityDefinitionConfig;
 use Oro\Bundle\ApiBundle\Processor\Subresource\ChangeSubresourceContext;
+use Oro\Bundle\ApiBundle\Util\ConfigUtil;
 use Oro\Component\ChainProcessor\ContextInterface;
 use Oro\Component\ChainProcessor\ProcessorInterface;
 use Symfony\Component\PropertyAccess\Exception\AccessException;
@@ -21,9 +23,7 @@ class PrepareFormData implements ProcessorInterface
         $this->propertyAccessor = $propertyAccessor;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function process(ContextInterface $context): void
     {
         /** @var ChangeSubresourceContext $context */
@@ -34,33 +34,29 @@ class PrepareFormData implements ProcessorInterface
         }
 
         $associationName = $context->getAssociationName();
+        $context->setRequestData([$associationName => $context->getRequestData()]);
+        $context->setResult([$associationName => $this->getAssociationData($context)]);
+    }
 
-        $data = $context->getResult();
-        if (\is_array($data) && \array_key_exists($associationName, $data) && \count($data) !== 1) {
-            // the form data are already prepared
-            return;
+    private function getAssociationData(ChangeSubresourceContext $context): mixed
+    {
+        $entityFieldName = $this->getEntityFieldName($context->getAssociationName(), $context->getParentConfig());
+        if (ConfigUtil::IGNORE_PROPERTY_PATH === $entityFieldName) {
+            return $this->createEmptyAssociationData($context);
         }
 
-        $associationData = null;
-        if ($this->tryGetAssociationData($context, $associationData)) {
-            $context->setRequestData([$associationName => $context->getRequestData()]);
-            $context->setResult([$associationName => $associationData]);
+        try {
+            return $this->propertyAccessor->getValue($context->getParentEntity(), $entityFieldName);
+        } catch (AccessException) {
+            return $this->createEmptyAssociationData($context);
         }
     }
 
-    private function tryGetAssociationData(ChangeSubresourceContext $context, mixed &$associationData): bool
+    private function createEmptyAssociationData(ChangeSubresourceContext $context): object
     {
-        try {
-            $associationData = $this->propertyAccessor->getValue(
-                $context->getParentEntity(),
-                $this->getEntityFieldName($context->getAssociationName(), $context->getParentConfig())
-            );
-        } catch (AccessException $e) {
-            // this processor should do nothing if an association does not exist
-            return false;
-        }
-
-        return true;
+        return $context->isCollection()
+            ? new ArrayCollection()
+            : $this->createObject($context->getRequestClassName());
     }
 
     private function getEntityFieldName(string $fieldName, ?EntityDefinitionConfig $config): string
@@ -69,11 +65,16 @@ class PrepareFormData implements ProcessorInterface
             return $fieldName;
         }
 
-        $name = $config->findFieldNameByPropertyPath($fieldName);
-        if (!$name) {
-            $name = $fieldName;
+        $field = $config->getField($fieldName);
+        if (null === $field) {
+            return $fieldName;
         }
 
-        return $name;
+        return $field->getPropertyPath($fieldName);
+    }
+
+    private function createObject(string $className): object
+    {
+        return new $className();
     }
 }

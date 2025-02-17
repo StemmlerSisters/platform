@@ -32,6 +32,7 @@ class TagSearchResultsGridListenerTest extends \PHPUnit\Framework\TestCase
     /** @var TagSearchResultsGridListener */
     private $listener;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->parameters = $this->createMock(ParameterBag::class);
@@ -52,8 +53,8 @@ class TagSearchResultsGridListenerTest extends \PHPUnit\Framework\TestCase
      */
     public function testOnBuildAfter(
         string $alias,
-        string $entityClass = null,
-        EntityAliasNotFoundException $exception = null
+        ?string $entityClass = null,
+        ?EntityAliasNotFoundException $exception = null
     ) {
         $this->event->expects($this->once())
             ->method('getDatagrid')

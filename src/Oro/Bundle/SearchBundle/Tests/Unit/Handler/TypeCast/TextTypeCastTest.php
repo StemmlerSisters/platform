@@ -12,6 +12,7 @@ class TextTypeCastTest extends \PHPUnit\Framework\TestCase
     /** @var IntegerTypeCast */
     private $handler;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->handler = new TextTypeCast();
@@ -46,7 +47,7 @@ class TextTypeCastTest extends \PHPUnit\Framework\TestCase
                 'value' => 1
             ],
             'decimal' => [
-                'value'=> 1.1
+                'value' => 1.1
             ]
         ];
     }

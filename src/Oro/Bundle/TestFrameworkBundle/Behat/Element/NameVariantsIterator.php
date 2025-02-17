@@ -20,9 +20,9 @@ class NameVariantsIterator implements \IteratorAggregate
 
     /**
      * @param string $name
-     * @param null|string[] $customGlues
+     * @param string[]|null $customGlues
      */
-    public function __construct($name, array $customGlues = null)
+    public function __construct($name, ?array $customGlues = null)
     {
         $this->name = $name;
         if ($customGlues) {
@@ -79,6 +79,7 @@ class NameVariantsIterator implements \IteratorAggregate
     /**
      * @return \Generator
      */
+    #[\Override]
     public function getIterator(): \Traversable
     {
         yield $this->name;

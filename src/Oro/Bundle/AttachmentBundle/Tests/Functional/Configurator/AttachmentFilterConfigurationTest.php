@@ -15,9 +15,10 @@ class AttachmentFilterConfigurationTest extends WebTestCase
     /** @var AttachmentFilterConfiguration */
     private $attachmentFilterConfigurator;
 
+    #[\Override]
     protected function setUp(): void
     {
-        $this->initClient([], $this->generateWsseAuthHeader());
+        $this->initClient([], self::generateApiAuthHeader());
         $this->attachmentFilterConfigurator =
             $this->getContainer()->get('oro_attachment.configurator.attachment_filter_configuration');
     }
@@ -52,6 +53,14 @@ class AttachmentFilterConfigurationTest extends WebTestCase
             $this->assertFilterEqual($filterConfig, 65, 35);
             $this->assertFilterEqual($specificFilterConfig, 65, 35);
         }
+    }
+
+    public function testWhenVoterDisabledOrLibrariesNotExists(): void
+    {
+        $voter = self::getContainer()->get('oro_attachment.checker.voter.post_processors_voter');
+        $voter->setEnabled(false);
+        $filters = $this->attachmentFilterConfigurator->all();
+        array_map(static fn (array $filterConfig) => self::assertEmpty($filterConfig['post_processors']), $filters);
     }
 
     private function assertFilterEqual(array $filter, int $jpegQuality = 85, int $pngQuality = 100): void

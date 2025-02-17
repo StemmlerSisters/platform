@@ -26,6 +26,7 @@ class JobProcessorTest extends \PHPUnit\Framework\TestCase
     /** @var JobProcessor */
     private $jobProcessor;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->jobManager = $this->createMock(JobManagerInterface::class);
@@ -488,7 +489,7 @@ class JobProcessorTest extends \PHPUnit\Framework\TestCase
     private function configureBaseMocksForStaleJobsCases(
         Job $job,
         int $timeForStale = 0,
-        Job $rootJobFoundByStorage = null
+        ?Job $rootJobFoundByStorage = null
     ): JobConfigurationProviderInterface {
         $jobConfigurationProvider = $this->createMock(JobConfigurationProviderInterface::class);
         $jobConfigurationProvider->expects(self::any())

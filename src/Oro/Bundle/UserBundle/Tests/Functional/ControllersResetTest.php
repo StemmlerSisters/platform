@@ -12,6 +12,7 @@ use Oro\Bundle\UserBundle\Tests\Functional\DataFixtures\LoadUserData;
  */
 class ControllersResetTest extends WebTestCase
 {
+    #[\Override]
     protected function setUp(): void
     {
         $this->initClient([], $this->generateBasicAuthHeader());
@@ -62,11 +63,11 @@ class ControllersResetTest extends WebTestCase
         $this->assertResponseStatusCodeEquals($result, 200);
         $content = $result->getContent();
 
-        self::assertStringContainsString('username', $content);
+        self::assertStringContainsString('oro_user_password_request[username]', $content);
         self::assertStringContainsString('_token', $content);
 
         $form = $crawler->selectButton('Request')->form();
-        $form['username'] = LoadUserData::SIMPLE_USER_EMAIL;
+        $form['oro_user_password_request[username]'] = LoadUserData::SIMPLE_USER_EMAIL;
 
         $this->client->submit($form);
         $result = $this->client->getResponse();
@@ -78,62 +79,11 @@ class ControllersResetTest extends WebTestCase
         );
     }
 
-    public function testSendEmailAction()
-    {
-        $this->client->request(
-            'POST',
-            $this->getUrl('oro_user_reset_send_email'),
-            [
-                'username' => self::USER_NAME,
-                'frontend' => 1,
-                '_csrf_token' => (string) $this->getCsrfToken('oro-user-password-reset-request'),
-            ],
-            [],
-            $this->generateNoHashNavigationHeader()
-        );
-        $result = $this->client->getResponse();
-        $this->assertHtmlResponseStatusCodeEquals($result, 200);
-        self::assertStringContainsString('If there is a user account associated with', $result->getContent());
-
-        /** @var User $user */
-        $user = $this->getContainer()->get('doctrine')->getRepository(User::class)->findOneBy(
-            ['username' => self::USER_NAME]
-        );
-        $this->assertNotNull($user->getPasswordRequestedAt());
-    }
-
-    public function testSendEmailWithWrongCsrfToken()
-    {
-        $this->client->request(
-            'POST',
-            $this->getUrl('oro_user_reset_send_email'),
-            [
-                'username' => self::USER_NAME,
-                'frontend' => 1,
-                '_csrf_token' => 'some_wrong_token',
-            ],
-            [],
-            $this->generateNoHashNavigationHeader()
-        );
-        $result = $this->client->getResponse();
-        $this->assertHtmlResponseStatusCodeEquals($result, 200);
-        self::assertStringContainsString(
-            'The CSRF token is invalid. Please try to resubmit the form.',
-            $result->getContent()
-        );
-
-        /** @var User $user */
-        $user = $this->getContainer()->get('doctrine')->getRepository(User::class)->findOneBy(
-            ['username' => self::USER_NAME]
-        );
-        $this->assertNull($user->getPasswordRequestedAt());
-    }
-
     public function testSendForcedResetEmailAction()
     {
         /** @var User $user */
         $user = $this->getReference('simple_user');
-        $this->assertEquals(UserManager::STATUS_ACTIVE, $user->getAuthStatus()->getId());
+        $this->assertEquals(UserManager::STATUS_ACTIVE, $user->getAuthStatus()->getInternalId());
 
         $crawler = $this->client->request(
             'GET',
@@ -157,7 +107,7 @@ class ControllersResetTest extends WebTestCase
         self::assertStringContainsString($expectedResponse, $result->getContent());
 
         $user = $this->getContainer()->get('doctrine')->getRepository(User::class)->find($user->getId());
-        $this->assertEquals(UserManager::STATUS_RESET, $user->getAuthStatus()->getId());
+        $this->assertEquals(UserManager::STATUS_RESET, $user->getAuthStatus()->getInternalId());
     }
 
     public function testMassPasswordResetAction()
@@ -197,8 +147,8 @@ class ControllersResetTest extends WebTestCase
         $user = $repo->find($user->getId());
         $user2 = $repo->find($user2->getId());
 
-        $this->assertEquals(UserManager::STATUS_RESET, $user->getAuthStatus()->getId());
-        $this->assertEquals(UserManager::STATUS_ACTIVE, $user2->getAuthStatus()->getId());
+        $this->assertEquals(UserManager::STATUS_RESET, $user->getAuthStatus()->getInternalId());
+        $this->assertEquals(UserManager::STATUS_ACTIVE, $user2->getAuthStatus()->getInternalId());
     }
 
     public function testResetAction()

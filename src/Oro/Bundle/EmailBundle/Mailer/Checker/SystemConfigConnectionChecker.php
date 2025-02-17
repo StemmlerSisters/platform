@@ -25,15 +25,14 @@ class SystemConfigConnectionChecker implements ConnectionCheckerInterface
     /**
      * Checks that dsn is "oro://system-config".
      */
+    #[\Override]
     public function supports(Dsn $dsn): bool
     {
         return $dsn->getScheme() === 'oro' && $dsn->getHost() === 'system-config';
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function checkConnection(Dsn $dsn, string &$error = null): bool
+    #[\Override]
+    public function checkConnection(Dsn $dsn, ?string &$error = null): bool
     {
         $realDsn = $this->systemConfigTransportRealDsnProvider->getRealDsn($dsn);
 

@@ -47,11 +47,11 @@ class MassNotificationSender
     /**
      * @param string      $body
      * @param string|null $subject
-     * @param From|null   $sender
+     * @param From|null $sender
      *
      * @return int
      */
-    public function send($body, $subject = null, From $sender = null)
+    public function send($body, $subject = null, ?From $sender = null)
     {
         /** @var EntityManagerInterface $em */
         $em = $this->doctrine->getManager();
@@ -66,7 +66,7 @@ class MassNotificationSender
             $subject
         );
 
-        $this->emailNotificationManager->process([$massNotification], null, [self::MAINTENANCE_VARIABLE => $body]);
+        $this->emailNotificationManager->process([$massNotification], [self::MAINTENANCE_VARIABLE => $body]);
         $this->entityPool->persistAndFlush($em);
 
         return count($recipients);

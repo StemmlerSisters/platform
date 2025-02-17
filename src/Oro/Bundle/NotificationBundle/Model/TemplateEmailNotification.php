@@ -42,7 +42,7 @@ class TemplateEmailNotification implements TemplateEmailNotificationInterface, S
         EmailTemplateCriteria $emailTemplateCriteria,
         iterable $recipients,
         $entity = null,
-        From $sender = null
+        ?From $sender = null
     ) {
         $this->emailTemplateCriteria = $emailTemplateCriteria;
         $this->recipients = $recipients;
@@ -50,33 +50,25 @@ class TemplateEmailNotification implements TemplateEmailNotificationInterface, S
         $this->sender = $sender;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getTemplateCriteria(): EmailTemplateCriteria
     {
         return $this->emailTemplateCriteria;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getRecipients(): iterable
     {
         return $this->recipients;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getEntity()
     {
         return $this->entity;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getSender(): ?From
     {
         return $this->sender;

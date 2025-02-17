@@ -11,11 +11,12 @@ use Oro\Bundle\TestFrameworkBundle\Entity\Item;
  */
 class RestAdvancedSearchApiTest extends SearchBundleWebTestCase
 {
+    #[\Override]
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->initClient([], $this->generateWsseAuthHeader());
+        $this->initClient([], self::generateApiAuthHeader());
 
         $this->loadFixture(Item::class, LoadSearchItemData::class, LoadSearchItemData::COUNT);
     }

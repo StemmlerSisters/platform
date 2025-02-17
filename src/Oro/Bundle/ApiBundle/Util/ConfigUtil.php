@@ -56,6 +56,9 @@ class ConfigUtil extends BaseConfigUtil
     /** the names of identifier fields of the entity */
     public const IDENTIFIER_FIELD_NAMES = 'identifier_field_names';
 
+    /** the class name of an API resource */
+    public const RESOURCE_CLASS = 'resource_class';
+
     /** the class name of a parent API resource */
     public const PARENT_RESOURCE_CLASS = 'parent_resource_class';
 
@@ -64,6 +67,9 @@ class ConfigUtil extends BaseConfigUtil
 
     /** the default page size */
     public const PAGE_SIZE = 'page_size';
+
+    /** a flag indicates whether a paging is disabled */
+    public const DISABLE_PAGING = 'disable_paging';
 
     /** a flag indicates whether a sorting is disabled */
     public const DISABLE_SORTING = 'disable_sorting';
@@ -79,6 +85,9 @@ class ConfigUtil extends BaseConfigUtil
 
     /** the names of additional meta properties a requesting of that are disabled */
     public const DISABLED_META_PROPERTIES = 'disabled_meta_properties';
+
+    /** a flag indicates whether possibility using validate operation */
+    public const ENABLE_VALIDATION = 'enable_validation';
 
     /** the form type that should be used for the entity */
     public const FORM_TYPE = 'form_type';
@@ -125,7 +134,19 @@ class ConfigUtil extends BaseConfigUtil
     /** the type that represents a collection valued association */
     public const TO_MANY = 'to-many';
 
-    /** a list of fields on which this field depends on */
+    /**
+     * the class name of a target entity for a custom subresource request;
+     * it is applicable for "update_subresource", "add_subresource" and "delete_subresource" actions
+     */
+    public const REQUEST_TARGET_CLASS = 'request_target_class';
+
+    /**
+     * an action name that should be used to get the documentation for a custom subresource request;
+     * it is applicable for "update_subresource", "add_subresource" and "delete_subresource" actions
+     */
+    public const REQUEST_DOCUMENTATION_ACTION = 'request_documentation_action';
+
+    /** a list of properties on which this field depends on */
     public const DEPENDS_ON = 'depends_on';
 
     /** the type of the filter */

@@ -15,13 +15,13 @@ use Oro\Bundle\WorkflowBundle\Model\WorkflowData;
 class StartTransitionButtonProviderExtension extends AbstractStartTransitionButtonProviderExtension
 {
     /**
-     * {@inheritdoc}
      * @param StartTransitionButton $button
      */
+    #[\Override]
     public function isAvailable(
         ButtonInterface $button,
         ButtonSearchContext $buttonSearchContext,
-        Collection $errors = null
+        ?Collection $errors = null
     ) {
         if (!$this->supports($button)) {
             throw $this->createUnsupportedButtonException($button);
@@ -69,9 +69,7 @@ class StartTransitionButtonProviderExtension extends AbstractStartTransitionButt
         return $workflowItem;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     protected function getTransitions(Workflow $workflow, ButtonSearchContext $searchContext)
     {
         $transitionNames = array_merge(
@@ -94,14 +92,12 @@ class StartTransitionButtonProviderExtension extends AbstractStartTransitionButt
      *
      * @return array
      */
-    private function getNodeInitTransitions($value, array $data = null)
+    private function getNodeInitTransitions($value, ?array $data = null)
     {
         return ($data && array_key_exists($value, $data)) ? $data[$value] : [];
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     protected function getApplication()
     {
         return CurrentApplicationProviderInterface::DEFAULT_APPLICATION;

@@ -2,18 +2,28 @@
 
 namespace Oro\Bundle\ThemeBundle\DependencyInjection;
 
+use Oro\Bundle\ConfigBundle\DependencyInjection\SettingsBuilder;
+use Oro\Bundle\ConfigBundle\Utils\TreeUtils;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
 class Configuration implements ConfigurationInterface
 {
-    /**
-     * {@inheritDoc}
-     */
+    public const ROOT_NAME = 'oro_theme';
+    public const THEME_CONFIGURATION = 'theme_configuration';
+
+    #[\Override]
     public function getConfigTreeBuilder(): TreeBuilder
     {
-        $treeBuilder = new TreeBuilder('oro_theme');
+        $treeBuilder = new TreeBuilder(self::ROOT_NAME);
         $rootNode = $treeBuilder->getRootNode();
+
+        SettingsBuilder::append(
+            $rootNode,
+            [
+                self::THEME_CONFIGURATION => ['type' => 'integer', 'value' => null]
+            ]
+        );
 
         $rootNode
             ->beforeNormalization()
@@ -57,5 +67,10 @@ class Configuration implements ConfigurationInterface
             ->end();
 
         return $treeBuilder;
+    }
+
+    public static function getConfigKeyByName(string $name): string
+    {
+        return TreeUtils::getConfigKey(self::ROOT_NAME, $name);
     }
 }

@@ -58,7 +58,7 @@ define(function(require, exports, module) {
             });
             this.target.on('input-widget:refresh', () => {
                 const toShow = (this.collection && this.collection.models.length > 0) || this.target.val();
-
+                this.target.data('selected-data', this.target.val());
                 this.displaySelect2(toShow);
             });
 
@@ -66,6 +66,11 @@ define(function(require, exports, module) {
                 this.collection = new RegionCollection([], {
                     route: options.collectionRoute
                 });
+
+                if (options.collectionRouteCountryCode) {
+                    this.collection.setCountryId(options.collectionRouteCountryCode);
+                    this.collection.fetch({reset: false});
+                }
             }
 
             this.listenTo(this.collection, 'reset', this.render);

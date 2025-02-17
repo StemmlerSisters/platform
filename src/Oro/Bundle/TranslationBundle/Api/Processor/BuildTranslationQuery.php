@@ -30,9 +30,7 @@ class BuildTranslationQuery implements ProcessorInterface
         $this->filterNamesRegistry = $filterNamesRegistry;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function process(ContextInterface $context): void
     {
         /** @var Context $context */
@@ -63,23 +61,20 @@ class BuildTranslationQuery implements ProcessorInterface
             return true;
         }
 
-        $filterValues = $context->getFilterValues();
-        if ($filterValues->has(self::HAS_TRANSLATION_FIELD_NAME)
-            || $filterValues->has(self::TRANSLATED_VALUE_FIELD_NAME)
+        $filterValueAccessor = $context->getFilterValues();
+        if ($filterValueAccessor->has(self::HAS_TRANSLATION_FIELD_NAME)
+            || $filterValueAccessor->has(self::TRANSLATED_VALUE_FIELD_NAME)
         ) {
             return true;
         }
 
-        $sortFilterValue = $filterValues->get(
+        $sortFilterValue = $filterValueAccessor->getOne(
             $this->filterNamesRegistry->getFilterNames($context->getRequestType())->getSortFilterName()
         );
-        if (null !== $sortFilterValue
-            && \array_key_exists(self::HAS_TRANSLATION_FIELD_NAME, $sortFilterValue->getValue())
-        ) {
-            return true;
-        }
 
-        return false;
+        return
+            null !== $sortFilterValue
+            && \array_key_exists(self::HAS_TRANSLATION_FIELD_NAME, $sortFilterValue->getValue());
     }
 
     private function isFieldRequested(?EntityDefinitionConfig $config, string $fieldName): bool

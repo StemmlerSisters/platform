@@ -3,6 +3,7 @@
 namespace Oro\Bundle\ImapBundle\Tests\Functional\Manager;
 
 use Oro\Bundle\EmailBundle\Entity\EmailBody;
+use Oro\Bundle\EmailBundle\Entity\EmailUser;
 use Oro\Bundle\ImapBundle\Entity\ImapEmail;
 use Oro\Bundle\ImapBundle\Entity\ImapEmailFolder;
 use Oro\Bundle\ImapBundle\Entity\UserEmailOrigin;
@@ -23,9 +24,7 @@ class ImapClearManagerTest extends WebTestCase
     /** @var ImapClearManager */
     private $manager;
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     protected function setUp(): void
     {
         $this->initClient();
@@ -57,7 +56,8 @@ class ImapClearManagerTest extends WebTestCase
         self::assertCount(1, $sentMessages);
         $message = $sentMessages[0];
         self::assertEquals('oro.search.index_entities', $message['topic']);
-        self::assertCount(2, $message['message']['entityIds']);
+        self::assertEquals(EmailUser::class, $message['message']['class']);
+        self::assertCount(4, $message['message']['entityIds']);
     }
 
     public function testClearById()
@@ -77,7 +77,8 @@ class ImapClearManagerTest extends WebTestCase
         self::assertCount(1, $sentMessages);
         $message = $sentMessages[0];
         self::assertEquals('oro.search.index_entities', $message['topic']);
-        self::assertCount(2, $message['message']['entityIds']);
+        self::assertEquals(EmailUser::class, $message['message']['class']);
+        self::assertCount(4, $message['message']['entityIds']);
     }
 
     public function testClearByOfActiveOrigin()
@@ -97,7 +98,8 @@ class ImapClearManagerTest extends WebTestCase
         self::assertCount(1, $sentMessages);
         $message = $sentMessages[0];
         self::assertEquals('oro.search.index_entities', $message['topic']);
-        self::assertCount(2, $message['message']['entityIds']);
+        self::assertEquals(EmailUser::class, $message['message']['class']);
+        self::assertCount(4, $message['message']['entityIds']);
     }
 
     /**

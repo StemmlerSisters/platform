@@ -7,9 +7,10 @@ use Symfony\Component\HttpFoundation\Response;
 
 class ConfigurationControllerTest extends WebTestCase
 {
+    #[\Override]
     protected function setUp(): void
     {
-        $this->initClient([], $this->generateWsseAuthHeader());
+        $this->initClient([], self::generateApiAuthHeader());
     }
 
     public function testGetList(): array
@@ -32,7 +33,7 @@ class ConfigurationControllerTest extends WebTestCase
                 'GET',
                 $this->getUrl('oro_api_get_configuration', ['path' => $sectionPath]),
                 [],
-                $this->generateWsseAuthHeader()
+                self::generateApiAuthHeader()
             );
 
             $result = $this->getApiJsonResponseContent($this->client->getResponse(), 200, $sectionPath);

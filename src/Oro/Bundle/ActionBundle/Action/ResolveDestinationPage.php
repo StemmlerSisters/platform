@@ -41,9 +41,7 @@ class ResolveDestinationPage extends AbstractAction
         $this->requestStack = $requestStack;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function initialize(array $options)
     {
         $this->destination = $this->getDestinationOption($options);
@@ -53,19 +51,18 @@ class ResolveDestinationPage extends AbstractAction
         return $this;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     protected function executeAction($context)
     {
         if (null === ($request = $this->requestStack->getMainRequest())) {
             return;
         }
 
+        $destination = $this->contextAccessor->getValue($context, $this->destination);
         $redirectUrl = $request->get(DestinationPageResolver::PARAM_ORIGINAL_URL);
-        if ($this->destination !== DestinationPageResolver::DEFAULT_DESTINATION) {
+        if ($destination !== DestinationPageResolver::DEFAULT_DESTINATION) {
             $entity = $this->contextAccessor->getValue($context, $this->entity);
-            $redirectUrl = $this->resolver->resolveDestinationUrl($entity, $this->destination);
+            $redirectUrl = $this->resolver->resolveDestinationUrl($entity, $destination);
         }
 
         if ($redirectUrl) {

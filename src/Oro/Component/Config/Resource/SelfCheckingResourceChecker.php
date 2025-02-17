@@ -19,12 +19,13 @@ class SelfCheckingResourceChecker implements ResourceCheckerInterface
 
     public function __construct(
         bool $debug,
-        SymfonySelfCheckingResourceChecker $innerResourceChecker = null
+        ?SymfonySelfCheckingResourceChecker $innerResourceChecker = null
     ) {
         $this->debug = $debug;
         $this->innerResourceChecker = $innerResourceChecker ?? new SymfonySelfCheckingResourceChecker();
     }
 
+    #[\Override]
     public function supports(ResourceInterface $metadata): bool
     {
         return $this->innerResourceChecker->supports($metadata);
@@ -33,8 +34,8 @@ class SelfCheckingResourceChecker implements ResourceCheckerInterface
     /**
      * @param \Symfony\Component\Config\Resource\SelfCheckingResourceInterface $resource
      *
-     * {@inheritdoc}
      */
+    #[\Override]
     public function isFresh(ResourceInterface $resource, int $timestamp): bool
     {
         if ($this->debug) {

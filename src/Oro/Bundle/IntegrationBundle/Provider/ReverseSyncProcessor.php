@@ -28,7 +28,7 @@ class ReverseSyncProcessor extends AbstractSyncProcessor
         Executor $jobExecutor,
         TypesRegistry $registry,
         EventDispatcherInterface $eventDispatcher,
-        LoggerStrategy $logger = null
+        ?LoggerStrategy $logger = null
     ) {
         $this->doctrineRegistry = $doctrineRegistry;
 
@@ -36,10 +36,10 @@ class ReverseSyncProcessor extends AbstractSyncProcessor
     }
 
     /**
-     * {@inheritdoc}
      *
      * @throws InvalidConnectorException
      */
+    #[\Override]
     public function process(Integration $integration, $connector, array $parameters = [])
     {
         if (!$integration->isEnabled()) {
@@ -142,10 +142,8 @@ class ReverseSyncProcessor extends AbstractSyncProcessor
         return $status;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    protected function formatResultMessage(ContextInterface $context = null)
+    #[\Override]
+    protected function formatResultMessage(?ContextInterface $context = null)
     {
         return sprintf(
             '[%s] %s',
@@ -154,9 +152,6 @@ class ReverseSyncProcessor extends AbstractSyncProcessor
         );
     }
 
-    /**
-     * {@inheritdoc}
-     */
     protected function assertValidConnector(ConnectorInterface $connector)
     {
         if (!($connector instanceof TwoWaySyncConnectorInterface)) {

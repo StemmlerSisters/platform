@@ -20,17 +20,13 @@ class OroMessageQueueBundleInstaller implements Installation, DatabasePlatformAw
     use DatabasePlatformAwareTrait;
     use ConnectionAwareTrait;
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function getMigrationVersion(): string
     {
-        return 'v1_10';
+        return 'v1_11';
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function up(Schema $schema, QueryBag $queries): void
     {
         $this->createDbalQueueTable($schema);
@@ -73,6 +69,7 @@ class OroMessageQueueBundleInstaller implements Installation, DatabasePlatformAw
         $table->addColumn('job_progress', 'percent', ['notnull' => false, 'precision' => 0]);
         $table->setPrimaryKey(['id']);
         $table->addIndex(['status'], 'idx_status');
+        $table->addIndex(['root_job_id', 'name', 'owner_id'], 'oro_message_queue_job_inx');
 
         $table->addForeignKeyConstraint(
             $table,

@@ -30,6 +30,7 @@ class CronDefinitionsLoadCommand extends Command
     }
 
     /** @noinspection PhpMissingParentCallCommonInspection */
+    #[\Override]
     protected function configure()
     {
         $this->setDescription('Updates cron commands definitions stored in the database.')
@@ -52,6 +53,7 @@ HELP
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      * @noinspection PhpMissingParentCallCommonInspection
      */
+    #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $output->writeln('<info>Removing all previously loaded commands...</info>');
@@ -61,20 +63,19 @@ HELP
         $qb = $em->createQueryBuilder()
             ->from(Schedule::class, 'd');
         $qb
-            ->where(
-                $qb->expr()->like('d.command', ':cron')
-            )
-            ->setParameter('cron', 'oro:cron:%')
             ->delete()
             ->getQuery()
             ->execute();
 
-        $applicationCommands = $this->getApplication()->all('oro:cron');
+        $allCommands = array_map(function (Command $command) {
+            return $command instanceof LazyCommand ? $command->getCommand() : $command;
+        }, $this->getApplication()->all());
 
-        foreach ($applicationCommands as $name => $command) {
-            if ($command instanceof LazyCommand) {
-                $command = $command->getCommand();
-            }
+        $cronCommands = array_filter($allCommands, function (Command $command) {
+            return $command instanceof CronCommandScheduleDefinitionInterface;
+        });
+
+        foreach ($cronCommands as $name => $command) {
             if ($this === $command) {
                 continue;
             }
@@ -107,16 +108,8 @@ HELP
         return $schedule;
     }
 
-    private function checkCommand(OutputInterface $output, Command $command): bool
+    private function checkCommand(OutputInterface $output, CronCommandScheduleDefinitionInterface $command): bool
     {
-        if (!$command instanceof CronCommandScheduleDefinitionInterface) {
-            $output->writeln(
-                '<info>Skipping, the command does not implement CronCommandScheduleDefinitionInterface.</info>'
-            );
-
-            return false;
-        }
-
         if (!$command->getDefaultDefinition()) {
             $output->writeln('<error>no cron definition found, check command.</error>');
 

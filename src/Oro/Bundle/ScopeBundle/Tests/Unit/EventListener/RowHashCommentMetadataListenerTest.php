@@ -23,6 +23,7 @@ class RowHashCommentMetadataListenerTest extends TestCase
     /** @var RowHashCommentMetadataListener */
     private $listener;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->event = $this->createMock(LoadClassMetadataEventArgs::class);
@@ -101,7 +102,7 @@ class RowHashCommentMetadataListenerTest extends TestCase
             'scale' => 0,
             'length' => 32,
             'unique' => 1,
-            'nullable' =>'',
+            'nullable' => '',
             'precision' => 0,
             'columnName' => 'row_hash',
             'options' => [

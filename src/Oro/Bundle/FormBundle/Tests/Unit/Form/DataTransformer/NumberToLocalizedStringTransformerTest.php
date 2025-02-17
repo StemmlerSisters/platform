@@ -10,6 +10,7 @@ class NumberToLocalizedStringTransformerTest extends \PHPUnit\Framework\TestCase
     /** @var NumberFormatter|\PHPUnit\Framework\MockObject\MockObject */
     private $numberFormatter;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->numberFormatter = $this->createMock(NumberFormatter::class);
@@ -30,10 +31,10 @@ class NumberToLocalizedStringTransformerTest extends \PHPUnit\Framework\TestCase
     public function testTransform(
         float $from,
         string $to,
-        int $scale = null,
+        ?int $scale = null,
         ?bool $grouping = false,
         ?int $roundingMode = \NumberFormatter::ROUND_HALFUP,
-        string $locale = null
+        ?string $locale = null
     ): void {
         if (null !== $scale) {
             $attributes = [
@@ -74,7 +75,7 @@ class NumberToLocalizedStringTransformerTest extends \PHPUnit\Framework\TestCase
     public function testReverseTransform(
         ?string $from,
         string|float|null $to,
-        int $scale = null,
+        ?int $scale = null,
         ?bool $grouping = false,
         ?int $roundingMode = \NumberFormatter::ROUND_HALFUP,
         string $locale = 'en',

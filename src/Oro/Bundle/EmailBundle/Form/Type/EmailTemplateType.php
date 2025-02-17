@@ -33,9 +33,7 @@ class EmailTemplateType extends AbstractType
         $this->localizationManager = $localizationManager;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $localizations = $this->localizationManager->getLocalizations();
@@ -63,7 +61,7 @@ class EmailTemplateType extends AbstractType
             ])
             ->add('translations', EmailTemplateTranslationCollectionType::class, [
                 'localizations' => $localizations,
-                'wysiwyg_enabled' => $this->userConfig->get('oro_form.wysiwyg_enabled') ?? false,
+                'wysiwyg_enabled' => $this->userConfig->get('oro_email.email_template_wysiwyg_enabled') ?? false,
                 'wysiwyg_options' => $this->getWysiwygOptions(),
             ])
             ->add('activeLocalization', HiddenType::class, [
@@ -124,9 +122,7 @@ class EmailTemplateType extends AbstractType
         $builder->setDataMapper(new LocalizationAwareEmailTemplateDataMapper($builder->getDataMapper()));
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setDefaults(
@@ -137,9 +133,7 @@ class EmailTemplateType extends AbstractType
         );
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getBlockPrefix(): string
     {
         return 'oro_email_emailtemplate';

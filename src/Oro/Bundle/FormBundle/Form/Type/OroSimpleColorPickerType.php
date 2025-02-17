@@ -24,9 +24,7 @@ class OroSimpleColorPickerType extends AbstractSimpleColorPickerType
         $this->translator = $translator;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function configureOptions(OptionsResolver $resolver)
     {
         parent::configureOptions($resolver);
@@ -37,6 +35,7 @@ class OroSimpleColorPickerType extends AbstractSimpleColorPickerType
                     'colors'               => [],
                     'empty_value'          => null,
                     'allow_custom_color'   => false,
+                    'show_input_control'   => false,
                     'custom_color_control' => null // hue, brightness, saturation, or wheel. defaults wheel
                 ]
             )
@@ -50,9 +49,7 @@ class OroSimpleColorPickerType extends AbstractSimpleColorPickerType
             );
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function buildView(FormView $view, FormInterface $form, array $options)
     {
         parent::buildView($view, $form, $options);
@@ -72,6 +69,8 @@ class OroSimpleColorPickerType extends AbstractSimpleColorPickerType
         }
 
         $view->vars['allow_custom_color'] = $options['allow_custom_color'];
+        $view->vars['configs']['show_input_control'] = $options['show_input_control'];
+
         if ($options['allow_custom_color']) {
             $this->appendTheme($view->vars['configs'], 'with-custom-color');
             array_push(
@@ -93,25 +92,18 @@ class OroSimpleColorPickerType extends AbstractSimpleColorPickerType
         $view->vars['configs']['data'] = $pickerData;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getParent(): ?string
     {
         return HiddenType::class;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getName()
     {
         return $this->getBlockPrefix();
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getBlockPrefix(): string
     {
         return 'oro_simple_color_picker';

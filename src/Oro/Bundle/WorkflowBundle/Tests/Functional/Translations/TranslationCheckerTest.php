@@ -11,6 +11,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 
 class TranslationCheckerTest extends WebTestCase
 {
+    #[\Override]
     protected function setUp(): void
     {
         $this->initClient();
@@ -52,9 +53,10 @@ class TranslationCheckerTest extends WebTestCase
 
     private function isNotRequiredField(string $field): int
     {
-        return preg_match(
-            '/^oro\.workflow\..+\.transition\..+\.(warning_message|button_label|button_title|attribute\..+)$/',
-            $field
-        );
+        return str_contains($field, '.state_token.')
+            || preg_match(
+                '/^oro\.workflow\..+\.transition\..+\.(warning_message|button_label|button_title|attribute\..+)$/',
+                $field
+            );
     }
 }

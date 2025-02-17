@@ -19,6 +19,8 @@ use Oro\Bundle\ApiBundle\Model\ErrorSource;
 use Oro\Bundle\ApiBundle\Request\Constraint;
 use Oro\Bundle\ApiBundle\Request\RequestType;
 use Oro\Bundle\GaufretteBundle\FileManager;
+use Oro\Component\MessageQueue\Client\Message;
+use Oro\Component\MessageQueue\Client\MessagePriority;
 use Oro\Component\MessageQueue\Client\MessageProducerInterface;
 use Oro\Component\MessageQueue\Client\TopicSubscriberInterface;
 use Oro\Component\MessageQueue\Consumption\MessageProcessorInterface;
@@ -87,9 +89,7 @@ class UpdateListMessageProcessor implements MessageProcessorInterface, TopicSubs
         $this->logger = $logger;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public static function getSubscribedTopics(): array
     {
         return [UpdateListTopic::getName()];
@@ -106,11 +106,11 @@ class UpdateListMessageProcessor implements MessageProcessorInterface, TopicSubs
     }
 
     /**
-     * {@inheritDoc}
      * @SuppressWarnings(PHPMD.NPathComplexity)
      * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
+    #[\Override]
     public function process(MessageInterface $message, SessionInterface $session): string
     {
         $startTimestamp = microtime(true);
@@ -257,7 +257,10 @@ class UpdateListMessageProcessor implements MessageProcessorInterface, TopicSubs
     {
         $body['splitterState'] = $splitterState;
         $body['aggregateTime'] = $aggregateTime;
-        $this->producer->send(UpdateListTopic::getName(), $body);
+        $this->producer->send(
+            UpdateListTopic::getName(),
+            new Message($body, ($body['synchronousMode'] ?? false) ? MessagePriority::HIGH : MessagePriority::NORMAL)
+        );
     }
 
     /**
@@ -407,12 +410,22 @@ class UpdateListMessageProcessor implements MessageProcessorInterface, TopicSubs
 
         $initialChunkSize = $splitter->getChunkSize();
         $initialChunkSizePerSection = $splitter->getChunkSizePerSection();
+        $initialChunkCountLimit = $splitter->getChunkCountLimit();
+        $initialChunkCountLimitPerSection = $splitter->getChunkCountLimitPerSection();
         $splitter->setChunkSize($body['chunkSize']);
         $chunkSizePerSection = [];
         foreach ($initialChunkSizePerSection as $sectionName => $chunkSize) {
             $chunkSizePerSection[$sectionName] = $body['includedDataChunkSize'];
         }
         $splitter->setChunkSizePerSection($chunkSizePerSection);
+        if ($body['synchronousMode']) {
+            $splitter->setChunkCountLimit(1);
+            $chunkCountLimitPerSection = [];
+            foreach ($initialChunkSizePerSection as $sectionName => $chunkSize) {
+                $chunkCountLimitPerSection[$sectionName] = 1;
+            }
+            $splitter->setChunkCountLimitPerSection($chunkCountLimitPerSection);
+        }
         try {
             return $splitter->splitFile($dataFileName, $this->sourceDataFileManager, $this->fileManager);
         } catch (\Exception $e) {
@@ -422,6 +435,8 @@ class UpdateListMessageProcessor implements MessageProcessorInterface, TopicSubs
         } finally {
             $splitter->setChunkSize($initialChunkSize);
             $splitter->setChunkSizePerSection($initialChunkSizePerSection);
+            $splitter->setChunkCountLimit($initialChunkCountLimit);
+            $splitter->setChunkCountLimitPerSection($initialChunkCountLimitPerSection);
         }
     }
 

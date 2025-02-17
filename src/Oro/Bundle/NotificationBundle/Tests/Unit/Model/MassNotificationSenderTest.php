@@ -40,6 +40,7 @@ class MassNotificationSenderTest extends \PHPUnit\Framework\TestCase
     /** @var MassNotificationSender */
     private $sender;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
@@ -100,7 +101,6 @@ class MassNotificationSenderTest extends \PHPUnit\Framework\TestCase
             ->method('process')
             ->with(
                 [$expectedMassNotification],
-                null,
                 [MassNotificationSender::MAINTENANCE_VARIABLE => $body]
             );
 
@@ -134,7 +134,6 @@ class MassNotificationSenderTest extends \PHPUnit\Framework\TestCase
             ->method('process')
             ->with(
                 [$expectedMassNotification],
-                null,
                 [MassNotificationSender::MAINTENANCE_VARIABLE => $body]
             );
 

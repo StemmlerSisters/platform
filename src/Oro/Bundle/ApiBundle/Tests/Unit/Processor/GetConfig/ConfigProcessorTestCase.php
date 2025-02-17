@@ -22,6 +22,7 @@ class ConfigProcessorTestCase extends \PHPUnit\Framework\TestCase
     protected ConfigExtensionRegistry $configExtensionRegistry;
     protected ConfigLoaderFactory $configLoaderFactory;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->context = new ConfigContext();
@@ -47,7 +48,7 @@ class ConfigProcessorTestCase extends \PHPUnit\Framework\TestCase
     }
 
     protected function getClassMetadataMock(
-        string $className = null
+        ?string $className = null
     ): ClassMetadata|\PHPUnit\Framework\MockObject\MockObject {
         if ($className) {
             $classMetadata = $this->getMockBuilder(ClassMetadata::class)

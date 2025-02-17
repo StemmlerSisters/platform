@@ -10,12 +10,12 @@ use Oro\Bundle\ApiBundle\ApiDoc\ResourceDocParserInterface;
 use Oro\Bundle\ApiBundle\ApiDoc\ResourceDocParserRegistry;
 use Oro\Bundle\ApiBundle\ApiDoc\ResourceDocProvider;
 use Oro\Bundle\ApiBundle\Config\EntityDefinitionConfig;
+use Oro\Bundle\ApiBundle\Config\Extra\DescriptionsConfigExtra;
 use Oro\Bundle\ApiBundle\Config\FiltersConfig;
 use Oro\Bundle\ApiBundle\Model\Label;
 use Oro\Bundle\ApiBundle\Processor\GetConfig\CompleteDescriptions;
 use Oro\Bundle\ApiBundle\Processor\GetConfig\CompleteDescriptions\DescriptionProcessor;
 use Oro\Bundle\ApiBundle\Processor\GetConfig\CompleteDescriptions\EntityDescriptionHelper;
-use Oro\Bundle\ApiBundle\Processor\GetConfig\CompleteDescriptions\FeatureDependedTextProcessor;
 use Oro\Bundle\ApiBundle\Processor\GetConfig\CompleteDescriptions\FieldsDescriptionHelper;
 use Oro\Bundle\ApiBundle\Processor\GetConfig\CompleteDescriptions\FiltersDescriptionHelper;
 use Oro\Bundle\ApiBundle\Processor\GetConfig\CompleteDescriptions\IdentifierDescriptionHelper;
@@ -29,8 +29,6 @@ use Oro\Bundle\ApiBundle\Util\ConfigUtil;
 use Oro\Bundle\ApiBundle\Util\DoctrineHelper;
 use Oro\Bundle\EntityConfigBundle\Config\ConfigManager;
 use Oro\Bundle\EntityConfigBundle\Tests\Unit\ConfigProviderMock;
-use Oro\Bundle\EntityExtendBundle\Tests\Unit\Fixtures\TestEnumValue;
-use Oro\Bundle\FeatureToggleBundle\Checker\FeatureChecker;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
@@ -44,18 +42,13 @@ class CompleteDescriptionsTest extends ConfigProcessorTestCase
 {
     private const ID_DESCRIPTION = 'The unique identifier of a resource.';
     private const REQUIRED_ID_DESCRIPTION = '<p>The unique identifier of a resource.</p>'
-    . '<p><strong>The required field.</strong></p>';
+        . '<p><strong>The required field.</strong></p>';
     private const CREATED_AT_DESCRIPTION = 'The date and time of resource record creation.';
     private const UPDATED_AT_DESCRIPTION = 'The date and time of the last update of the resource record.';
     private const OWNER_DESCRIPTION = 'An owner record represents'
-    . ' the ownership capabilities of the record.';
+        . ' the ownership capabilities of the record.';
     private const ORGANIZATION_DESCRIPTION = 'An organization record represents'
-    . ' a real enterprise, business, firm, company or another organization to which the users belong.';
-    private const ENUM_NAME_DESCRIPTION = 'The human readable name of the option.';
-    private const ENUM_DEFAULT_DESCRIPTION = 'Determines if this option is selected by default'
-    . ' for new records.';
-    private const ENUM_PRIORITY_DESCRIPTION = 'The order in which options are ranked.'
-    . ' First appears the option with the higher number of the priority.';
+        . ' a real enterprise, business, firm, company or another organization to which the users belong.';
     private const FIELD_FILTER_DESCRIPTION = 'Filter records by \'%s\' field.';
     private const ASSOCIATION_FILTER_DESCRIPTION = 'Filter records by \'%s\' relationship.';
 
@@ -83,6 +76,7 @@ class CompleteDescriptionsTest extends ConfigProcessorTestCase
     /** @var CompleteDescriptions */
     private $processor;
 
+    #[\Override]
     protected function setUp(): void
     {
         parent::setUp();
@@ -102,8 +96,7 @@ class CompleteDescriptionsTest extends ConfigProcessorTestCase
 
         $resourceDocParserProvider = new ResourceDocParserProvider($resourceDocParserRegistry);
         $descriptionProcessor = new DescriptionProcessor(
-            new RequestDependedTextProcessor(),
-            new FeatureDependedTextProcessor($this->createMock(FeatureChecker::class))
+            new RequestDependedTextProcessor()
         );
         $identifierDescriptionHelper = new IdentifierDescriptionHelper($this->doctrineHelper);
 
@@ -1017,42 +1010,6 @@ class CompleteDescriptionsTest extends ConfigProcessorTestCase
         );
     }
 
-    public function testEnumFields()
-    {
-        $config = [
-            'exclusion_policy' => 'all',
-            'fields'           => [
-                'name'     => null,
-                'default'  => null,
-                'priority' => null
-            ]
-        ];
-
-        $this->context->setClassName(TestEnumValue::class);
-        $this->context->setTargetAction('get_list');
-        $this->context->setResult($this->createConfigObject($config));
-        $this->processor->process($this->context);
-
-        $this->assertConfig(
-            [
-                'exclusion_policy'       => 'all',
-                'identifier_description' => self::ID_DESCRIPTION,
-                'fields'                 => [
-                    'name'     => [
-                        'description' => self::ENUM_NAME_DESCRIPTION
-                    ],
-                    'default'  => [
-                        'description' => self::ENUM_DEFAULT_DESCRIPTION
-                    ],
-                    'priority' => [
-                        'description' => self::ENUM_PRIORITY_DESCRIPTION
-                    ]
-                ]
-            ],
-            $this->context->getResult()
-        );
-    }
-
     public function testFieldDescriptionWhenItExistsInConfig()
     {
         $entityClass = TestEntity::class;
@@ -1164,7 +1121,7 @@ class CompleteDescriptionsTest extends ConfigProcessorTestCase
             'fields'           => [
                 'renamedField' => [
                     'property_path' => 'testField',
-                    'description'   => 'field description, {@inheritdoc}'
+                    'description' => 'field description, {@inheritdoc}'
                 ]
             ]
         ];
@@ -2483,7 +2440,7 @@ class CompleteDescriptionsTest extends ConfigProcessorTestCase
         $entityClass = TestEntity::class;
         $config = [
             'exclusion_policy' => 'all',
-            'documentation'    => 'action documentation. {@inheritdoc}'
+            'documentation' => 'action documentation. {@inheritdoc}'
         ];
 
         $this->entityDescriptionProvider->expects(self::once())
@@ -2641,6 +2598,107 @@ class CompleteDescriptionsTest extends ConfigProcessorTestCase
                 'exclusion_policy'       => 'all',
                 'identifier_description' => self::ID_DESCRIPTION,
                 'documentation'          => $subresourceDocumentation
+            ],
+            $this->context->getResult()
+        );
+    }
+
+    public function testChangeSubresourceDocumentationWithoutCustomRequestDocumentationAction()
+    {
+        $parentEntityClass = TestEntity::class;
+        $associationName = 'testAssociation';
+        $targetAction = 'add_subresource';
+        $config = [
+            'exclusion_policy' => 'all',
+            'fields'           => [
+                'testField' => null
+            ]
+        ];
+        $associationDescription = 'test association';
+        $subresourceDocumentation = 'Change test association';
+        $fieldDocumentation = 'field documentation';
+
+        $this->entityDescriptionProvider->expects(self::once())
+            ->method('humanizeAssociationName')
+            ->with($associationName)
+            ->willReturn($associationDescription);
+        $this->resourceDocProvider->expects(self::once())
+            ->method('getSubresourceDocumentation')
+            ->with($targetAction, $associationDescription, false)
+            ->willReturn($subresourceDocumentation);
+        $this->resourceDocParser->expects(self::once())
+            ->method('getFieldDocumentation')
+            ->with($parentEntityClass, 'testField', $targetAction)
+            ->willReturn($fieldDocumentation);
+
+        $this->context->setParentClassName($parentEntityClass);
+        $this->context->setAssociationName($associationName);
+        $this->context->setTargetAction($targetAction);
+        $this->context->setExtra(new DescriptionsConfigExtra());
+        $this->context->setResult($this->createConfigObject($config));
+        $this->processor->process($this->context);
+
+        $this->assertConfig(
+            [
+                'exclusion_policy'       => 'all',
+                'identifier_description' => self::ID_DESCRIPTION,
+                'documentation'          => $subresourceDocumentation,
+                'fields'                 => [
+                    'testField' => [
+                        'description' => $fieldDocumentation
+                    ]
+                ]
+            ],
+            $this->context->getResult()
+        );
+    }
+
+    public function testChangeSubresourceDocumentationWithCustomRequestDocumentationAction()
+    {
+        $parentEntityClass = TestEntity::class;
+        $associationName = 'testAssociation';
+        $targetAction = 'add_subresource';
+        $requestDocumentationAction = 'some_action';
+        $config = [
+            'exclusion_policy' => 'all',
+            'fields'           => [
+                'testField' => null
+            ]
+        ];
+        $associationDescription = 'test association';
+        $subresourceDocumentation = 'Change test association';
+        $fieldDocumentation = 'field documentation';
+
+        $this->entityDescriptionProvider->expects(self::once())
+            ->method('humanizeAssociationName')
+            ->with($associationName)
+            ->willReturn($associationDescription);
+        $this->resourceDocProvider->expects(self::once())
+            ->method('getSubresourceDocumentation')
+            ->with($targetAction, $associationDescription, false)
+            ->willReturn($subresourceDocumentation);
+        $this->resourceDocParser->expects(self::once())
+            ->method('getFieldDocumentation')
+            ->with($parentEntityClass, 'testField', $requestDocumentationAction)
+            ->willReturn($fieldDocumentation);
+
+        $this->context->setParentClassName($parentEntityClass);
+        $this->context->setAssociationName($associationName);
+        $this->context->setTargetAction($targetAction);
+        $this->context->setExtra(new DescriptionsConfigExtra($requestDocumentationAction));
+        $this->context->setResult($this->createConfigObject($config));
+        $this->processor->process($this->context);
+
+        $this->assertConfig(
+            [
+                'exclusion_policy'       => 'all',
+                'identifier_description' => self::ID_DESCRIPTION,
+                'documentation'          => $subresourceDocumentation,
+                'fields'                 => [
+                    'testField' => [
+                        'description' => $fieldDocumentation
+                    ]
+                ]
             ],
             $this->context->getResult()
         );

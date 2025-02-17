@@ -14,9 +14,7 @@ class NavigationConfiguration implements ConfigurationInterface
 {
     public const ROOT_NODE = 'navigation';
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function getConfigTreeBuilder()
     {
         $treeBuilder = new TreeBuilder(self::ROOT_NODE, 'array', new MenuTreeBuilder());
@@ -126,6 +124,9 @@ class NavigationConfiguration implements ConfigurationInterface
                             ->scalarNode('scope_type')->end()
                             ->scalarNode('read_only')->end()
                             ->scalarNode('max_nesting_level')->end()
+                            ->scalarNode('warning')
+                                ->info('`string` warning text message.')
+                            ->end()
                             ->arrayNode('extras')
                                 ->useAttributeAsKey('extras')
                                 ->prototype('scalar')->end()

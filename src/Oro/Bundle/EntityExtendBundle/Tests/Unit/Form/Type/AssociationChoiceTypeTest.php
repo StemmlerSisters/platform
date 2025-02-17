@@ -12,9 +12,7 @@ use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 
 class AssociationChoiceTypeTest extends AssociationTypeTestCase
 {
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     protected function getFormType(): AbstractType
     {
         $entityClassResolver = $this->createMock(EntityClassResolver::class);
@@ -69,7 +67,7 @@ class AssociationChoiceTypeTest extends AssociationTypeTestCase
         $this->assertEquals(ChoiceType::class, $this->getFormType()->getParent());
     }
 
-    protected function getDisabledFormView(string $cssClass = null): array
+    protected function getDisabledFormView(?string $cssClass = null): array
     {
         return [
             'disabled' => true,

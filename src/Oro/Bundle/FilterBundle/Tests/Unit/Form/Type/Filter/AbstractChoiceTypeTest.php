@@ -18,6 +18,7 @@ class AbstractChoiceTypeTest extends \PHPUnit\Framework\TestCase
     /** @var AbstractChoiceType */
     private $instance;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->translator = $this->createMock(TranslatorInterface::class);
@@ -34,7 +35,7 @@ class AbstractChoiceTypeTest extends \PHPUnit\Framework\TestCase
     public function testFinishView(
         string $expectedTranslationDomain,
         array $options,
-        string $parentTranslationDomain = null,
+        ?string $parentTranslationDomain = null,
         array $expectedChoices = [],
         array $inputChoices = []
     ) {
@@ -106,7 +107,7 @@ class AbstractChoiceTypeTest extends \PHPUnit\Framework\TestCase
         ];
     }
 
-    private function getFilterFormView(string $parentTranslationDomain = null, array $choices = []): FormView
+    private function getFilterFormView(?string $parentTranslationDomain = null, array $choices = []): FormView
     {
         $choicesFormView = new FormView();
         $choicesFormView->vars['choices'] = [];

@@ -39,6 +39,14 @@ oro_api:
         test_percent_round: float
         test_percent_100_round: float
 
+    open_api:
+        cors:
+            allow_origins:
+                - 'https://api.test.com'
+        data_types:
+            test_percent_round: [number]
+            test_percent_100_round: [number]
+
     form_type_guesses:
         test_percent_round:
             form_type: Symfony\Component\Form\Extension\Core\Type\NumberType
@@ -50,3 +58,9 @@ oro_api:
             options:
                 scale: 3
                 rounding_mode: 0 # ROUND_CEILING
+
+oro_entity_extend:
+    custom_entities:
+        - Extend\Entity\TestApiE1
+        - Extend\Entity\TestApiE2
+        - Extend\Entity\TestApiE3

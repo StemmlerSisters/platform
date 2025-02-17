@@ -15,10 +15,8 @@ abstract class AbstractExpression implements ExpressionInterface
     /** @var \ArrayAccess|null */
     protected $errors;
 
-    /**
-     * {@inheritdoc}
-     */
-    public function evaluate($context, \ArrayAccess $errors = null)
+    #[\Override]
+    public function evaluate($context, ?\ArrayAccess $errors = null)
     {
         $this->errors = $errors;
         $result       = $this->doEvaluate($context);
@@ -27,9 +25,7 @@ abstract class AbstractExpression implements ExpressionInterface
         return $result;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function setMessage($message)
     {
         $this->message = $message;

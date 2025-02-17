@@ -8,11 +8,12 @@ use Oro\Bundle\EntityConfigBundle\Config\Config;
 use Oro\Bundle\EntityConfigBundle\Config\ConfigManager;
 use Oro\Bundle\EntityConfigBundle\Config\Id\EntityConfigId;
 use Oro\Bundle\EntityConfigBundle\Provider\ConfigProvider;
-use Oro\Bundle\EntityExtendBundle\Entity\Repository\EnumValueRepository;
+use Oro\Bundle\EntityExtendBundle\Entity\EnumOption;
+use Oro\Bundle\EntityExtendBundle\Entity\Repository\EnumOptionRepository;
 use Oro\Bundle\EntityExtendBundle\Form\Type\AbstractEnumType;
 use Oro\Bundle\EntityExtendBundle\Tests\Unit\Fixtures\TestEnumValue;
 use Oro\Bundle\EntityExtendBundle\Tests\Unit\Form\Fixtures\TestEntity;
-use Oro\Bundle\EntityExtendBundle\Tools\ExtendHelper;
+use PHPUnit\Framework\MockObject\MockObject;
 use Symfony\Component\Form\FormConfigInterface;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
@@ -24,12 +25,13 @@ use Symfony\Component\PropertyAccess\PropertyPath;
 
 class AbstractEnumTypeTestCase extends TypeTestCase
 {
-    /** @var ConfigManager|\PHPUnit\Framework\MockObject\MockObject */
+    /** @var ConfigManager|MockObject */
     protected $configManager;
 
-    /** @var ManagerRegistry|\PHPUnit\Framework\MockObject\MockObject */
+    /** @var ManagerRegistry|MockObject */
     protected $doctrine;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->configManager = $this->createMock(ConfigManager::class);
@@ -133,10 +135,10 @@ class AbstractEnumTypeTestCase extends TypeTestCase
 
     public function doTestPreSetDataForNewEntityKeepExistingValue(AbstractEnumType $type)
     {
-        $enumValueClassName = TestEnumValue::class;
+        $enumOptionClassName = TestEnumValue::class;
 
         $entity = new TestEntity();
-        $entity->setValue($this->createMock($enumValueClassName));
+        $entity->setValue($this->createMock($enumOptionClassName));
 
         $form = $this->createMock(FormInterface::class);
         $formConfig = $this->expectFormWillReturnFormConfig($form);
@@ -178,7 +180,7 @@ class AbstractEnumTypeTestCase extends TypeTestCase
 
     public function doTestPreSetDataForNewEntity(AbstractEnumType $type)
     {
-        $enumValueClassName = 'Test\EnumValue';
+        $enumOptionClassName = 'Test\EnumValue';
 
         $form = $this->createMock(FormInterface::class);
         $formConfig = $this->expectFormWillReturnFormConfig($form);
@@ -202,12 +204,13 @@ class AbstractEnumTypeTestCase extends TypeTestCase
         $this->expectFormConfigWillReturnOptions(
             $formConfig,
             [
-                ['class', null, $enumValueClassName],
-                ['multiple', null, false]
+                ['class', null, $enumOptionClassName],
+                ['multiple', null, false],
+                ['enum_code', null, 'enum_code']
             ]
         );
 
-        $this->setExpectationsForLoadDefaultEnumValues($enumValueClassName, ['val1']);
+        $this->setExpectationsForLoadDefaultEnumValues($enumOptionClassName, ['val1']);
 
         $event = $this->createMock(FormEvent::class);
         $event->expects($this->once())
@@ -222,15 +225,16 @@ class AbstractEnumTypeTestCase extends TypeTestCase
 
     public function doTestPreSetDataForNewEntityWithMultiEnum(AbstractEnumType $type)
     {
-        $enumValueClassName = 'Test\EnumValue';
+        $enumOptionClassName = 'Test\EnumValue';
 
         $form = $this->createMock(FormInterface::class);
         $formConfig = $this->expectFormWillReturnFormConfig($form);
         $this->expectFormConfigWillReturnOptions(
             $formConfig,
             [
-                ['class', null, $enumValueClassName],
-                ['multiple', null, true]
+                ['class', null, $enumOptionClassName],
+                ['multiple', null, true],
+                ['enum_code', null, 'enum_code']
             ]
         );
 
@@ -255,7 +259,7 @@ class AbstractEnumTypeTestCase extends TypeTestCase
             ->willReturn(new PropertyPath('value'));
 
         $this->setExpectationsForLoadDefaultEnumValues(
-            $enumValueClassName,
+            $enumOptionClassName,
             ['val1', 'val2']
         );
 
@@ -278,13 +282,12 @@ class AbstractEnumTypeTestCase extends TypeTestCase
         bool $expanded = false,
         array $options = []
     ): array {
-        $enumValueClassName = ExtendHelper::buildEnumValueClassName($enumCode);
-
-        // AbstractEnumType require class to be instance of AbstractEnumValue
+        $enumOptionClassName = EnumOption::class;
+        // AbstractEnumType require class to be instance of EnumOptionInterface
         // This may be achieved with Stub. Stub namespace does not reflect Stub path. So we have to load it manually
-        $fileName = ExtendHelper::getShortClassName($enumValueClassName) . '.php';
-        require_once(realpath(__DIR__ . DIRECTORY_SEPARATOR . 'Stub' . DIRECTORY_SEPARATOR . $fileName));
-        $enumConfig = new Config(new EntityConfigId('enum', $enumValueClassName));
+        //        $fileName = ExtendHelper::getShortClassName($enumOptionClassName) . '.php';
+        //        require_once(realpath(__DIR__ . DIRECTORY_SEPARATOR . 'Stub' . DIRECTORY_SEPARATOR . $fileName));
+        $enumConfig = new Config(new EntityConfigId('enum', $enumOptionClassName));
         $enumConfig->set('multiple', $multiple);
         $enumConfigProvider = $this->createMock(ConfigProvider::class);
         $this->configManager->expects($this->once())
@@ -293,7 +296,7 @@ class AbstractEnumTypeTestCase extends TypeTestCase
             ->willReturn($enumConfigProvider);
         $enumConfigProvider->expects($this->once())
             ->method('getConfig')
-            ->with($enumValueClassName)
+            ->with($enumOptionClassName)
             ->willReturn($enumConfig);
 
         $type->configureOptions($resolver);
@@ -311,7 +314,7 @@ class AbstractEnumTypeTestCase extends TypeTestCase
         $this->assertEquals($multiple, $resolvedOptions['multiple']);
         $this->assertEquals($expanded, $resolvedOptions['expanded']);
         $this->assertEquals($enumCode, $resolvedOptions['enum_code']);
-        $this->assertEquals($enumValueClassName, $resolvedOptions['class']);
+        $this->assertEquals($enumOptionClassName, $resolvedOptions['class']);
         $this->assertEquals('name', $resolvedOptions['choice_label']);
         $this->assertNotNull($resolvedOptions['query_builder']);
 
@@ -339,9 +342,9 @@ class AbstractEnumTypeTestCase extends TypeTestCase
     }
 
     protected function expectFormWillReturnParentForm(
-        FormInterface|\PHPUnit\Framework\MockObject\MockObject $form,
-        FormInterface|\PHPUnit\Framework\MockObject\MockObject $parentForm = null
-    ): FormInterface|\PHPUnit\Framework\MockObject\MockObject {
+        FormInterface|MockObject $form,
+        FormInterface|MockObject|null $parentForm = null
+    ): FormInterface|MockObject {
         if (!$parentForm) {
             $parentForm = $this->createMock(FormInterface::class);
         }
@@ -353,19 +356,17 @@ class AbstractEnumTypeTestCase extends TypeTestCase
         return $parentForm;
     }
 
-    protected function expectFormWillReturnData(
-        FormInterface|\PHPUnit\Framework\MockObject\MockObject $form,
-        mixed $data
-    ): void {
+    protected function expectFormWillReturnData(FormInterface|MockObject $form, mixed $data): void
+    {
         $form->expects($this->once())
             ->method('getData')
             ->willReturn($data);
     }
 
     protected function expectFormWillReturnFormConfig(
-        FormInterface|\PHPUnit\Framework\MockObject\MockObject $form,
-        FormConfigInterface|\PHPUnit\Framework\MockObject\MockObject $formConfig = null
-    ): FormConfigInterface|\PHPUnit\Framework\MockObject\MockObject {
+        FormInterface|MockObject $form,
+        FormConfigInterface|MockObject|null $formConfig = null
+    ): FormConfigInterface|MockObject {
         if (!$formConfig) {
             $formConfig = $this->createMock(FormConfigInterface::class);
         }
@@ -378,7 +379,7 @@ class AbstractEnumTypeTestCase extends TypeTestCase
     }
 
     protected function expectFormConfigWillReturnOptions(
-        \PHPUnit\Framework\MockObject\MockObject $formConfig,
+        MockObject $formConfig,
         array $optionsValueMap
     ): void {
         $formConfig->expects($this->atLeastOnce())
@@ -386,16 +387,17 @@ class AbstractEnumTypeTestCase extends TypeTestCase
             ->willReturnMap($optionsValueMap);
     }
 
-    protected function setExpectationsForLoadDefaultEnumValues(string $enumValueClassName, array $defaultValues): void
+    protected function setExpectationsForLoadDefaultEnumValues(string $enumOptionClassName, array $defaultValues): void
     {
-        $repo = $this->createMock(EnumValueRepository::class);
+        $repo = $this->createMock(EnumOptionRepository::class);
         $repo->expects($this->once())
             ->method('getDefaultValues')
+            ->with('enum_code')
             ->willReturn($defaultValues);
 
         $this->doctrine->expects($this->once())
             ->method('getRepository')
-            ->with($enumValueClassName)
+            ->with($enumOptionClassName)
             ->willReturn($repo);
     }
 }

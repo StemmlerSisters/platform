@@ -18,6 +18,7 @@ class EntityCreationTransformerTest extends \PHPUnit\Framework\TestCase
     /** @var EntityManager|\PHPUnit\Framework\MockObject\MockObject */
     private $em;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->em = $this->createMock(EntityManager::class);
@@ -43,7 +44,7 @@ class EntityCreationTransformerTest extends \PHPUnit\Framework\TestCase
         ?string $valuePath = 'value',
         bool $allowEmptyProperty = false,
         string $newEntityPropertyName = 'name',
-        \Exception $exception = null,
+        ?\Exception $exception = null,
         bool $loadEntity = false
     ) {
         $this->transformer->setValuePath($valuePath);

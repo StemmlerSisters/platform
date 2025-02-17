@@ -10,6 +10,7 @@ class JsonApiIncludeAccessorTest extends \PHPUnit\Framework\TestCase
     /** @var JsonApiIncludeAccessor */
     private $includeAccessor;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->includeAccessor = new JsonApiIncludeAccessor(new ItemKeyBuilder());
@@ -200,7 +201,7 @@ class JsonApiIncludeAccessorTest extends \PHPUnit\Framework\TestCase
     /**
      * @dataProvider updateRelationshipsProvider
      */
-    public function testUpdateRelationships(array $item, array $expectedResult = null)
+    public function testUpdateRelationships(array $item, ?array $expectedResult = null)
     {
         if (null === $expectedResult) {
             $expectedResult = $item;

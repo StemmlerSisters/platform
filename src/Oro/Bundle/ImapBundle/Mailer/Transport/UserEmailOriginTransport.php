@@ -45,10 +45,8 @@ class UserEmailOriginTransport implements TransportInterface
         $this->requestStack = $requestStack;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function send(RawMessage $message, Envelope $envelope = null): ?SentMessage
+    #[\Override]
+    public function send(RawMessage $message, ?Envelope $envelope = null): ?SentMessage
     {
         if (!$message instanceof Message) {
             throw new \InvalidArgumentException(
@@ -118,6 +116,7 @@ class UserEmailOriginTransport implements TransportInterface
         return $userEmailOrigin;
     }
 
+    #[\Override]
     public function __toString(): string
     {
         return '<transport based on user email origin>';

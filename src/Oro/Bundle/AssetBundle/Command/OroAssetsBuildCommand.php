@@ -63,8 +63,8 @@ class OroAssetsBuildCommand extends Command
      */
     public function __construct(
         AssetCommandProcessFactory $nodeProcessFactory,
-        AssetConfigCache           $cache,
-        string                     $npmPath,
+        AssetConfigCache $cache,
+        string $npmPath,
         $buildTimeout,
         $npmInstallTimeout,
         bool $withBabel
@@ -83,6 +83,7 @@ class OroAssetsBuildCommand extends Command
      * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      * @noinspection PhpMissingParentCallCommonInspection
      */
+    #[\Override]
     protected function configure()
     {
         $this
@@ -201,6 +202,7 @@ HELP
     }
 
     /** @noinspection PhpMissingParentCallCommonInspection */
+    #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $kernel = $this->getKernel();
@@ -266,7 +268,7 @@ HELP
      */
     protected function buildCommand(InputInterface $input, OutputInterface $output): array
     {
-        $command= ['run', 'webpack', '--'];
+        $command = ['run', 'webpack', '--'];
 
         if ($input->getOption('hot')) {
             $command[] = '--hot';

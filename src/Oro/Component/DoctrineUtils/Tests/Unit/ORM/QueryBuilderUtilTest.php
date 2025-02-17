@@ -2,6 +2,7 @@
 
 namespace Oro\Component\DoctrineUtils\Tests\Unit\ORM;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\Driver\AttributeDriver;
@@ -20,11 +21,13 @@ use Oro\Component\Testing\Unit\ORM\OrmTestCase;
  * @SuppressWarnings(PHPMD.TooManyMethods)
  * @SuppressWarnings(PHPMD.TooManyPublicMethods)
  * @SuppressWarnings(PHPMD.ExcessivePublicCount)
+ * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
  */
 class QueryBuilderUtilTest extends OrmTestCase
 {
     private EntityManagerInterface $em;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->em = $this->getTestEntityManager();
@@ -376,7 +379,44 @@ class QueryBuilderUtilTest extends OrmTestCase
         QueryBuilderUtil::applyJoins($qb, $joins);
     }
 
-    public function testFixUnusedParameters()
+    public function testGenerateParameterNameForEmptyPrefix(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        QueryBuilderUtil::generateParameterName('', $this->createMock(QueryBuilder::class));
+    }
+
+    public function testGenerateParameterNameForInvalidPrefix(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        QueryBuilderUtil::generateParameterName('!@#', $this->createMock(QueryBuilder::class));
+    }
+
+    public function testGenerateParameterNameWhenQueryBuilderDoesNotHaveParameterWithSpecifiedName(): void
+    {
+        $qb = new QueryBuilder($this->createMock(EntityManagerInterface::class));
+
+        self::assertEquals('param', QueryBuilderUtil::generateParameterName('param', $qb));
+    }
+
+    public function testGenerateParameterNameWhenQueryBuilderHasParameterWithSpecifiedName(): void
+    {
+        $qb = new QueryBuilder($this->createMock(EntityManagerInterface::class));
+        $qb->setParameter('param', 1, 'int');
+
+        self::assertEquals('param1', QueryBuilderUtil::generateParameterName('param', $qb));
+    }
+
+    public function testGenerateParameterNameWhenQueryBuilderHasSeveralParametersWithSpecifiedName(): void
+    {
+        $qb = new QueryBuilder($this->createMock(EntityManagerInterface::class));
+        $qb->setParameter('param', 1, 'int');
+        $qb->setParameter('param1', 1, 'int');
+        $qb->setParameter('param2', 1, 'int');
+
+        self::assertEquals('param3', QueryBuilderUtil::generateParameterName('param', $qb));
+    }
+
+    public function testRemoveUnusedParameters()
     {
         $dql = 'SELECT a.name FROM Some:Other as a WHERE a.name = :param1
                 AND a.name != :param2 AND a.status = ?1';
@@ -399,12 +439,64 @@ class QueryBuilderUtilTest extends OrmTestCase
             ->willReturn($dql);
         $qb->expects($this->once())
             ->method('getParameters')
-            ->willReturn($parameters);
+            ->willReturn(new ArrayCollection($parameters));
         $qb->expects($this->once())
             ->method('setParameters')
             ->with($expectedParameters);
 
         QueryBuilderUtil::removeUnusedParameters($qb);
+    }
+
+    public function testFindClassForRootAlias()
+    {
+        $qb = $this->em->createQueryBuilder()
+            ->select('p')
+            ->from(Person::class, 'p')
+            ->join('p.bestItem', 'i');
+
+        $this->assertEquals(
+            Person::class,
+            QueryBuilderUtil::findClassByAlias($qb, 'p')
+        );
+    }
+
+    public function testFindClassForRootAliasFowQueryWithSeveralRootEntities()
+    {
+        $qb = $this->em->createQueryBuilder()
+            ->select('p')
+            ->from(Person::class, 'p')
+            ->from(Group::class, 'g')
+            ->join('p.bestItem', 'i');
+
+        $this->assertEquals(
+            Group::class,
+            QueryBuilderUtil::findClassByAlias($qb, 'g')
+        );
+    }
+
+    public function testFindClassWhenAliasNotFound()
+    {
+        $qb = $this->em->createQueryBuilder()
+            ->select('p')
+            ->from(Person::class, 'p')
+            ->join('p.bestItem', 'i');
+
+        $this->assertNull(
+            QueryBuilderUtil::findClassByAlias($qb, 'another')
+        );
+    }
+
+    /**
+     * @dataProvider getJoinClassDataProvider
+     */
+    public function testFindClassByAliasForJoinAlias(callable $qbFactory, array $joinPath, string $expectedClass)
+    {
+        $qb = $qbFactory($this->em);
+
+        $this->assertEquals(
+            $expectedClass,
+            QueryBuilderUtil::findClassByAlias($qb, ArrayUtil::getIn($qb->getDqlPart('join'), $joinPath)->getAlias())
+        );
     }
 
     /**

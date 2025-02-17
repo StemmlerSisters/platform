@@ -2,6 +2,7 @@
 
 namespace Oro\Bundle\NavigationBundle\Twig;
 
+use Twig\Attribute\YieldReady;
 use Twig\Compiler;
 use Twig\Error\SyntaxError;
 use Twig\Node\Expression\ArrayExpression;
@@ -10,6 +11,7 @@ use Twig\Node\Node;
 /**
  * Compile title node to template
  */
+#[YieldReady]
 class TitleNode extends Node
 {
     /**
@@ -17,7 +19,7 @@ class TitleNode extends Node
      * @param int $lineno
      * @param null $tag
      */
-    public function __construct(Node $expr = null, $lineno = 0, $tag = null)
+    public function __construct(?Node $expr = null, $lineno = 0, $tag = null)
     {
         parent::__construct(['expr' => $expr], [], $lineno, $tag);
     }
@@ -27,6 +29,7 @@ class TitleNode extends Node
      *
      * @throws SyntaxError
      */
+    #[\Override]
     public function compile(Compiler $compiler)
     {
         $node = $this->getNode('expr');

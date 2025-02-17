@@ -18,9 +18,7 @@ class OptionValueBagNormalizer implements NormalizerInterface, DenormalizerInter
      */
     protected $serializer;
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function setSerializer(SerializerInterface $serializer)
     {
         if (!($serializer instanceof NormalizerInterface && $serializer instanceof DenormalizerInterface)) {
@@ -30,18 +28,14 @@ class OptionValueBagNormalizer implements NormalizerInterface, DenormalizerInter
         $this->serializer = $serializer;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function supportsNormalization($data, $format = null): bool
     {
         return $data instanceof OptionValueBag;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function normalize($object, string $format = null, array $context = [])
+    #[\Override]
+    public function normalize($object, ?string $format = null, array $context = [])
     {
         $actions = [
             'add' => [],
@@ -106,18 +100,14 @@ class OptionValueBagNormalizer implements NormalizerInterface, DenormalizerInter
         return $argument;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function supportsDenormalization($data, string $type, string $format = null): bool
+    #[\Override]
+    public function supportsDenormalization($data, string $type, ?string $format = null): bool
     {
         return $type === OptionValueBag::class;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function denormalize($data, string $type, string $format = null, array $context = [])
+    #[\Override]
+    public function denormalize($data, string $type, ?string $format = null, array $context = [])
     {
         $bag = new OptionValueBag();
 

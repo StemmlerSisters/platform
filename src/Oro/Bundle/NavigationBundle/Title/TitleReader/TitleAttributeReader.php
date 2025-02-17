@@ -15,17 +15,15 @@ use ReflectionMethod;
 class TitleAttributeReader extends PhpArrayConfigProvider implements ReaderInterface
 {
     public function __construct(
-        string                                   $cacheFile,
-        bool                                     $debug,
+        string $cacheFile,
+        bool $debug,
         private readonly ControllerClassProvider $controllerClassProvider,
-        private readonly AttributeReader         $reader
+        private readonly AttributeReader $reader
     ) {
         parent::__construct($cacheFile, $debug);
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getTitle($route)
     {
         $config = $this->doGetConfig();
@@ -33,14 +31,12 @@ class TitleAttributeReader extends PhpArrayConfigProvider implements ReaderInter
         return $config[$route] ?? null;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     protected function doLoadConfig(ResourcesContainerInterface $resourcesContainer)
     {
         $config = [];
         $controllers = $this->controllerClassProvider->getControllers();
-        foreach ($controllers as $routeName => list($class, $method)) {
+        foreach ($controllers as $routeName => [$class, $method]) {
             /** @var TitleTemplate|null $attribute */
             $attribute = $this->reader->getMethodAttribute(
                 new ReflectionMethod($class, $method),

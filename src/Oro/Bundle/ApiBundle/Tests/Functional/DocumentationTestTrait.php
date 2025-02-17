@@ -65,8 +65,8 @@ trait DocumentationTestTrait
             || (// custom entities (entities from "Extend\Entity" namespace), except enums
                 str_starts_with($entityClass, ExtendHelper::ENTITY_NAMESPACE)
                 && (
-                    !str_starts_with($entityClass, ExtendHelper::ENTITY_NAMESPACE . 'EV_')
-                    || str_starts_with($entityClass, ExtendHelper::ENTITY_NAMESPACE . 'EV_Test_')
+                    !str_starts_with($entityClass, 'Extend\Entity\EV_')
+                    || str_starts_with($entityClass, 'Extend\Entity\EV_Test_')
                 )
             );
     }
@@ -118,6 +118,22 @@ trait DocumentationTestTrait
         $item = reset($data);
 
         return reset($item);
+    }
+
+    private function getSubresourceData(array $data, string $subresourcePath): array
+    {
+        if (!$data) {
+            self::fail('The formatted documentation data must be not empty.');
+        }
+        foreach ($data as $path => $item) {
+            if (str_ends_with($path, $subresourcePath)) {
+                return reset($item);
+            }
+        }
+        self::fail(sprintf(
+            'The formatted documentation data does not contain data for the "%s" subresource.',
+            $subresourcePath
+        ));
     }
 
     private function warmUpDocumentationCache(): void

@@ -45,27 +45,25 @@ abstract class AbstractEntityFieldExtension implements EntityFieldExtensionInter
 
     protected function setExtensionCacheItem(
         EntityFieldProcessTransport $transport,
-        string                      $extensionClass,
-        string                      $key,
-        mixed                       $value
+        string $extensionClass,
+        string $key,
+        mixed $value
     ): void {
         $this->extensionCache[$transport->getClass()][$extensionClass][$key] = $value;
     }
 
     protected function getCachedExtensionItem(
         EntityFieldProcessTransport $transport,
-        string                      $extensionClass,
-        string                      $key
+        string $extensionClass,
+        string $key
     ): mixed {
-        if (!isset($this->extensionCache[$transport->getClass()][$extensionClass][$key])) {
-            return null;
-        }
-
-        return $this->extensionCache[$transport->getClass()][$extensionClass][$key];
+        return $this->extensionCache[$transport->getClass()][$extensionClass][$key] ?? null;
     }
 
+    #[\Override]
     public function isset(EntityFieldProcessTransport $transport): void
     {
+        $this->propertyExists($transport);
     }
 
     protected function getMethodsData(EntityFieldProcessTransport $transport): array
@@ -73,13 +71,16 @@ abstract class AbstractEntityFieldExtension implements EntityFieldExtensionInter
         return [];
     }
 
+    #[\Override]
     public function getMethods(EntityFieldProcessTransport $transport): array
     {
         return [];
     }
 
-    protected function initializeDefaultValue(EntityFieldProcessTransport $transport, string $propertyName = null): void
-    {
+    protected function initializeDefaultValue(
+        EntityFieldProcessTransport $transport,
+        ?string $propertyName = null
+    ): void {
         $propertyName = $propertyName ?? $transport->getName();
         $defaultValue = null;
         if (!$transport->getStorage()->offsetExists($propertyName)) {
@@ -96,7 +97,7 @@ abstract class AbstractEntityFieldExtension implements EntityFieldExtensionInter
 
     private function tryGetDefaultFromMetadata(
         EntityFieldProcessTransport $transport,
-        string $propertyName = null
+        ?string $propertyName = null
     ): mixed {
         $defaultValue = null;
         $fieldsMetadata = $transport->getFieldsMetadata();
@@ -232,6 +233,7 @@ abstract class AbstractEntityFieldExtension implements EntityFieldExtensionInter
         }
     }
 
+    #[\Override]
     public function getMethodInfo(EntityFieldProcessTransport $transport): void
     {
         $methods = $this->getMethodsData($transport);

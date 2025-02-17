@@ -4,7 +4,7 @@ namespace Oro\Bundle\DataGridBundle\Async\Export;
 
 use Oro\Bundle\DataGridBundle\Async\Export\Executor\DatagridPreExportExecutorInterface;
 use Oro\Bundle\DataGridBundle\Async\Topic\DatagridPreExportTopic;
-use Oro\Bundle\DataGridBundle\Datagrid\Manager as DatagridManager;
+use Oro\Bundle\DataGridBundle\Datagrid\ManagerInterface as DatagridManager;
 use Oro\Component\MessageQueue\Client\TopicSubscriberInterface;
 use Oro\Component\MessageQueue\Consumption\MessageProcessorInterface;
 use Oro\Component\MessageQueue\Job\Job;
@@ -33,11 +33,13 @@ class DatagridPreExportMessageProcessor implements MessageProcessorInterface, To
         $this->datagridManager = $datagridManager;
     }
 
+    #[\Override]
     public static function getSubscribedTopics(): array
     {
         return [DatagridPreExportTopic::getName()];
     }
 
+    #[\Override]
     public function process(MessageInterface $message, SessionInterface $session): string
     {
         $messageBody = $message->getBody();

@@ -46,7 +46,7 @@ abstract class MailboxProcessSettings
         return $this->mailbox;
     }
 
-    public function setMailbox(Mailbox $mailbox = null)
+    public function setMailbox(?Mailbox $mailbox = null)
     {
         $this->mailbox = $mailbox;
     }
@@ -54,6 +54,7 @@ abstract class MailboxProcessSettings
     /**
      * @return string
      */
+    #[\Override]
     public function __toString()
     {
         return (string)$this->getId();

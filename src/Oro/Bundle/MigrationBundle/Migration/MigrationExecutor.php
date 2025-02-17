@@ -21,12 +21,15 @@ use Oro\Bundle\MigrationBundle\Exception\InvalidNameException;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\Stopwatch\Stopwatch;
 
 /**
  * Migrations query executor.
  */
 class MigrationExecutor
 {
+    protected const LENGTH_LIMIT_INDX_STRING = 620;
+
     protected MigrationQueryExecutorInterface $queryExecutor;
     protected OroDataCacheManager $cacheManager;
     protected LoggerInterface $logger;
@@ -83,7 +86,7 @@ class MigrationExecutor
      * Executes UP method for the given migrations.
      *
      * @param MigrationState[] $migrations
-     * @param bool             $dryRun
+     * @param bool $dryRun
      *
      * @throws \RuntimeException if at lease one migration failed
      */
@@ -125,7 +128,12 @@ class MigrationExecutor
     ): bool {
         $result = true;
 
-        $this->logger->info(sprintf('> %s', \get_class($migration)));
+        $name = \get_class($migration);
+        $stopwatch = new Stopwatch();
+        $stopwatch->start($name);
+
+        $this->logger->info(sprintf('> %s', $name));
+
         $toSchema = clone $schema;
         $this->setExtensions($migration);
         try {
@@ -162,14 +170,22 @@ class MigrationExecutor
             $this->logger->error(sprintf('  ERROR: %s', $ex->getMessage()));
         }
 
+        $stopwatch->stop($name);
+
+        $this->logger->info(sprintf(
+            '  <comment>%.2F MiB - %d ms</comment>',
+            $stopwatch->getEvent($name)->getMemory() / 1024 / 1024,
+            $stopwatch->getEvent($name)->getDuration()
+        ));
+
         return $result;
     }
 
     /**
      * Creates a database schema object.
      *
-     * @param Table[]           $tables
-     * @param Sequence[]        $sequences
+     * @param Table[] $tables
+     * @param Sequence[] $sequences
      * @param SchemaConfig|null $schemaConfig
      *
      * @return Schema
@@ -216,8 +232,8 @@ class MigrationExecutor
     /**
      * Validates the given columns.
      *
-     * @param string    $tableName
-     * @param Column[]  $columns
+     * @param string $tableName
+     * @param Column[] $columns
      * @param Migration $migration
      *
      * @throws InvalidNameException if invalid column name is detected
@@ -273,7 +289,7 @@ class MigrationExecutor
     {
         $columns = $index->getColumns();
         foreach ($columns as $columnName) {
-            if ($table->getColumn($columnName)->getLength() > MySqlPlatform::LENGTH_LIMIT_TINYTEXT) {
+            if ($table->getColumn($columnName)->getLength() > self::LENGTH_LIMIT_INDX_STRING) {
                 throw new InvalidNameException(
                     sprintf(
                         'Could not create index for column with length more than %s. ' .

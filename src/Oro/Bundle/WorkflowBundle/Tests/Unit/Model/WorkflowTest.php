@@ -38,6 +38,7 @@ class WorkflowTest extends \PHPUnit\Framework\TestCase
     /** @var DoctrineHelper|\PHPUnit\Framework\MockObject\MockObject */
     private $doctrineHelper;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->doctrineHelper = $this->createMock(DoctrineHelper::class);
@@ -821,11 +822,11 @@ class WorkflowTest extends \PHPUnit\Framework\TestCase
     }
 
     private function createWorkflow(
-        string $workflowName = null,
-        AclManager $aclManager = null,
-        AttributeManager $attributeManager = null,
-        TransitionManager $transitionManager = null,
-        VariableManager $variableManager = null
+        ?string $workflowName = null,
+        ?AclManager $aclManager = null,
+        ?AttributeManager $attributeManager = null,
+        ?TransitionManager $transitionManager = null,
+        ?VariableManager $variableManager = null
     ): Workflow {
         if (!$aclManager) {
             $aclManager = $this->createMock(AclManager::class);

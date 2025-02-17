@@ -10,11 +10,13 @@ use Symfony\Component\Config\Definition\Builder\NodeBuilder;
  */
 class OrganizationEntityConfiguration implements EntityConfigInterface
 {
+    #[\Override]
     public function getSectionName(): string
     {
         return 'organization';
     }
 
+    #[\Override]
     public function configure(NodeBuilder $nodeBuilder): void
     {
         $nodeBuilder
@@ -28,7 +30,7 @@ class OrganizationEntityConfiguration implements EntityConfigInterface
                     'selective' => []
                 ])
                 ->prototype('variable')->end()
-                ->defaultValue(['all'=> true, 'selective'=> []])
+                ->defaultValue(['all' => true, 'selective' => []])
             ->end()
         ;
     }

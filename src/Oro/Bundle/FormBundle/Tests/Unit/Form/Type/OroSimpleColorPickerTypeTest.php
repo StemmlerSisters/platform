@@ -16,6 +16,7 @@ class OroSimpleColorPickerTypeTest extends FormIntegrationTestCase
     /** @var OroSimpleColorPickerType */
     private $formType;
 
+    #[\Override]
     protected function setUp(): void
     {
         parent::setUp();
@@ -56,6 +57,7 @@ class OroSimpleColorPickerTypeTest extends FormIntegrationTestCase
                 'empty_value'           => null,
                 'allow_custom_color'    => false,
                 'custom_color_control'  => null,
+                'show_input_control'    => false,
 
             ],
             $resolvedOptions
@@ -69,6 +71,7 @@ class OroSimpleColorPickerTypeTest extends FormIntegrationTestCase
 
         $options = [
             'color_schema'  => 'short',
+            'show_input_control' => true,
             'colors'        => [
                 '#5484ED' => 'oro.form.color.bold_blue',
                 '#A4BDFC' => 'oro.form.color.blue',
@@ -110,6 +113,7 @@ class OroSimpleColorPickerTypeTest extends FormIntegrationTestCase
                 'empty_value'           => null,
                 'allow_custom_color'    => false,
                 'custom_color_control'  => null,
+                'show_input_control'    => true,
 
             ],
             $resolvedOptions
@@ -167,6 +171,7 @@ class OroSimpleColorPickerTypeTest extends FormIntegrationTestCase
                     'empty_value'           => null,
                     'allow_custom_color'    => true,
                     'custom_color_control'  => true,
+                    'show_input_control'    => false,
                     'picker'                => true,
                     'picker_delay'          => 0,
                 ],
@@ -179,6 +184,7 @@ class OroSimpleColorPickerTypeTest extends FormIntegrationTestCase
                         'pickerDelay'   => 0,
                         'theme'         => 'fontawesome with-empty-color with-custom-color',
                         'custom_color'  => ['control' => true],
+                        'show_input_control' => false,
                         'data'          => [
                             [
                                 'id'    => null,

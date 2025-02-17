@@ -16,6 +16,7 @@ use Oro\Bundle\UserBundle\Entity\User;
  */
 class CreateWithIncludedTest extends RestJsonApiTestCase
 {
+    #[\Override]
     protected function setUp(): void
     {
         parent::setUp();
@@ -367,7 +368,7 @@ class CreateWithIncludedTest extends RestJsonApiTestCase
         $this->assertResponseValidationError(
             [
                 'title'  => 'action not allowed exception',
-                'detail' => 'The action is not allowed.',
+                'detail' => 'The "create" action is not allowed.',
                 'source' => ['pointer' => '/included/0']
             ],
             $response

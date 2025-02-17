@@ -1,0 +1,15 @@
+Oro\Bundle\ThemeBundle\Entity\ThemeConfiguration:
+  properties:
+    type:
+      - Length:
+          max: 255
+    name:
+      - NotBlank: ~
+      - Length:
+          max: 255
+    description:
+      - NoSuspiciousCharacters: ~
+    theme:
+      - NotBlank: ~
+      - Length:
+          max: 255

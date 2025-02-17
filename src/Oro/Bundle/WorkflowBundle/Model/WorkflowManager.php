@@ -21,7 +21,8 @@ use Psr\Log\LoggerAwareTrait;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
- * Handles logic for getting workflow, transitions, workflow items as well as all other related actions
+ * Handles logic for getting workflow, transitions, workflow items as well as all other related actions.
+ *
  * @SuppressWarnings(PHPMD.TooManyPublicMethods)
  * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
  */
@@ -30,6 +31,10 @@ class WorkflowManager implements LoggerAwareInterface
     use LoggerAwareTrait;
 
     const MASS_START_BATCH_SIZE = 100;
+    private const METHOD_TRANSIT = 1;
+    private const METHOD_TRANSIT_UNCONDITIONALLY = 2;
+    private const METHOD_TRANSIT_WITHOUT_ANY_CHECKS = 3;
+
 
     /** @var DoctrineHelper */
     protected $doctrineHelper;
@@ -102,7 +107,7 @@ class WorkflowManager implements LoggerAwareInterface
      * @param Collection|null $errors
      * @return bool
      */
-    public function isTransitionAvailable(WorkflowItem $workflowItem, $transition, Collection $errors = null)
+    public function isTransitionAvailable(WorkflowItem $workflowItem, $transition, ?Collection $errors = null)
     {
         $workflow = $this->workflowRegistry->getWorkflow($workflowItem->getWorkflowName());
 
@@ -122,7 +127,7 @@ class WorkflowManager implements LoggerAwareInterface
         $transition,
         $entity,
         array $data = [],
-        Collection $errors = null
+        ?Collection $errors = null
     ) {
         //consider to refactor (e.g. remove) type check in favor of string usage only as most cases are.
         //Any way - if developer has Workflow instance already it is possible to get decision from it directly as below
@@ -179,7 +184,7 @@ class WorkflowManager implements LoggerAwareInterface
         $transition = null,
         array $data = [],
         $throwGroupException = true,
-        Collection $errors = null
+        ?Collection $errors = null
     ) {
         try {
             $workflowItem = $this->doStartWorkflow($workflow, $entity, $transition, $data, [], $errors);
@@ -224,7 +229,7 @@ class WorkflowManager implements LoggerAwareInterface
         $transition = null,
         array $data = [],
         array $workflowItems = [],
-        Collection $errors = null
+        ?Collection $errors = null
     ) {
         //consider to refactor (e.g. remove) type check in favor of string usage only as most cases are
         $workflow = $this->getWorkflow($workflow);
@@ -347,38 +352,35 @@ class WorkflowManager implements LoggerAwareInterface
      * @throws InvalidTransitionException
      * @throws WorkflowException
      */
-    public function transit(WorkflowItem $workflowItem, $transition, Collection $errors = null)
+    public function transit(WorkflowItem $workflowItem, string|Transition $transition, ?Collection $errors = null)
     {
-        /** @var Workflow $workflow */
-        $workflow = $this->workflowRegistry->getWorkflow($workflowItem->getWorkflowName(), true);
-
-        $this->transitWorkflow($workflow, $workflowItem, $transition, $errors);
+        $this->transitWorkflow($workflowItem, $transition, $errors, self::METHOD_TRANSIT);
     }
 
-    /**
-     * @param Workflow $workflow
-     * @param WorkflowItem $workflowItem
-     * @param string|Transition $transition
-     * @param Collection|null $errors
-     * @param boolean $checkIsAllowed
-     * @throws ForbiddenTransitionException
-     * @throws InvalidTransitionException
-     * @throws WorkflowException
-     * @throws \Exception
-     */
+    public function transitWithoutChecks(WorkflowItem $workflowItem, string|Transition $transition): void
+    {
+        $this->transitWorkflow($workflowItem, $transition, null, self::METHOD_TRANSIT_WITHOUT_ANY_CHECKS);
+    }
+
     private function transitWorkflow(
-        Workflow $workflow,
         WorkflowItem $workflowItem,
-        $transition,
-        Collection $errors = null,
-        bool $checkIsAllowed = true
+        string|Transition $transition,
+        ?Collection $errors = null,
+        int $transitionMethod = self::METHOD_TRANSIT
     ): void {
+        $workflow = $this->workflowRegistry->getWorkflow($workflowItem->getWorkflowName(), true);
+
         $this->inTransaction(
-            function (EntityManager $em) use ($workflow, $workflowItem, $transition, $errors, $checkIsAllowed) {
-                if ($checkIsAllowed) {
-                    $workflow->transit($workflowItem, $transition, $errors);
-                } else {
-                    $workflow->transitUnconditionally($workflowItem, $transition);
+            function (EntityManager $em) use ($workflow, $workflowItem, $transition, $errors, $transitionMethod) {
+                switch ($transitionMethod) {
+                    case self::METHOD_TRANSIT:
+                        $workflow->transit($workflowItem, $transition, $errors);
+                        break;
+                    case self::METHOD_TRANSIT_UNCONDITIONALLY:
+                        $workflow->transitUnconditionally($workflowItem, $transition);
+                        break;
+                    case self::METHOD_TRANSIT_WITHOUT_ANY_CHECKS:
+                        $workflow->executeAndLogTransit($workflowItem, $transition, false, false, $errors);
                 }
                 $workflowItem->setUpdated(); // transition might not change workflow item
                 $em->flush();
@@ -409,14 +411,12 @@ class WorkflowManager implements LoggerAwareInterface
      */
     public function transitIfAllowed(WorkflowItem $workflowItem, $transition)
     {
-        /** @var Workflow $workflow */
         $workflow = $this->workflowRegistry->getWorkflow($workflowItem->getWorkflowName(), true);
-
-        if (!$workflow->isTransitionAllowed($workflowItem, $transition)) {
+        if (!$workflow?->isTransitionAllowed($workflowItem, $transition)) {
             return false;
         }
 
-        $this->transitWorkflow($workflow, $workflowItem, $transition, null, false);
+        $this->transitWorkflow($workflowItem, $transition, null, self::METHOD_TRANSIT_UNCONDITIONALLY);
 
         return true;
     }
@@ -432,11 +432,8 @@ class WorkflowManager implements LoggerAwareInterface
      */
     public function transitUnconditionally(WorkflowItem $workflowItem, $transition): bool
     {
-        /** @var Workflow $workflow */
-        $workflow = $this->workflowRegistry->getWorkflow($workflowItem->getWorkflowName(), true);
-
         try {
-            $this->transitWorkflow($workflow, $workflowItem, $transition, null, false);
+            $this->transitWorkflow($workflowItem, $transition, null, self::METHOD_TRANSIT_UNCONDITIONALLY);
 
             return true;
         } catch (InvalidTransitionException $exception) {
@@ -529,6 +526,18 @@ class WorkflowManager implements LoggerAwareInterface
         }
 
         return $workflows->toArray();
+    }
+
+    public function getAvailableWorkflowByRecordGroup(object|string $entity, string $groupName): ?Workflow
+    {
+        $workflows = $this->getApplicableWorkflows($entity);
+        foreach ($workflows as $workflow) {
+            if (in_array($groupName, $workflow->getDefinition()->getExclusiveRecordGroups(), true)) {
+                return $workflow;
+            }
+        }
+
+        return null;
     }
 
     /**

@@ -7,7 +7,7 @@ use Oro\Bundle\ChartBundle\Model\ChartOptionsBuilder;
 use Oro\Bundle\ChartBundle\Model\ChartViewBuilder;
 use Oro\Bundle\DashboardBundle\Helper\DateHelper;
 use Oro\Bundle\DataGridBundle\Datagrid\DatagridInterface;
-use Oro\Bundle\DataGridBundle\Datagrid\Manager;
+use Oro\Bundle\DataGridBundle\Datagrid\ManagerInterface;
 use Oro\Bundle\DataGridBundle\Extension\Pager\PagerInterface;
 use Oro\Bundle\EntityBundle\Provider\EntityFieldProvider;
 use Oro\Bundle\EntityBundle\Provider\EntityProvider;
@@ -37,9 +37,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  */
 class ReportController extends AbstractController
 {
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public static function getSubscribedServices(): array
     {
         return array_merge(parent::getSubscribedServices(), [
@@ -47,7 +45,7 @@ class ReportController extends AbstractController
             ConfigManager::class,
             EntityNameProvider::class,
             QueryDesignerManager::class,
-            Manager::class,
+            ManagerInterface::class,
             ReportDatagridConfigurationProvider::class,
             ChartViewBuilder::class,
             TranslatorInterface::class,
@@ -89,7 +87,7 @@ class ReportController extends AbstractController
             if ($this->container->get(ReportDatagridConfigurationProvider::class)->isReportValid($gridName)) {
                 $parameters['gridName'] = $gridName;
 
-                $datagrid = $this->container->get(Manager::class)->getDatagrid(
+                $datagrid = $this->container->get(ManagerInterface::class)->getDatagrid(
                     $gridName,
                     [PagerInterface::PAGER_ROOT_PARAM => [PagerInterface::DISABLED_PARAM => true]]
                 );
@@ -131,7 +129,7 @@ class ReportController extends AbstractController
     #[Acl(id: 'oro_report_view', type: 'entity', class: Report::class, permission: 'VIEW')]
     public function viewFromGridAction($gridName)
     {
-        $configuration = $this->container->get(Manager::class)->getConfigurationForGrid($gridName);
+        $configuration = $this->container->get(ManagerInterface::class)->getConfigurationForGrid($gridName);
         $pageTitle = isset($configuration['pageTitle']) ? $configuration['pageTitle'] : $gridName;
 
         return [

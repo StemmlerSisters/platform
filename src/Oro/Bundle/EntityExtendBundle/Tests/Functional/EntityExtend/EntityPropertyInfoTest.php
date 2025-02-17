@@ -2,8 +2,8 @@
 
 namespace Oro\Bundle\EntityExtendBundle\Tests\Functional\EntityExtend;
 
-use Extend\Entity\EV_Test_Extended_Entity_Enum_Attribute;
-use Oro\Bundle\EntityExtendBundle\Entity\AbstractEnumValue;
+use Oro\Bundle\EntityExtendBundle\Entity\EnumOption;
+use Oro\Bundle\EntityExtendBundle\Entity\EnumOptionInterface;
 use Oro\Bundle\EntityExtendBundle\EntityPropertyInfo;
 use Oro\Bundle\TestFrameworkBundle\Entity\TestExtendedEntity;
 use Oro\Bundle\TestFrameworkBundle\Test\WebTestCase;
@@ -13,6 +13,7 @@ use Oro\Bundle\TestFrameworkBundle\Test\WebTestCase;
  */
 class EntityPropertyInfoTest extends WebTestCase
 {
+    #[\Override]
     public function setUp(): void
     {
         self::bootKernel();
@@ -61,12 +62,12 @@ class EntityPropertyInfoTest extends WebTestCase
             ],
             'method exists with broken register' => [
                 'name' => 'isDeFaUlt',
-                'class' => EV_Test_Extended_Entity_Enum_Attribute::class,
+                'class' => EnumOption::class,
                 'expectedResult' => true
             ],
             'method exists for object' => [
                 'name' => 'isDefault',
-                'class' => fn () => new EV_Test_Extended_Entity_Enum_Attribute(1, 'test'),
+                'class' => fn () => new EnumOption('test.1', 'test', 'test', 1),
                 'expectedResult' => true
             ],
             'serialized attribute get method not exists' => [
@@ -105,7 +106,7 @@ class EntityPropertyInfoTest extends WebTestCase
             ],
             'real protected property exists' => [
                 'name' => 'locale',
-                'class' => EV_Test_Extended_Entity_Enum_Attribute::class,
+                'class' => EnumOption::class,
                 'expectedResult' => true
             ],
             'extend property exists for object' => [
@@ -125,7 +126,7 @@ class EntityPropertyInfoTest extends WebTestCase
             ],
             'protected property exists with object' => [
                 'name' => 'locale',
-                'class' => fn () => new EV_Test_Extended_Entity_Enum_Attribute(1, 'test'),
+                'class' => fn () => new EnumOption('test.1', 'test', 'test', 1),
                 'expectedResult' => true
             ],
         ];
@@ -133,7 +134,7 @@ class EntityPropertyInfoTest extends WebTestCase
 
     public function testGetExtendedPropertiesEmpty(): void
     {
-        $extendedProperties = EntityPropertyInfo::getExtendedProperties(AbstractEnumValue::class);
+        $extendedProperties = EntityPropertyInfo::getExtendedProperties(EnumOptionInterface::class);
 
         self::assertSame($extendedProperties, []);
     }
@@ -156,13 +157,13 @@ class EntityPropertyInfoTest extends WebTestCase
                 'class' => TestExtendedEntity::class,
                 'extendedProperties' => [
                     'name',
-                    'testExtendedEntityEnumAttribute'
+                    'oro_test_framework_test_entity_fields'
                 ]
             ],
             'attribute properties' => [
                 'class' => TestExtendedEntity::class,
                 'extendedProperties' => [
-                    'testExtendedEntityEnumAttribute',
+                    'biM2MOwners',
                 ]
             ],
             'serialized_data properties' => [
@@ -183,7 +184,7 @@ class EntityPropertyInfoTest extends WebTestCase
 
     public function testGetExtendedMethodsEmpty(): void
     {
-        $extendedProperties = EntityPropertyInfo::getExtendedMethods(AbstractEnumValue::class);
+        $extendedProperties = EntityPropertyInfo::getExtendedMethods(EnumOptionInterface::class);
 
         self::assertSame($extendedProperties, []);
     }
@@ -207,15 +208,13 @@ class EntityPropertyInfoTest extends WebTestCase
                 'extendedMethods' => [
                     'getName',
                     'setName',
-                    'getTestExtendedEntityEnumAttribute',
-                    'setTestExtendedEntityEnumAttribute'
                 ]
             ],
             'attribute properties' => [
                 'class' => TestExtendedEntity::class,
                 'extendedMethods' => [
-                    'getTestExtendedEntityEnumAttribute',
-                    'setTestExtendedEntityEnumAttribute',
+                    'getBiM2OOwners',
+                    'setBiM2OOwners',
                 ]
             ],
             'serialized_data properties' => [
@@ -255,7 +254,7 @@ class EntityPropertyInfoTest extends WebTestCase
             ],
             'attribute properties' => [
                 'class' => TestExtendedEntity::class,
-                'method' => 'getTestExtendedEntityEnumAttribute',
+                'method' => 'getBiM2OOwners',
                 'expectedResult' => [
                     'fieldName',
                     'fieldType',

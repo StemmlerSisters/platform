@@ -102,7 +102,7 @@ class PropertyAccessorWithDotArraySyntax implements PropertyAccessorInterface
     public function __construct(
         $magicMethods = self::MAGIC_GET | self::MAGIC_SET,
         $throw = self::THROW_ON_INVALID_PROPERTY_PATH,
-        CacheItemPoolInterface $cacheItemPool = null,
+        ?CacheItemPoolInterface $cacheItemPool = null,
         $readInfoExtractor = null,
         $writeInfoExtractor = null
     ) {
@@ -195,9 +195,7 @@ class PropertyAccessorWithDotArraySyntax implements PropertyAccessorInterface
             ?? new ReflectionExtractor(['set'], null, null, false);
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getValue($objectOrArray, $propertyPath): mixed
     {
         $zval = [
@@ -222,9 +220,7 @@ class PropertyAccessorWithDotArraySyntax implements PropertyAccessorInterface
         return $propertyValues[\count($propertyValues) - 1][self::VALUE];
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function setValue(&$objectOrArray, $propertyPath, $value)
     {
         if (\is_object($objectOrArray) && false === strpbrk((string)$propertyPath, '.[')) {
@@ -310,11 +306,11 @@ class PropertyAccessorWithDotArraySyntax implements PropertyAccessorInterface
     }
 
     private static function throwInvalidArgumentException(
-        string     $message,
-        array      $trace,
-        int        $i,
-        string     $propertyPath,
-        \Throwable $previous = null
+        string $message,
+        array $trace,
+        int $i,
+        string $propertyPath,
+        ?\Throwable $previous = null
     ): void {
         if (!isset($trace[$i]['file']) || __FILE__ !== $trace[$i]['file']) {
             return;
@@ -365,9 +361,7 @@ class PropertyAccessorWithDotArraySyntax implements PropertyAccessorInterface
         }
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function isReadable($objectOrArray, $propertyPath): bool
     {
         if (!$propertyPath instanceof PropertyPathInterface) {
@@ -388,9 +382,7 @@ class PropertyAccessorWithDotArraySyntax implements PropertyAccessorInterface
         }
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function isWritable($objectOrArray, $propertyPath): bool
     {
         $propertyPath = $this->getPropertyPath($propertyPath);
@@ -435,10 +427,10 @@ class PropertyAccessorWithDotArraySyntax implements PropertyAccessorInterface
      * @throws NoSuchIndexException    If a non-existing index is accessed
      */
     private function readPropertiesUntil(
-        array                 $zval,
+        array $zval,
         PropertyPathInterface $propertyPath,
-        int                   $lastIndex,
-        bool                  $ignoreInvalidIndices = true
+        int $lastIndex,
+        bool $ignoreInvalidIndices = true
     ): array {
         if (!\is_object($zval[self::VALUE]) && !\is_array($zval[self::VALUE])) {
             throw new UnexpectedTypeException($zval[self::VALUE], $propertyPath, 0);
@@ -572,7 +564,7 @@ class PropertyAccessorWithDotArraySyntax implements PropertyAccessorInterface
             } elseif (\is_object($result[self::VALUE])) {
                 $result[self::REF] = $result[self::VALUE];
             }
-        // customization start
+            // customization start
         } elseif (null !== $index
             && is_array($zval[self::VALUE])
             && !array_key_exists($index, $zval[self::VALUE])
@@ -687,7 +679,7 @@ class PropertyAccessorWithDotArraySyntax implements PropertyAccessorInterface
             if (isset($zval[self::REF])) {
                 $result[self::REF] = &$object->$property;
             }
-        // customization start
+            // customization start
         } elseif ($object instanceof \ArrayAccess) {
             if (isset($object[$property])) {
                 $result[self::VALUE] = $object[$property];
@@ -705,7 +697,7 @@ class PropertyAccessorWithDotArraySyntax implements PropertyAccessorInterface
             if (isset($zval[self::REF])) {
                 $result[self::REF] = &$value;
             }
-        //customization end
+            //customization end
         } elseif (!$ignoreInvalidProperty) {
             throw new NoSuchPropertyException(
                 sprintf(
@@ -846,9 +838,9 @@ class PropertyAccessorWithDotArraySyntax implements PropertyAccessorInterface
      * Adjusts a collection-valued property by calling add*() and remove*() methods.
      */
     private function writeCollection(
-        array             $zval,
-        string            $property,
-        iterable          $collection,
+        array $zval,
+        string $property,
+        iterable $collection,
         PropertyWriteInfo $addMethod,
         PropertyWriteInfo $removeMethod,
         $shouldRemoveItems = true
@@ -973,10 +965,10 @@ class PropertyAccessorWithDotArraySyntax implements PropertyAccessorInterface
      * @throws \LogicException When the Cache Component isn't available
      */
     public static function createCache(
-        string          $namespace,
-        int             $defaultLifetime,
-        string          $version,
-        LoggerInterface $logger = null
+        string $namespace,
+        int $defaultLifetime,
+        string $version,
+        ?LoggerInterface $logger = null
     ) {
         if (!class_exists(ApcuAdapter::class)) {
             throw new \LogicException(

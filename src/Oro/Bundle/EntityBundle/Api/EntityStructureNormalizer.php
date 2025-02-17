@@ -7,6 +7,8 @@ use Oro\Bundle\ApiBundle\Request\ValueNormalizer;
 use Oro\Bundle\ApiBundle\Util\ValueNormalizerUtil;
 use Oro\Bundle\EntityBundle\Model\EntityFieldStructure;
 use Oro\Bundle\EntityBundle\Model\EntityStructure;
+use Oro\Bundle\EntityConfigBundle\Config\ConfigManager;
+use Oro\Bundle\EntityExtendBundle\Tools\ExtendHelper;
 
 /**
  * Converts an EntityStructure object to an array.
@@ -14,10 +16,12 @@ use Oro\Bundle\EntityBundle\Model\EntityStructure;
 class EntityStructureNormalizer
 {
     private ValueNormalizer $valueNormalizer;
+    private ConfigManager $configManager;
 
-    public function __construct(ValueNormalizer $valueNormalizer)
+    public function __construct(ValueNormalizer $valueNormalizer, ConfigManager $configManager)
     {
         $this->valueNormalizer = $valueNormalizer;
+        $this->configManager = $configManager;
     }
 
     public function normalize(EntityStructure $entity, RequestType $requestType): array
@@ -47,12 +51,16 @@ class EntityStructureNormalizer
         $result = [];
         foreach ($fields as $field) {
             $relatedEntityName = $field->getRelatedEntityName();
+            if (ExtendHelper::isEnumerableType($field->getType()) && null !== $field->getOption('enum_code')) {
+                $relatedEntityName = ExtendHelper::getOutdatedEnumOptionClassName($field->getOption('enum_code'));
+            }
             $relatedEntityType = $relatedEntityName
                 ? ValueNormalizerUtil::tryConvertToEntityType($this->valueNormalizer, $relatedEntityName, $requestType)
                 : null;
 
             $result[] = [
                 'name'              => $field->getName(),
+                'normalizedName'    => $field->getNormalizedName(),
                 'label'             => $field->getLabel(),
                 'type'              => $field->getType(),
                 'relationType'      => $field->getRelationType(),

@@ -3,6 +3,9 @@
 namespace Oro\Bundle\ImportExportBundle\File;
 
 use Gaufrette\File;
+use Gaufrette\Stream;
+use Gaufrette\Stream\Local as LocalStream;
+use Gaufrette\StreamMode;
 use Oro\Bundle\GaufretteBundle\FileManager as GaufretteFileManager;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
@@ -38,7 +41,7 @@ class FileManager
      *
      * @return array [file name => Gaufrette\File, ...]
      */
-    public function getFilesByPeriod(\DateTime $from = null, \DateTime $to = null): array
+    public function getFilesByPeriod(?\DateTime $from = null, ?\DateTime $to = null): array
     {
         $files = [];
         foreach ($this->gaufretteFileManager->findFiles() as $fileName) {
@@ -80,6 +83,19 @@ class FileManager
         );
     }
 
+    public function copyFileToStorage(string $localFilePath, string $fileName): void
+    {
+        $stream = new LocalStream($localFilePath);
+        try {
+            $stream->open(new StreamMode('rb'));
+        } catch (\RuntimeException) {
+            return;
+        }
+
+        $this->skipByteOrderMarkInStream($stream);
+        $this->gaufretteFileManager->writeStreamToStorage($stream, $fileName);
+    }
+
     public function writeToStorage(string $content, string $fileName): void
     {
         $this->gaufretteFileManager->writeToStorage($content, $fileName);
@@ -111,7 +127,7 @@ class FileManager
     /**
      * Generates unique file name with a given extension
      */
-    public static function generateUniqueFileName(string $extension = null): string
+    public static function generateUniqueFileName(?string $extension = null): string
     {
         $fileName = str_replace('.', '', uniqid('', true));
         if ($extension) {
@@ -211,11 +227,40 @@ class FileManager
      */
     private function removeByteOrderMark(string $fileContent): string
     {
-        $bom = pack('H*', 'EFBBBF');
+        $bom = $this->getBomString();
         $sanitizedFileContent = preg_replace("/^$bom/", '', $fileContent);
 
         return is_string($sanitizedFileContent)
             ? $sanitizedFileContent
             : '';
+    }
+
+    /**
+     * This process ensures that BOM at the beginning of the stream is skipped.
+     */
+    private function skipByteOrderMarkInStream(Stream $stream): void
+    {
+        $bom = $this->getBomString();
+        $bomSize = strlen($bom);
+        $startBytes = $stream->read($bomSize);
+        if ($startBytes !== $bom) {
+            $stream->seek(0);
+        }
+    }
+
+    private function getBomString(): string
+    {
+        return pack('H*', 'EFBBBF');
+    }
+
+    public function getFileSize(string $fileName): int
+    {
+        $filePath = $this->getFilePath($fileName);
+
+        if (!$this->isFileExist($filePath)) {
+            return 0;
+        }
+
+        return filesize($filePath);
     }
 }

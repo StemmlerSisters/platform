@@ -17,23 +17,19 @@ class CrowdinCatalogueLoader implements CatalogueLoaderInterface
 
     public function __construct(
         TranslationServiceAdapterInterface $translationServiceAdapter,
-        TranslationReader                  $translationReader
+        TranslationReader $translationReader
     ) {
         $this->translationServiceAdapter = $translationServiceAdapter;
         $this->translationReader = $translationReader;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function getLoaderName(): string
     {
         return 'crowdin';
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function getCatalogue(string $locale): MessageCatalogue
     {
         $tmpDir = rtrim(sys_get_temp_dir(), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;

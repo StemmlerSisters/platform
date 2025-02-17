@@ -9,7 +9,9 @@ use Doctrine\Persistence\Proxy;
 use Oro\Bundle\ApiBundle\Provider\ChainEntityOverrideProvider;
 use Oro\Bundle\ApiBundle\Provider\EntityOverrideProviderInterface;
 use Oro\Bundle\ApiBundle\Provider\MutableEntityOverrideProvider;
+use Oro\Bundle\EntityExtendBundle\Entity\EnumOption;
 use Oro\Bundle\EntityExtendBundle\EntityReflectionClass;
+use Oro\Bundle\EntityExtendBundle\Tools\ExtendHelper;
 use Oro\Component\PhpUtils\ReflectionUtil;
 
 /**
@@ -44,7 +46,7 @@ class EntityMapper
      *
      * @throws \InvalidArgumentException if the entity or the model class is not valid
      */
-    public function getModel(object $entity, string $modelClass = null): object
+    public function getModel(object $entity, ?string $modelClass = null): object
     {
         $updateReferences =
             $this->entityMap->offsetExists($entity)
@@ -53,7 +55,9 @@ class EntityMapper
             $model = $this->innerGetModel($entity, $modelClass);
             if ($updateReferences) {
                 $this->processing->removeAll($this->processing);
-                $this->updateReferencesToModel($model, $entity);
+                if ($model !== $entity) {
+                    $this->updateReferencesToModel($model, $entity);
+                }
             }
 
             return $model;
@@ -67,7 +71,7 @@ class EntityMapper
      *
      * @throws \InvalidArgumentException if the model or the entity class is not valid
      */
-    public function getEntity(object $model, string $entityClass = null): object
+    public function getEntity(object $model, ?string $entityClass = null): object
     {
         if (!$this->hasModels()) {
             $modelClass = $this->doctrineHelper->getClass($model);
@@ -92,12 +96,9 @@ class EntityMapper
 
     /**
      * Makes sure that the given entity exists in the map.
-     *
-     * @throws \InvalidArgumentException if the entity is not a manageable entity
      */
     public function registerEntity(object $entity): void
     {
-        $this->assertEntity($this->doctrineHelper->getClass($entity));
         if (!$this->entityMap->offsetExists($entity)) {
             $this->entityMap->offsetSet($entity, null);
         }
@@ -130,7 +131,7 @@ class EntityMapper
     /**
      * @throws \InvalidArgumentException
      */
-    private function innerGetModel(object $entity, string $modelClass = null): object
+    private function innerGetModel(object $entity, ?string $modelClass = null): object
     {
         $model = null;
         if ($this->entityMap->offsetExists($entity)) {
@@ -148,7 +149,7 @@ class EntityMapper
             }
             $this->entityMap->offsetSet($entity, $model);
             $this->modelMap->offsetSet($model, $entity);
-            if (!$this->processing->offsetExists($entity)) {
+            if ($model !== $entity && !$this->processing->offsetExists($entity)) {
                 $this->processing->offsetSet($entity);
                 $this->updateModelAssociations($model, $entity);
             }
@@ -212,7 +213,7 @@ class EntityMapper
     /**
      * @throws \InvalidArgumentException
      */
-    private function innerGetEntity(object $model, string $entityClass = null): object
+    private function innerGetEntity(object $model, ?string $entityClass = null): object
     {
         $modelClass = null;
         $isNewEntity = false;
@@ -369,7 +370,7 @@ class EntityMapper
      */
     private function assertEntityAndModelClasses(string $entityClass, string $modelClass): void
     {
-        if (!is_subclass_of($modelClass, $entityClass)) {
+        if (!$this->isValidModelClass($modelClass, $entityClass)) {
             throw new \InvalidArgumentException(sprintf(
                 'The model class "%s" must be equal to or a subclass of the entity class "%s".',
                 $modelClass,
@@ -384,22 +385,15 @@ class EntityMapper
                 $modelClass
             ));
         }
-        $this->assertEntity($entityClass);
     }
 
-    /**
-     * Checks if the given entity class is a manageable entity.
-     *
-     * @throws \InvalidArgumentException if the entity class is not a manageable entity
-     */
-    private function assertEntity(string $entityClass): void
+    private function isValidModelClass(string $modelClass, string $entityClass): bool
     {
-        if (!$this->doctrineHelper->isManageableEntityClass($entityClass)) {
-            throw new \InvalidArgumentException(sprintf(
-                'The entity class "%s" must represent a manageable entity.',
-                $entityClass
-            ));
+        if (ExtendHelper::isOutdatedEnumOptionEntity($modelClass)) {
+            return EnumOption::class === $entityClass;
         }
+
+        return is_subclass_of($modelClass, $entityClass);
     }
 
     /**
@@ -408,6 +402,9 @@ class EntityMapper
      */
     private function createObject(string $objectClass, object $source): object
     {
+        if (ExtendHelper::isOutdatedEnumOptionEntity($objectClass)) {
+            $objectClass = EnumOption::class;
+        }
         $object = $this->entityInstantiator->instantiate($objectClass);
         $objectReflClass = new EntityReflectionClass($objectClass);
         $sourceProperties = self::getProperties($this->doctrineHelper->getClass($source));
@@ -428,7 +425,7 @@ class EntityMapper
     /**
      * Gets ORM metadata for the given entity class.
      */
-    private function getEntityMetadata(string $entityClass, string $modelClass = null): ClassMetadata
+    private function getEntityMetadata(string $entityClass, ?string $modelClass = null): ClassMetadata
     {
         $metadata = $this->doctrineHelper->getEntityMetadataForClass($entityClass);
         if ($modelClass && self::isParentEntityClass($metadata)) {

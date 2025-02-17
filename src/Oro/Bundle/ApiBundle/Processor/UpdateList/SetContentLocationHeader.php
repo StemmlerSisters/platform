@@ -32,12 +32,15 @@ class SetContentLocationHeader implements ProcessorInterface
         $this->valueNormalizer = $valueNormalizer;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function process(ContextInterface $context): void
     {
         /** @var UpdateListContext $context */
+
+        if ($context->isSynchronousMode() && $context->hasResult()) {
+            // the "Content-Location" response header is not needed for a synchronous operation
+            return;
+        }
 
         if ($context->getResponseHeaders()->has(self::RESPONSE_HEADER_NAME)) {
             // the Content-Location header is already set

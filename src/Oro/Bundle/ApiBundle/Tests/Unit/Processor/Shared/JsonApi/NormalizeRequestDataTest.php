@@ -32,6 +32,7 @@ class NormalizeRequestDataTest extends FormProcessorTestCase
     /** @var NormalizeRequestData */
     private $processor;
 
+    #[\Override]
     protected function setUp(): void
     {
         parent::setUp();
@@ -66,12 +67,12 @@ class NormalizeRequestDataTest extends FormProcessorTestCase
 
     public function testProcessForAlreadyNormalizedData()
     {
-        $data = ['foo' => 'bar'];
+        $inputData = ['foo' => 'bar'];
 
-        $this->context->setRequestData($data);
+        $this->context->setRequestData($inputData);
         $this->processor->process($this->context);
 
-        self::assertSame($data, $this->context->getRequestData());
+        self::assertSame($inputData, $this->context->getRequestData());
         self::assertSame([], $this->context->getNotResolvedIdentifiers());
     }
 
@@ -99,6 +100,7 @@ class NormalizeRequestDataTest extends FormProcessorTestCase
             ->method('reverseTransform');
 
         $this->context->setRequestData($inputData);
+        $this->context->setMetadata(null);
         $this->processor->process($this->context);
 
         self::assertEquals($inputData, $this->context->getRequestData());

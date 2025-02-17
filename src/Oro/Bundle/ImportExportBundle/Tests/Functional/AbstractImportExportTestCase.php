@@ -28,6 +28,7 @@ abstract class AbstractImportExportTestCase extends WebTestCase
 {
     use MessageQueueExtension;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->initClient([], self::generateBasicAuthHeader());
@@ -99,7 +100,7 @@ abstract class AbstractImportExportTestCase extends WebTestCase
 
     protected function assertImportWorks(
         ImportExportConfigurationInterface $configuration,
-        string                             $importFilePath,
+        string $importFilePath
     ): void {
         $this->assertPreImportActionExecuted($configuration, $importFilePath);
         $preImportMessageData = $this->getOneSentMessageWithTopic(PreImportTopic::getName());
@@ -290,10 +291,10 @@ abstract class AbstractImportExportTestCase extends WebTestCase
     }
 
     protected function assertExportFileData(
-        int    $jobId,
+        int $jobId,
         string $expectedCsvFilePath,
         string $exportedFilename,
-        array  $skippedColumns
+        array $skippedColumns
     ): void {
         $exportFileContent = $this->getImportExportFileContent($jobId);
         $this->deleteImportExportFile($exportedFilename);

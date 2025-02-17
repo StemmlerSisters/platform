@@ -5,20 +5,26 @@ namespace Oro\Bundle\AttachmentBundle\Tests\Unit\Validator\Constraints;
 use Oro\Bundle\AttachmentBundle\Model\ExternalFile;
 use Oro\Bundle\AttachmentBundle\Validator\Constraints\ExternalFileUrl;
 use Oro\Bundle\AttachmentBundle\Validator\Constraints\ExternalFileUrlValidator;
-use Oro\Bundle\TestFrameworkBundle\Test\Logger\LoggerAwareTraitTestTrait;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Validator\ConstraintValidator;
 use Symfony\Component\Validator\Test\ConstraintValidatorTestCase;
 
 class ExternalFileUrlValidatorTest extends ConstraintValidatorTestCase
 {
-    use LoggerAwareTraitTestTrait;
+    /** @var LoggerInterface|\PHPUnit\Framework\MockObject\MockObject */
+    private $logger;
 
+    #[\Override]
+    protected function setUp(): void
+    {
+        $this->logger = $this->createMock(LoggerInterface::class);
+        parent::setUp();
+    }
+
+    #[\Override]
     protected function createValidator(): ConstraintValidator
     {
-        $validator = new ExternalFileUrlValidator();
-        $this->setUpLoggerMock($validator);
-
-        return $validator;
+        return new ExternalFileUrlValidator($this->logger);
     }
 
     public function testNoViolationWhenValueIsNull(): void
@@ -54,16 +60,15 @@ class ExternalFileUrlValidatorTest extends ConstraintValidatorTestCase
     public function testViolationWhenInvalidRegExp(): void
     {
         $externalFile = new ExternalFile('');
-        $constraint = new ExternalFileUrl(['allowedUrlsRegExp' => '/invalid/regexp/']);
+        $constraint = new ExternalFileUrl(['allowedUrlsRegExp' => '/invalid/test/']);
 
-        $this->loggerMock
-            ->expects(self::once())
+        $this->logger->expects(self::once())
             ->method('error')
             ->with(
                 'Allowed URLs regular expression ({regexp}) is invalid: {reason}',
                 [
                     'regexp' => $constraint->allowedUrlsRegExp,
-                    'reason' => 'preg_match(): Unknown modifier \'r\'',
+                    'reason' => "preg_match(): Unknown modifier 't'",
                     'code' => ExternalFileUrl::INVALID_REGEXP_ERROR,
                 ]
             );

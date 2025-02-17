@@ -34,13 +34,13 @@ class DatagridStartTransitionButtonProviderExtension extends AbstractStartTransi
     }
 
     /**
-     * {@inheritdoc}
      * @param StartTransitionButton $button
      */
+    #[\Override]
     public function isAvailable(
         ButtonInterface $button,
         ButtonSearchContext $buttonSearchContext,
-        Collection $errors = null
+        ?Collection $errors = null
     ) {
         if (!$this->supports($button)) {
             throw $this->createUnsupportedButtonException($button);
@@ -76,6 +76,7 @@ class DatagridStartTransitionButtonProviderExtension extends AbstractStartTransi
      *
      * @return Transition[]
      */
+    #[\Override]
     protected function getTransitions(Workflow $workflow, ButtonSearchContext $searchContext)
     {
         if ($searchContext->getDatagrid() !== null &&
@@ -88,9 +89,7 @@ class DatagridStartTransitionButtonProviderExtension extends AbstractStartTransi
         return [];
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     protected function getApplication()
     {
         return CurrentApplicationProviderInterface::DEFAULT_APPLICATION;

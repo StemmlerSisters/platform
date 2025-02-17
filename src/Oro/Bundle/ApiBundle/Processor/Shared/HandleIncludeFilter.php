@@ -29,9 +29,7 @@ class HandleIncludeFilter implements ProcessorInterface
         $this->valueNormalizer = $valueNormalizer;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function process(ContextInterface $context): void
     {
         /** @var Context $context */
@@ -50,7 +48,7 @@ class HandleIncludeFilter implements ProcessorInterface
             return;
         }
 
-        $filterValue = $context->getFilterValues()->get($filterName);
+        $filterValue = $context->getFilterValues()->getOne($filterName);
         if (null === $filterValue) {
             // expanding of related entities was not requested
             return;

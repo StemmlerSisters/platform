@@ -25,6 +25,7 @@ class WorkflowItemTest extends \PHPUnit\Framework\TestCase
     /** @var WorkflowItem */
     private $workflowItem;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->workflowItem = new WorkflowItem();
@@ -73,6 +74,17 @@ class WorkflowItemTest extends \PHPUnit\Framework\TestCase
         $value = $this->createMock(WorkflowStep::class);
         $this->workflowItem->setCurrentStep($value);
         self::assertEquals($value, $this->workflowItem->getCurrentStep());
+    }
+
+    public function testSetCurrentStepForLockedWorkflowItem()
+    {
+        $this->workflowItem->lock();
+        $value = $this->createMock(WorkflowStep::class);
+
+        $this->expectException(WorkflowException::class);
+        $this->expectExceptionMessage('Changing the step of a locked workflow item is prohibited.');
+
+        $this->workflowItem->setCurrentStep($value);
     }
 
     public function testData()

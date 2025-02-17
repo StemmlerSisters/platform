@@ -13,8 +13,25 @@ use Oro\Bundle\EmailBundle\Entity\EmailTemplate;
 abstract class AbstractHashEmailMigration extends AbstractEmailFixture
 {
     /**
-     * {@inheritDoc}
+     * Specifies array of email template names with hashes to be updated to the newest version (which is set by
+     * getEmailDir method)
+     *
+     * To update template without overriding customized content add it's name as key and add expected previous
+     * content MD5 to array of hashes.
+     * To force update replace content hashes array with true.
+     *
+     * [
+     *     <template_name> => [
+     *          <MD5_of_1_0_version_allowed_to_update>,
+     *          <MD5_of_1_1_version_allowed_to_update>,
+     *          // ...
+     *     ],
+     *     <template_name_2> => true
+     * ]
      */
+    abstract protected function getEmailHashesToUpdate(): array;
+
+    #[\Override]
     protected function findExistingTemplate(ObjectManager $manager, array $template)
     {
         if (empty($template['params']['name'])) {
@@ -23,13 +40,11 @@ abstract class AbstractHashEmailMigration extends AbstractEmailFixture
 
         return $manager->getRepository(EmailTemplate::class)->findOneBy([
             'name' => $template['params']['name'],
-            'entityName' => $template['params']['entityName']
+            'entityName' => $template['params']['entityName'] ?? null,
         ]);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     protected function updateExistingTemplate(EmailTemplate $emailTemplate, array $template)
     {
         foreach ($this->getEmailHashesToUpdate() as $templateName => $contentHashes) {
@@ -40,19 +55,4 @@ abstract class AbstractHashEmailMigration extends AbstractEmailFixture
             }
         }
     }
-
-    /**
-     * Specifies array of email template names with hashes to be updated to the newest version (which is set by
-     * getEmailDir method)
-     *
-     * To update template without overriding customized content add it's name as key and add expected previous
-     * content MD5 to array of hashes.
-     * To force update replace content hashes array with true.
-     *
-     * [
-     *     <template_name> => [<MD5_of_previous_version_allowed_to_update>],
-     *     <template_name_2> => true
-     * ]
-     */
-    abstract protected function getEmailHashesToUpdate(): array;
 }

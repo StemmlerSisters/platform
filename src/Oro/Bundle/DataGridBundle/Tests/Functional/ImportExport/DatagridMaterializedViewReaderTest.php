@@ -2,7 +2,7 @@
 
 namespace Oro\Bundle\DataGridBundle\Tests\Functional\ImportExport;
 
-use Oro\Bundle\DataGridBundle\Datagrid\Manager as DatagridManager;
+use Oro\Bundle\DataGridBundle\Datagrid\ManagerInterface as DatagridManager;
 use Oro\Bundle\DataGridBundle\ImportExport\DatagridMaterializedViewReader;
 use Oro\Bundle\DataGridBundle\MaterializedView\MaterializedViewByDatagridFactory;
 use Oro\Bundle\FilterBundle\Form\Type\Filter\TextFilterType;
@@ -21,6 +21,7 @@ class DatagridMaterializedViewReaderTest extends WebTestCase
 
     private DatagridManager $datagridManager;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->initClient([], self::generateBasicAuthHeader());
@@ -33,6 +34,7 @@ class DatagridMaterializedViewReaderTest extends WebTestCase
         $this->datagridManager = self::getContainer()->get('oro_datagrid.datagrid.manager');
     }
 
+    #[\Override]
     public static function tearDownAfterClass(): void
     {
         self::deleteAllMaterializedViews(self::getContainer());

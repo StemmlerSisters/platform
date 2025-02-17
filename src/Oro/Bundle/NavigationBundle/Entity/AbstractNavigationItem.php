@@ -42,7 +42,7 @@ abstract class AbstractNavigationItem implements
     #[ORM\Column(name: 'position', type: Types::SMALLINT)]
     protected ?int $position = null;
 
-    public function __construct(array $values = null)
+    public function __construct(?array $values = null)
     {
         if (!empty($values)) {
             $this->setValues($values);
@@ -52,6 +52,7 @@ abstract class AbstractNavigationItem implements
     /**
      * @return integer
      */
+    #[\Override]
     public function getId()
     {
         return $this->id;
@@ -118,7 +119,7 @@ abstract class AbstractNavigationItem implements
      * @param AbstractUser|null $user
      * @return AbstractNavigationItem
      */
-    public function setUser(AbstractUser $user = null)
+    public function setUser(?AbstractUser $user = null)
     {
         $this->user = $user;
 
@@ -128,6 +129,7 @@ abstract class AbstractNavigationItem implements
     /**
      * @return AbstractUser
      */
+    #[\Override]
     public function getUser()
     {
         return $this->user;
@@ -136,6 +138,7 @@ abstract class AbstractNavigationItem implements
     /**
      * Set entity properties
      */
+    #[\Override]
     public function setValues(array $values)
     {
         if (isset($values['title'])) {

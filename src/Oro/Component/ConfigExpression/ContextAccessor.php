@@ -14,12 +14,12 @@ class ContextAccessor implements ContextAccessorInterface
     protected ?PropertyAccessorInterface $propertyAccessor = null;
 
     /**
-     * {@inheritdoc}
      *
      * @param object|array $context
      * @param string|PropertyPathInterface $property
      * @param mixed $value
      */
+    #[\Override]
     public function setValue($context, $property, $value)
     {
         $this->getPropertyAccessor()->setValue(
@@ -30,32 +30,37 @@ class ContextAccessor implements ContextAccessorInterface
     }
 
     /**
-     * {@inheritdoc}
      *
      * @param object|array $context
      * @param mixed $value
      * @return mixed
      */
+    #[\Override]
     public function getValue($context, $value)
     {
         if ($value instanceof PropertyPathInterface) {
-            try {
-                return $this->getPropertyAccessor()->getValue($context, $value);
-            } catch (\Exception $e) {
-                return null;
-            }
+            return $this->getPropertyValue($context, $value);
         } else {
             return $value;
         }
     }
 
+    public function getPropertyValue($context, $property)
+    {
+        try {
+            return $this->getPropertyAccessor()->getValue($context, $property);
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+
     /**
-     * {@inheritdoc}
      *
      * @param object|array $context
      * @param mixed $value
      * @return bool
      */
+    #[\Override]
     public function hasValue($context, $value)
     {
         if ($value instanceof PropertyPathInterface) {

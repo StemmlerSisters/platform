@@ -63,9 +63,7 @@ class LayoutDataCollector extends DataCollector
         $this->reset();
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getName(): string
     {
         return 'layout';
@@ -76,10 +74,8 @@ class LayoutDataCollector extends DataCollector
         return $this->data;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function collect(Request $request, Response $response, \Throwable $exception = null): void
+    #[\Override]
+    public function collect(Request $request, Response $response, ?\Throwable $exception = null): void
     {
         foreach ($this->contexts as $contextHash => $context) {
             $this->collectContextItems($context);
@@ -265,6 +261,7 @@ class LayoutDataCollector extends DataCollector
         $this->notAppliedActions[$contextHash] = $notAppliedActions;
     }
 
+    #[\Override]
     public function reset(): void
     {
         $this->contexts = [];

@@ -34,11 +34,12 @@ class AliceCombinedLoader implements LoaderInterface
      * @param PurgeMode|null $purgeMode
      * @return object[]
      */
+    #[\Override]
     public function load(
         array $dataOrFiles,
         array $parameters = [],
         array $objects = [],
-        PurgeMode $purgeMode = null
+        ?PurgeMode $purgeMode = null
     ): array {
         if (!$dataOrFiles) {
             return [];

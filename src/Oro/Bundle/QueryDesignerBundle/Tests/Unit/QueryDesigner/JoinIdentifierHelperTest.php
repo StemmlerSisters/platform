@@ -14,6 +14,7 @@ class JoinIdentifierHelperTest extends \PHPUnit\Framework\TestCase
     /** @var JoinIdentifierHelper */
     private $helper;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->helper = new JoinIdentifierHelper(self::ROOT_ENTITY);
@@ -43,7 +44,7 @@ class JoinIdentifierHelperTest extends \PHPUnit\Framework\TestCase
     /**
      * @dataProvider buildColumnJoinIdentifierProvider
      */
-    public function testBuildColumnJoinIdentifier(string $expected, string $columnName, string $entityClass = null)
+    public function testBuildColumnJoinIdentifier(string $expected, string $columnName, ?string $entityClass = null)
     {
         $this->assertEquals(
             $expected,

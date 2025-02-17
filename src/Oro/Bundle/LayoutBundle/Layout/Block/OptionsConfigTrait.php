@@ -18,9 +18,6 @@ trait OptionsConfigTrait
      */
     protected $optionsConfig = [];
 
-    /**
-     * {@inheritdoc}
-     */
     public function configureOptions(OptionsResolver $resolver)
     {
         foreach ($this->optionsConfig as $name => $settings) {
@@ -37,9 +34,6 @@ trait OptionsConfigTrait
         }
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function buildView(BlockView $view, BlockInterface $block, Options $options)
     {
         foreach ($this->optionsConfig as $name => $settings) {
@@ -62,7 +56,7 @@ trait OptionsConfigTrait
         $this->optionsConfig = $options;
     }
 
-    protected function validateOptionConfig(array $optionSettings = null)
+    protected function validateOptionConfig(?array $optionSettings = null)
     {
         if ($optionSettings === null) {
             return;

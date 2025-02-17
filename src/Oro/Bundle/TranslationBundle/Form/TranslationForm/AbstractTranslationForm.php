@@ -41,9 +41,7 @@ abstract class AbstractTranslationForm implements TranslationFormInterface
         return $this->managerRegistry;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getChildrenOptions($class, array $options)
     {
         $childrenOptions = [];
@@ -87,7 +85,7 @@ abstract class AbstractTranslationForm implements TranslationFormInterface
                     $childrenOptions[$locale][$child] = $localeChildOptions + $childOptions;
                 }
             }
-        // General options for all locales
+            // General options for all locales
         } else {
             foreach ($options['locales'] as $locale) {
                 $childrenOptions[$locale][$child] = $childOptions;
@@ -97,9 +95,7 @@ abstract class AbstractTranslationForm implements TranslationFormInterface
         return $childrenOptions;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function guessMissingChildOptions($guesser, $class, $property, array $options)
     {
         if (!isset($options['field_type']) && ($typeGuess = $guesser->guessType($class, $property))) {

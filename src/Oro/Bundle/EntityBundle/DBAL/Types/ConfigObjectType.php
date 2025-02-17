@@ -4,20 +4,23 @@ namespace Oro\Bundle\EntityBundle\DBAL\Types;
 
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Types\ConversionException;
-use Doctrine\DBAL\Types\JsonArrayType;
+use Doctrine\DBAL\Types\JsonType;
 use Oro\Component\Config\Common\ConfigObject;
 
-class ConfigObjectType extends JsonArrayType
+/**
+ * Type that maps a PHP array to a JSON object in the database
+ */
+class ConfigObjectType extends JsonType
 {
     const TYPE = 'config_object';
 
-    /** {@inheritdoc} */
+    #[\Override]
     public function getName()
     {
         return self::TYPE;
     }
 
-    /** {@inheritdoc} */
+    #[\Override]
     public function convertToDatabaseValue($value, AbstractPlatform $platform)
     {
         if (null === $value) {
@@ -36,6 +39,7 @@ class ConfigObjectType extends JsonArrayType
      * @return mixed
      * @throws ConversionException
      */
+    #[\Override]
     public function convertToPHPValue($value, AbstractPlatform $platform)
     {
         if (null === $value) {

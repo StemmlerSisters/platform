@@ -13,7 +13,6 @@ use Oro\Bundle\UserBundle\Entity\Email;
 use Oro\Bundle\UserBundle\Entity\Group;
 use Oro\Bundle\UserBundle\Entity\Role;
 use Oro\Bundle\UserBundle\Entity\User;
-use Oro\Bundle\UserBundle\Entity\UserApi;
 
 /**
  * @SuppressWarnings(PHPMD.TooManyPublicMethods)
@@ -21,6 +20,7 @@ use Oro\Bundle\UserBundle\Entity\UserApi;
  */
 class UserTest extends AbstractUserTest
 {
+    #[\Override]
     public function getUser(): User
     {
         return new User();
@@ -98,6 +98,7 @@ class UserTest extends AbstractUserTest
         self::assertEquals($now, $user->getLastLogin());
     }
 
+    #[\Override]
     public function provider(): array
     {
         return [
@@ -285,47 +286,6 @@ class UserTest extends AbstractUserTest
         self::assertSame($origin2, $entity->getEmailOrigins()->first());
     }
 
-    public function testGetApiKey(): void
-    {
-        $entity = $this->getUser();
-
-        self::assertEmpty($entity->getApiKeys(), 'Should return some key, even if is not present');
-
-        $organization1 = new Organization();
-        $organization1->setName('test1');
-
-        $organization2 = new Organization();
-        $organization2->setName('test2');
-
-        $apiKey1 = new UserApi();
-        $apiKey1->setApiKey($apiKey1->generateKey());
-        $apiKey1->setOrganization($organization1);
-
-        $apiKey2 = new UserApi();
-        $apiKey2->setApiKey($apiKey2->generateKey());
-        $apiKey2->setOrganization($organization2);
-
-        $entity->addApiKey($apiKey1);
-        $entity->addApiKey($apiKey2);
-
-        self::assertSame(
-            $apiKey1->getApiKey(),
-            $entity->getApiKeys()[0]->getApiKey(),
-            'Should delegate call to userApi entity'
-        );
-
-        self::assertEquals(
-            new ArrayCollection([$apiKey1, $apiKey2]),
-            $entity->getApiKeys()
-        );
-
-        $entity->removeApiKey($apiKey2);
-        self::assertEquals(
-            new ArrayCollection([$apiKey1]),
-            $entity->getApiKeys()
-        );
-    }
-
     public function testGetEmailFields(): void
     {
         $user = $this->getUser();
@@ -430,6 +390,7 @@ class UserTest extends AbstractUserTest
         self::assertEquals('john', $user->getUsernameLowercase());
     }
 
+    #[\Override]
     public function testUnserialize(): void
     {
         $serialized = [

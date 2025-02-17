@@ -31,17 +31,13 @@ class ConsumerHeartbeatExtension extends AbstractExtension
         $this->consumerHeartbeat = $consumerHeartbeat;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function onStart(Context $context)
     {
         self::$lastUpdatedTime = null;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function onBeforeReceive(Context $context): void
     {
         // do nothing if the check was disabled with 0 config option value
@@ -52,7 +48,7 @@ class ConsumerHeartbeatExtension extends AbstractExtension
         $currentTime = new \DateTime('now', new \DateTimeZone('UTC'));
         if (!self::$lastUpdatedTime
             || (
-                ($currentTime->getTimestamp() - self::$lastUpdatedTime->getTimestamp())/60
+                ($currentTime->getTimestamp() - self::$lastUpdatedTime->getTimestamp()) / 60
                 >= $this->updateHeartbeatPeriod
             )
         ) {

@@ -52,9 +52,9 @@ class ExpressionProcessor
     public function processExpressions(
         array &$values,
         ContextInterface $context,
-        DataAccessorInterface $data = null,
+        ?DataAccessorInterface $data = null,
         bool $evaluate = true,
-        string $encoding = null
+        ?string $encoding = null
     ): void {
         if (!$evaluate && $encoding === null) {
             return;

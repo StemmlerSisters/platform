@@ -1,3 +1,7 @@
+critical_css:
+    inputs:
+        - 'bundles/oroform/default/scss/settings/global-settings.scss'
+
 styles:
     inputs:
         - 'bundles/oroform/default/scss/settings/global-settings.scss'
@@ -13,6 +17,7 @@ styles:
         - 'bundles/oroform/default/scss/variables/oro-toolbar-config.scss'
         - 'bundles/oroform/default/scss/variables/textarea-config.scss'
         - 'bundles/oroform/default/scss/variables/label-config.scss'
+        - 'bundles/oroform/default/scss/variables/label-required-config.scss'
         - 'bundles/oroform/default/scss/variables/form-row-config.scss'
         - 'bundles/oroform/default/scss/variables/floating-validation-message-config.scss'
         - 'bundles/oroform/default/scss/variables/validation-config.scss'
@@ -36,6 +41,7 @@ styles:
         - 'bundles/oroform/default/scss/components/select2/select2-container.scss'
         - 'bundles/oroform/default/scss/components/select2/select2-container-multi.scss'
         - 'bundles/oroform/default/scss/components/select2/select2-plain.scss'
+        - 'bundles/oroform/default/scss/components/select-multiline.scss'
 
 stylebook_styles:
     inputs:

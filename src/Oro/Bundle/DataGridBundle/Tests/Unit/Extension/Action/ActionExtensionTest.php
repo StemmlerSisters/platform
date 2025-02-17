@@ -44,6 +44,7 @@ class ActionExtensionTest extends \PHPUnit\Framework\TestCase
     /** @var ActionExtension */
     private $extension;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->actionProvider = $this->createMock(DatagridActionProviderInterface::class);
@@ -567,7 +568,7 @@ class ActionExtensionTest extends \PHPUnit\Framework\TestCase
 
         $this->authorizationChecker->expects(self::once())
             ->method('isGranted')
-            ->willReturnCallback(function ($resource, DomainObjectReference $object = null) {
+            ->willReturnCallback(function ($resource, ?DomainObjectReference $object = null) {
                 self::assertEquals('update_acl_resource', $resource);
                 self::assertInstanceOf(DomainObjectReference::class, $object);
                 self::assertSame('Test\Entity', $object->getType());
@@ -640,7 +641,7 @@ class ActionExtensionTest extends \PHPUnit\Framework\TestCase
 
         $this->authorizationChecker->expects(self::once())
             ->method('isGranted')
-            ->willReturnCallback(function ($resource, DomainObjectReference $object = null) {
+            ->willReturnCallback(function ($resource, ?DomainObjectReference $object = null) {
                 self::assertEquals('update_acl_resource', $resource);
                 self::assertInstanceOf(DomainObjectReference::class, $object);
                 self::assertSame('Test\Entity', $object->getType());
@@ -673,7 +674,7 @@ class ActionExtensionTest extends \PHPUnit\Framework\TestCase
 
         $this->authorizationChecker->expects(self::once())
             ->method('isGranted')
-            ->willReturnCallback(function ($resource, DomainObjectReference $object = null) {
+            ->willReturnCallback(function ($resource, ?DomainObjectReference $object = null) {
                 self::assertEquals('update_acl_resource', $resource);
                 self::assertNull($object);
 

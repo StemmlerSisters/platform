@@ -44,6 +44,7 @@ class AclManagerTest extends \PHPUnit\Framework\TestCase
     /** @var AclManager */
     private $manager;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->objectIdentityFactory = $this->createMock(ObjectIdentityFactory::class);
@@ -951,7 +952,7 @@ class AclManagerTest extends \PHPUnit\Framework\TestCase
         $this->manager->flush();
     }
 
-    private function setItem(ObjectIdentity $oid, $state, MutableAclInterface $acl = null)
+    private function setItem(ObjectIdentity $oid, $state, ?MutableAclInterface $acl = null)
     {
         $key = ReflectionUtil::callMethod($this->manager, 'getKey', [$oid]);
         ReflectionUtil::setPropertyValue(

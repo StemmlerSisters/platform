@@ -10,21 +10,24 @@ class NonTraversableArrayObject implements \ArrayAccess, \Countable
 {
     private $array;
 
-    public function __construct(array $array = null)
+    public function __construct(?array $array = null)
     {
         $this->array = $array ?: array();
     }
 
+    #[\Override]
     public function offsetExists($offset): bool
     {
         return array_key_exists($offset, $this->array);
     }
 
+    #[\Override]
     public function offsetGet($offset): mixed
     {
         return $this->array[$offset];
     }
 
+    #[\Override]
     public function offsetSet($offset, $value): void
     {
         if (null === $offset) {
@@ -34,11 +37,13 @@ class NonTraversableArrayObject implements \ArrayAccess, \Countable
         }
     }
 
+    #[\Override]
     public function offsetUnset($offset): void
     {
         unset($this->array[$offset]);
     }
 
+    #[\Override]
     public function count(): int
     {
         return count($this->array);

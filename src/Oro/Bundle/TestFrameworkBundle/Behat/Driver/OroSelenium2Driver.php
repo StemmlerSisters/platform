@@ -8,41 +8,42 @@ use Behat\Mink\Selector\Xpath\Escaper;
 use Behat\Mink\Selector\Xpath\Manipulator;
 use Oro\Bundle\TestFrameworkBundle\Behat\Context\AssertTrait;
 use Oro\Bundle\TestFrameworkBundle\Behat\Element\ElementValueInterface;
+use Oro\Bundle\TestFrameworkBundle\Behat\Session\Mink\WatchModeSessionHolder;
 use WebDriver\Element;
 use WebDriver\Key;
 
 /**
  * Contains overrides of some Selenium2Driver methods as well as new methods related to selenium driver functionality
+ * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
  */
 class OroSelenium2Driver extends Selenium2Driver
 {
     use AssertTrait;
 
-    /**
-     * @var Manipulator
-     */
-    private $xpathManipulator;
+    private Manipulator $xpathManipulator;
+    private Escaper $xpathEscaper;
+    private OroWebDriver $oroWebDriver;
 
-    /**
-     * @var Escaper
-     */
-    private $xpathEscaper;
-
-    /**
-     * {@inheritdoc}
-     */
     public function __construct($browserName, $desiredCapabilities, $wdHost)
     {
         $this->xpathManipulator = new Manipulator();
         $this->xpathEscaper = new Escaper();
+        $this->oroWebDriver = new OroWebDriver($wdHost);
 
         parent::__construct($browserName, $desiredCapabilities, $wdHost);
+        // override base web driver
+        $this->setWebDriver($this->oroWebDriver);
+    }
+
+    public function setSessionHolder(WatchModeSessionHolder $watchSessionHolder): void
+    {
+        $this->oroWebDriver->setSessionHolder($watchSessionHolder);
     }
 
     /**
-     * {@inheritdoc}
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
+    #[\Override]
     public function setValue($xpath, $value)
     {
         $element = $this->findElement($xpath);
@@ -97,6 +98,7 @@ class OroSelenium2Driver extends Selenium2Driver
      * @throws \Behat\Mink\Exception\DriverException
      * @throws \Behat\Mink\Exception\UnsupportedDriverActionException
      */
+    #[\Override]
     public function getValue($xpath)
     {
         $element = $this->findElement($xpath);
@@ -122,12 +124,31 @@ class OroSelenium2Driver extends Selenium2Driver
         $element = $this->findElement($xpath);
         $elementName = strtolower($element->name());
 
-        if ($clearField && in_array($elementName, array('input', 'textarea'))) {
+        if ($clearField && in_array($elementName, ['input', 'textarea'])) {
             $existingValueLength = strlen($this->getValue($xpath));
             $value = str_repeat(Key::BACKSPACE . Key::DELETE, $existingValueLength) . $value;
         }
 
-        $element->postValue(array('value' => array($value)));
+        $element->postValue(['value' => [$value]]);
+    }
+
+    /**
+     * @param string $xpath
+     * @param string $value
+     */
+    public function setInnerHtmlForElement($xpath, $value): void
+    {
+        $element = $this->findElement($xpath);
+        $elementName = strtolower($element->name());
+
+        if (in_array($elementName, ['div'])) {
+            $value = json_encode($value);
+            $script = <<<JS
+var node = {{ELEMENT}};
+node.innerHTML = $value;
+JS;
+            $this->executeJsOnElement($element, $script);
+        }
     }
 
     /**
@@ -302,9 +323,7 @@ JS;
         return $result;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function wait($timeout, $condition)
     {
         $script = "return $condition;";
@@ -320,9 +339,7 @@ JS;
         return (bool) $result;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function doubleClick($xpath)
     {
         // Original method doesn't work properly with chromedriver,
@@ -332,9 +349,7 @@ JS;
         $this->withSyn()->executeJsOnXpath($xpath, $script);
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function keyDown($xpath, $char, $modifier = null)
     {
         $charToKeyMap = [
@@ -362,9 +377,11 @@ JS;
             $options['key'] = $charToKeyMap[$char];
         }
 
+        $options['bubbles'] = true;
+
         $event = 'keydown';
         $options = json_encode($options);
-        $script = 'Syn.trigger("' . $event . '", ' . $options . ', {{ELEMENT}})';
+        $script = '{{ELEMENT}}.dispatchEvent(new KeyboardEvent("' . $event . '", ' . $options . '))';
         $this->withSyn()->executeJsOnXpath($xpath, $script);
     }
 
@@ -378,17 +395,12 @@ JS;
         return $this->getWebDriverSession()->element('xpath', $xpath);
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function executeJsOnXpath($xpath, $script, $sync = true)
     {
         return $this->executeJsOnElement($this->findElement($xpath), $script, $sync);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     protected function executeJsOnElement(Element $element, $script, $sync = true)
     {
         $script = str_replace('{{ELEMENT}}', 'arguments[0]', $script);

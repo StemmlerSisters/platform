@@ -10,21 +10,17 @@ use Oro\Bundle\ApiBundle\Model\Error;
  */
 class NullErrorCompleter implements ErrorCompleterInterface
 {
-    /**
-     * {@inheritdoc}
-     */
-    public function complete(Error $error, RequestType $requestType, EntityMetadata $metadata = null): void
+    #[\Override]
+    public function complete(Error $error, RequestType $requestType, ?EntityMetadata $metadata = null): void
     {
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function fixIncludedEntityPath(
         string $entityPath,
         Error $error,
         RequestType $requestType,
-        EntityMetadata $metadata = null
+        ?EntityMetadata $metadata = null
     ): void {
     }
 }

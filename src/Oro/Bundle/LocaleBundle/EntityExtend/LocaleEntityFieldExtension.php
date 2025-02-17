@@ -175,7 +175,7 @@ class LocaleEntityFieldExtension extends AbstractEntityFieldExtension implements
         }
     }
 
-    private function getValue(Collection $values, Localization $localization = null): mixed
+    private function getValue(Collection $values, ?Localization $localization = null): mixed
     {
         $result = null;
         foreach ($values as $value) {
@@ -207,7 +207,7 @@ EOF;
         return $result;
     }
 
-    private function getLocalizedFallbackValue(Collection $values, Localization $localization = null)
+    private function getLocalizedFallbackValue(Collection $values, ?Localization $localization = null)
     {
         $value = $this->getValue($values, $localization);
         if (null !== $localization) {
@@ -312,6 +312,7 @@ EOF;
         $transport->setProcessed(true);
     }
 
+    #[\Override]
     public function get(EntityFieldProcessTransport $transport): void
     {
         $properties = $this->getProperties($transport);
@@ -321,6 +322,7 @@ EOF;
         }
     }
 
+    #[\Override]
     public function set(EntityFieldProcessTransport $transport): void
     {
         $properties = $this->getProperties($transport);
@@ -333,6 +335,7 @@ EOF;
         }
     }
 
+    #[\Override]
     public function call(EntityFieldProcessTransport $transport): void
     {
         if (str_starts_with($transport->getName(), 'get')) {
@@ -374,15 +377,7 @@ EOF;
         }
     }
 
-    public function isset(EntityFieldProcessTransport $transport): void
-    {
-        $properties = $this->getProperties($transport);
-        if (array_key_exists($transport->getName(), $properties)) {
-            $transport->setResult(true);
-            $transport->setProcessed(true);
-        }
-    }
-
+    #[\Override]
     public function propertyExists(EntityFieldProcessTransport $transport): void
     {
         $properties = $this->getProperties($transport);
@@ -392,6 +387,7 @@ EOF;
         }
     }
 
+    #[\Override]
     public function methodExists(EntityFieldProcessTransport $transport): void
     {
         $exists = false;
@@ -418,6 +414,7 @@ EOF;
         }
     }
 
+    #[\Override]
     protected function getMethodsData(EntityFieldProcessTransport $transport): array
     {
         return array_merge(
@@ -427,6 +424,7 @@ EOF;
         );
     }
 
+    #[\Override]
     public function getMethods(EntityFieldProcessTransport $transport): array
     {
         return array_keys($this->getMethodsData($transport));

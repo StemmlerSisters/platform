@@ -30,10 +30,11 @@ class ActionFactory implements ActionFactoryInterface
      * @param string $type
      * @param array $options
      * @param ExpressionInterface|null $condition
-     * @throws \RunTimeException
      * @return ActionInterface
+     *@throws \RunTimeException
      */
-    public function create($type, array $options = [], ExpressionInterface $condition = null)
+    #[\Override]
+    public function create($type, array $options = [], ?ExpressionInterface $condition = null)
     {
         if (!$type) {
             throw new \RuntimeException('The action type must be defined');
@@ -62,14 +63,13 @@ class ActionFactory implements ActionFactoryInterface
     /**
      * @return array
      */
+    #[\Override]
     public function getTypes()
     {
         return $this->types;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function isTypeExists($name)
     {
         return isset($this->types[$name]);

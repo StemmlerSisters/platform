@@ -39,6 +39,7 @@ class EmailTemplateTypeTest extends FormIntegrationTestCase
     /** @var EmailTemplateType */
     private $type;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->configManager = $this->createMock(ConfigManager::class);
@@ -49,9 +50,7 @@ class EmailTemplateTypeTest extends FormIntegrationTestCase
         parent::setUp();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     protected function getExtensions(): array
     {
         $entityProvider = $this->createMock(EntityProvider::class);
@@ -130,7 +129,7 @@ class EmailTemplateTypeTest extends FormIntegrationTestCase
         $this->configManager->expects($this->exactly(2))
             ->method('get')
             ->willReturnMap([
-                ['oro_form.wysiwyg_enabled', false, false, null, null],
+                ['oro_email.email_template_wysiwyg_enabled', false, false, null, null],
                 ['oro_email.sanitize_html', false, false, null, $htmlPurifier]
             ]);
 

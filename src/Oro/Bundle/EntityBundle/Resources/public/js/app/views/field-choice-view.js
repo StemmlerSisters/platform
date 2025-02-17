@@ -139,7 +139,9 @@ define(function(require) {
                     let match = null;
                     let chain;
                     try {
-                        chain = this.dataProvider.pathToEntityChainExcludeTrailingField(id);
+                        chain = this.dataProvider.pathToEntityChainExcludeTrailingField(
+                            typeof this.pathCallback === 'function' ? this.pathCallback(id) : id
+                        );
                         instance.pagePath = chain[chain.length - 1].basePath;
                     } catch (e) {
                         instance.pagePath = '';
@@ -223,6 +225,13 @@ define(function(require) {
             return applicableConditions;
         },
 
+        /**
+         * @param {string} fieldId
+         * @returns {*|FieldSignature|null}
+         */
+        getFieldSignature: function(fieldId) {
+            return this.dataProvider.getFieldSignatureSafely(fieldId);
+        },
         /**
          *
          * @param {string} path

@@ -47,11 +47,12 @@ class AliceFixtureLoader implements LoaderInterface
      * @param PurgeMode|null $purgeMode
      * @return object[]
      */
+    #[\Override]
     public function load(
         array $dataOrFiles,
         array $parameters = [],
         array $objects = [],
-        PurgeMode $purgeMode = null
+        ?PurgeMode $purgeMode = null
     ): array {
         $referenceRepositoryObjects = array_filter($this->referenceRepository->toArray());
         $objects = $this->loader->load(

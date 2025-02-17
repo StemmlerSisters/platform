@@ -41,10 +41,10 @@ class LoggerLevelCommand extends Command
     ];
 
     public function __construct(
-        ConfigManager  $globalConfigManager,
-        ConfigManager  $userConfigManager,
+        ConfigManager $globalConfigManager,
+        ConfigManager $userConfigManager,
         CacheInterface $cache,
-        UserManager    $userManager
+        UserManager $userManager
     ) {
         parent::__construct();
 
@@ -55,6 +55,7 @@ class LoggerLevelCommand extends Command
     }
 
     /** @noinspection PhpMissingParentCallCommonInspection */
+    #[\Override]
     protected function configure()
     {
         $this
@@ -81,6 +82,7 @@ HELP
     }
 
     /** @noinspection PhpMissingParentCallCommonInspection */
+    #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $level = $this->getLogLevel($input->getArgument('level'));

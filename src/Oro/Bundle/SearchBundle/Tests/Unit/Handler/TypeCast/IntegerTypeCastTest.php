@@ -11,6 +11,7 @@ class IntegerTypeCastTest extends \PHPUnit\Framework\TestCase
     /** @var IntegerTypeCast */
     private $handler;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->handler = new IntegerTypeCast();
@@ -63,7 +64,7 @@ class IntegerTypeCastTest extends \PHPUnit\Framework\TestCase
                 'value' => new \DateTime('now')
             ],
             'decimal' => [
-                'value'=> 1.1
+                'value' => 1.1
             ]
         ];
     }

@@ -126,9 +126,7 @@ class HtmlFormatter extends AbstractFormatter
         $this->documentationProvider = $documentationProvider;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     protected function renderOne(array $data)
     {
         return $this->twig->render('@NelmioApiDoc/resource.html.twig', array_merge(
@@ -140,9 +138,7 @@ class HtmlFormatter extends AbstractFormatter
         ));
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     protected function render(array $collection)
     {
         return $this->twig->render('@NelmioApiDoc/resources.html.twig', array_merge(
@@ -178,8 +174,6 @@ class HtmlFormatter extends AbstractFormatter
             'organizations'           => $this->securityContext->getOrganizations(),
             'organization'            => $this->securityContext->getOrganization(),
             'userName'                => $this->securityContext->getUserName(),
-            'apiKey'                  => $this->securityContext->getApiKey(),
-            'apiKeyGenerationHint'    => $this->securityContext->getApiKeyGenerationHint(),
             'csrfCookieName'          => $this->securityContext->getCsrfCookieName(),
             'switchOrganizationRoute' => $this->securityContext->getSwitchOrganizationRoute(),
             'loginRoute'              => $this->securityContext->getLoginRoute(),
@@ -196,9 +190,6 @@ class HtmlFormatter extends AbstractFormatter
     {
         $result = $this->getFileContent('@NelmioApiDocBundle/Resources/public/js/all.js');
         $result .= "\n" . $this->getFileContent('@OroApiBundle/Resources/public/lib/jquery.bind-first-0.2.3.min.js');
-        if ($this->enableSandbox) {
-            $result .= "\n" . $this->getFileContent('@OroApiBundle/Resources/public/lib/wsse.js');
-        }
 
         return $result;
     }

@@ -2,7 +2,6 @@
 
 namespace Oro\Bundle\AttachmentBundle\Checker\Voter;
 
-use Oro\Bundle\AttachmentBundle\ProcessorHelper;
 use Oro\Bundle\FeatureToggleBundle\Checker\Voter\VoterInterface;
 
 /**
@@ -12,26 +11,18 @@ class PostProcessorsVoter implements VoterInterface
 {
     public const ATTACHMENT_POST_PROCESSORS = 'attachment_post_processors';
 
-    private ProcessorHelper $processorHelper;
+    private bool $isEnabled = false;
 
-    public function __construct(ProcessorHelper $processorHelper)
+    public function setEnabled(bool $isEnabled): void
     {
-        $this->processorHelper = $processorHelper;
+        $this->isEnabled = $isEnabled;
     }
 
-    /**
-     * @inhericDoc
-     */
+    #[\Override]
     public function vote($feature, $scopeIdentifier = null): int
     {
         if ($feature === self::ATTACHMENT_POST_PROCESSORS) {
-            try {
-                $librariesExists = $this->processorHelper->librariesExists();
-            } catch (\Exception $exception) {
-                return self::FEATURE_DISABLED;
-            }
-
-            return $librariesExists ? self::FEATURE_ENABLED : self::FEATURE_DISABLED;
+            return $this->isEnabled ? self::FEATURE_ENABLED : self::FEATURE_DISABLED;
         }
 
         return self::FEATURE_ABSTAIN;

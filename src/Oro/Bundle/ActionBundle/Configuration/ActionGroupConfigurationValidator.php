@@ -6,7 +6,8 @@ use Doctrine\Common\Collections\Collection;
 
 class ActionGroupConfigurationValidator implements ConfigurationValidatorInterface
 {
-    public function validate(array $configuration, Collection $errors = null)
+    #[\Override]
+    public function validate(array $configuration, ?Collection $errors = null)
     {
         // nothing
     }

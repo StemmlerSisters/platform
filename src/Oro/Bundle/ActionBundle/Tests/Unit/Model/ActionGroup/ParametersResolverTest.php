@@ -21,9 +21,26 @@ class ParametersResolverTest extends \PHPUnit\Framework\TestCase
     /** @var ParametersResolver */
     private $resolver;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->resolver = new ParametersResolver();
+    }
+
+    public function testResolveWithSnakeCase()
+    {
+        $actionData = new ActionData(['test_parameter' => 'value']);
+        $parameter = new Parameter('testParameter');
+        $parameter->setType('string');
+
+        $actionGroup = $this->createMock(ActionGroup::class);
+        $actionGroup->expects($this->atLeastOnce())
+            ->method('getParameters')
+            ->willReturn([$parameter]);
+
+        $this->resolver->resolve($actionData, $actionGroup, null, true);
+
+        $this->assertEquals(['test_parameter' => 'value'], $actionData->toArray());
     }
 
     /**
@@ -32,7 +49,7 @@ class ParametersResolverTest extends \PHPUnit\Framework\TestCase
     public function testResolveOk(ActionData $data, array $parameters, ActionData $expected)
     {
         $actionGroup = $this->createMock(ActionGroup::class);
-        $actionGroup->expects($this->once())
+        $actionGroup->expects($this->atLeastOnce())
             ->method('getParameters')
             ->willReturn($parameters);
 
@@ -106,7 +123,7 @@ class ParametersResolverTest extends \PHPUnit\Framework\TestCase
             ->willReturn('testActionGroup');
 
         $actionGroup = $this->createMock(ActionGroup::class);
-        $actionGroup->expects($this->once())
+        $actionGroup->expects($this->atLeastOnce())
             ->method('getParameters')
             ->willReturn($parameters);
         $actionGroup->expects($this->once())
@@ -196,7 +213,7 @@ class ParametersResolverTest extends \PHPUnit\Framework\TestCase
         string $type,
         string $gotType,
         string $gotValue,
-        string $customMessage = null
+        ?string $customMessage = null
     ): array {
         $typedParam = new Parameter($paramName);
         $typedParam->setType($type);

@@ -62,6 +62,14 @@ oro_behat_extension:
       selector: '.toolbar .actions-panel .action[title="Filter Toggle"]'
       class: Oro\Bundle\DataGridBundle\Tests\Behat\Element\GridFiltersButton
 
+    GridFiltersButtonSelected:
+      selector: '.toolbar .actions-panel .action.filters-selected[title="Filter Toggle"]'
+      class: Oro\Bundle\DataGridBundle\Tests\Behat\Element\GridFiltersButton
+
+    GridFiltersButtonSidebarSelected:
+      selector: '.toolbar .actions-panel .filters-selected .action[title="Filter Toggle"]'
+      class: Oro\Bundle\DataGridBundle\Tests\Behat\Element\GridFiltersButton
+
     GridFilterStringItem:
       selector: 'div.filter-item'
       class: Oro\Bundle\DataGridBundle\Tests\Behat\Element\GridFilterStringItem
@@ -201,6 +209,12 @@ oro_behat_extension:
     MassActionButton:
       selector: '.grid-header-row .action-column .dropdown button'
 
+    Toolbar Mass Actions:
+      selector: '.toolbar-mass-actions'
+
+    Responsive Dropdown Action:
+      selector: 'div.dropdown.responsive-dropdown'
+
     PageSize:
       selector: 'div.page-size'
 
@@ -249,7 +263,7 @@ oro_behat_extension:
       selector: '.fullscreen-popup .close-dialog'
 
     Fullscreen Popup Backdrop:
-      selector: '.fullscreen-popup__backdrop.show'
+      selector: '.backdrop-view.show'
 
     Grid Toolbar Action Filter Toggle:
       selector: '.toggle-filters-action'

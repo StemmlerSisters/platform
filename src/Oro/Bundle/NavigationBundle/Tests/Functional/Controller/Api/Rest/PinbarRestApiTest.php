@@ -13,6 +13,7 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
  */
 class PinbarRestApiTest extends AbstractRestApiTest
 {
+    #[\Override]
     protected function setUp(): void
     {
         $this->initClient();
@@ -20,11 +21,13 @@ class PinbarRestApiTest extends AbstractRestApiTest
         $this->loadFixtures([PinbarTabData::class]);
     }
 
+    #[\Override]
     protected function getItemType(): string
     {
         return 'pinbar';
     }
 
+    #[\Override]
     protected function getItemId(): int
     {
         return $this->getReference(PinbarTabData::PINBAR_TAB_1)->getId();
@@ -59,7 +62,7 @@ class PinbarRestApiTest extends AbstractRestApiTest
                 'position' => $pin->getPosition(),
                 'type' => 'pinbar',
             ],
-            self::generateWsseAuthHeader(LoadUserData::USER_NAME_2, LoadUserData::USER_PASSWORD_2)
+            self::generateApiAuthHeader(LoadUserData::USER_NAME_2)
         );
 
         $result = $this->client->getResponse();
@@ -87,7 +90,7 @@ class PinbarRestApiTest extends AbstractRestApiTest
                 ['type' => 'pinbar', 'itemId' => $this->getItemId()]
             ),
             $updatedPintab,
-            self::generateWsseAuthHeader(LoadUserData::USER_NAME_2, LoadUserData::USER_PASSWORD_2)
+            self::generateApiAuthHeader(LoadUserData::USER_NAME_2)
         );
 
         $result = $this->client->getResponse();
@@ -102,7 +105,7 @@ class PinbarRestApiTest extends AbstractRestApiTest
             'GET',
             $this->getUrl('oro_api_get_navigationitems', ['type' => 'pinbar']),
             [],
-            self::generateWsseAuthHeader(LoadUserData::USER_NAME_2, LoadUserData::USER_PASSWORD_2)
+            self::generateApiAuthHeader(LoadUserData::USER_NAME_2)
         );
 
         $resultJson = json_decode($this->client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR);
@@ -141,7 +144,7 @@ class PinbarRestApiTest extends AbstractRestApiTest
             'GET',
             $this->getUrl('oro_api_get_navigationitems', ['type' => 'pinbar']),
             [],
-            self::generateWsseAuthHeader(LoadUserData::USER_NAME_2, LoadUserData::USER_PASSWORD_2)
+            self::generateApiAuthHeader(LoadUserData::USER_NAME_2)
         );
 
         $result = $this->client->getResponse();

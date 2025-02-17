@@ -3,9 +3,15 @@ services:
         public: false
 
     Oro\Bundle\ThemeBundle\Command\ThemeCommand:
-        public: false
         class: Oro\Bundle\ThemeBundle\Command\ThemeCommand
         arguments:
             - '@oro_theme.registry'
+        tags:
+            - { name: console.command }
+
+    Oro\Bundle\ThemeBundle\Command\ThemeValidateConfigurationCommand:
+        class: Oro\Bundle\ThemeBundle\Command\ThemeValidateConfigurationCommand
+        arguments:
+            - '@oro_theme.configuration_validator'
         tags:
             - { name: console.command }

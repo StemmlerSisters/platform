@@ -12,25 +12,22 @@ use Oro\Bundle\ApiBundle\Request\RequestType;
  */
 class ErrorCompleter extends AbstractErrorCompleter
 {
-    /**
-     * {@inheritdoc}
-     */
-    public function complete(Error $error, RequestType $requestType, EntityMetadata $metadata = null): void
+    #[\Override]
+    public function complete(Error $error, RequestType $requestType, ?EntityMetadata $metadata = null): void
     {
         $this->completeStatusCode($error);
         $this->completeCode($error);
         $this->completeTitle($error);
         $this->completeDetail($error);
+        $this->completeMetaProperties($error, $requestType);
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function fixIncludedEntityPath(
         string $entityPath,
         Error $error,
         RequestType $requestType,
-        EntityMetadata $metadata = null
+        ?EntityMetadata $metadata = null
     ): void {
     }
 }

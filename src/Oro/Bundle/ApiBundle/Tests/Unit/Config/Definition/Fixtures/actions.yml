@@ -31,6 +31,12 @@ exclude_all_actions:
                 exclude: true
             get_subresource:
                 exclude: true
+            update_subresource:
+                exclude: true
+            add_subresource:
+                exclude: true
+            delete_subresource:
+                exclude: true
             get_relationship:
                 exclude: true
             update_relationship:
@@ -55,7 +61,7 @@ not_permissible_action:
         actions:
             undefined_action: false
     expected: []
-    error: 'Invalid configuration for path "entity.actions": The section "actions.action" contains not permissible actions: "undefined_action". Permissible actions: "get, get_list, update, create, delete, delete_list, get_subresource, get_relationship, update_relationship, add_relationship, delete_relationship".'
+    error: 'Invalid configuration for path "entity.actions": The section "actions.action" contains not permissible actions: "undefined_action". Permissible actions: "get, get_list, update, create, delete, delete_list, get_subresource, update_subresource, add_subresource, delete_subresource, get_relationship, update_relationship, add_relationship, delete_relationship".'
 
 null_description:
     config:
@@ -234,6 +240,80 @@ invalid_page_size:
                 page_size: -2
     expected: []
     error: 'The value -2 is too small for path "entity.actions.get_list.page_size". Should be greater than or equal to -1'
+
+enable_paging:
+    config:
+        actions:
+            get_list:
+                disable_paging: false
+    expected:
+        actions:
+            get_list: []
+
+disable_paging:
+    config:
+        actions:
+            get_list:
+                disable_paging: true
+    expected:
+        actions:
+            get_list:
+                page_size: -1
+                max_results: -1
+
+enable_paging_but_page_size_disable_it:
+    config:
+        actions:
+            get_list:
+                disable_paging: false
+                page_size: -1
+    expected:
+        actions:
+            get_list:
+                page_size: -1
+                max_results: -1
+
+disable_paging_and_page_size_disable_it:
+    config:
+        actions:
+            get_list:
+                disable_paging: true
+                page_size: -1
+    expected:
+        actions:
+            get_list:
+                page_size: -1
+                max_results: -1
+
+enable_paging_and_custom_page_size:
+    config:
+        actions:
+            get_list:
+                disable_paging: false
+                page_size: 100
+    expected:
+        actions:
+            get_list:
+                page_size: 100
+
+disable_paging_but_custom_page_size:
+    config:
+        actions:
+            get_list:
+                disable_paging: true
+                page_size: 100
+    expected:
+        actions:
+            get_list:
+                page_size: 100
+
+invalid_value_for_disable_paging:
+    config:
+        actions:
+            get_list:
+                disable_paging: 123
+    expected: []
+    error: 'Invalid type for path "entity.actions.get_list.disable_paging". Expected "bool", but got "int"'
 
 empty_order_by:
     config:
@@ -460,6 +540,22 @@ delete_status_codes_full_syntax:
                 status_codes:
                     '417':
                         exclude: true
+
+request_target_class_for_not_allowed_action:
+    config:
+        actions:
+            create:
+                request_target_class: Test\Entity
+    expected: []
+    error: 'Invalid configuration for path "entity.actions": The "request_target_class" option is not allowed for the "create" action. This option is allowed for the following actions: "update_subresource", "add_subresource", "delete_subresource".'
+
+request_documentation_action_for_not_allowed_action:
+    config:
+        actions:
+            create:
+                request_documentation_action: some_action
+    expected: []
+    error: 'Invalid configuration for path "entity.actions": The "request_documentation_action" option is not allowed for the "create" action. This option is allowed for the following actions: "update_subresource", "add_subresource", "delete_subresource".'
 
 actions_collections:
     config:

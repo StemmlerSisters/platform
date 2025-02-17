@@ -88,6 +88,7 @@ class ImpersonateUserCommandTest extends \PHPUnit\Framework\TestCase
         );
     }
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->userManager = $this->createMock(UserManager::class);
@@ -103,11 +104,11 @@ class ImpersonateUserCommandTest extends \PHPUnit\Framework\TestCase
     }
 
     private function createMocks(
-        bool $userEnabled = null,
-        string $authStatusId = null,
-        string $userClass = null,
-        bool $nullUserStub = null,
-        object $userStub = null
+        ?bool $userEnabled = null,
+        ?string $authStatusId = null,
+        ?string $userClass = null,
+        ?bool $nullUserStub = null,
+        ?object $userStub = null
     ): void {
         if (null === $userStub && true !== $nullUserStub) {
             $userStub = $this->getMockBuilder($userClass ?? User::class)
@@ -124,7 +125,8 @@ class ImpersonateUserCommandTest extends \PHPUnit\Framework\TestCase
             $userStub->expects(self::any())
                 ->method('getAuthStatus')
                 ->willReturn(new TestEnumValue(
-                    $authStatusId ?? UserManager::STATUS_ACTIVE,
+                    UserManager::AUTH_STATUS_ENUM_CODE,
+                    'Test',
                     $authStatusId ?? UserManager::STATUS_ACTIVE
                 ));
         }

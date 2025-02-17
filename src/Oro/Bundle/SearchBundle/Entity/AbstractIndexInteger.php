@@ -35,9 +35,7 @@ abstract class AbstractIndexInteger implements ItemFieldInterface
         return $this->id;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function setField($field)
     {
         $this->field = $field;
@@ -45,17 +43,13 @@ abstract class AbstractIndexInteger implements ItemFieldInterface
         return $this;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getField()
     {
         return $this->field;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function setValue($value)
     {
         if (!is_numeric($value)) {
@@ -67,27 +61,21 @@ abstract class AbstractIndexInteger implements ItemFieldInterface
         return $this;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getValue()
     {
         return $this->value;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function setItem(AbstractItem $index = null)
+    #[\Override]
+    public function setItem(?AbstractItem $index = null)
     {
         $this->item = $index;
 
         return $this;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getItem()
     {
         return $this->item;

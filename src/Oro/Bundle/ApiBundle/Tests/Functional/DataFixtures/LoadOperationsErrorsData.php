@@ -17,17 +17,13 @@ class LoadOperationsErrorsData extends AbstractFixture implements ContainerAware
 {
     use ContainerAwareTrait;
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getDependencies()
     {
         return ['@OroApiBundle/Tests/Functional/DataFixtures/async_operations.yml'];
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function load(ObjectManager $manager)
     {
         /** @var ErrorManager $errorManager */
@@ -116,7 +112,7 @@ class LoadOperationsErrorsData extends AbstractFixture implements ContainerAware
         int $statusCode,
         string $sourcePointer,
         string $title,
-        string $detail = null
+        ?string $detail = null
     ): BatchError {
         return BatchError::create($title, $detail)
             ->setId($id)

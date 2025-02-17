@@ -6,7 +6,9 @@ define([
     './visible-items-counter',
     './page-size',
     './pagination-info',
-    './actions-panel',
+    'orodatagrid/js/datagrid/actions-panel',
+    'orodatagrid/js/datagrid/actions-panel-toolbar',
+    'orodatagrid/js/datagrid/actions-panel-mass',
     './sorting/dropdown'
 ], function(
     _,
@@ -17,6 +19,8 @@ define([
     PageSize,
     PaginationInfo,
     ActionsPanel,
+    ActionsPanelToolbar,
+    ActionsPanelMass,
     SortingDropdown
 ) {
     'use strict';
@@ -50,10 +54,13 @@ define([
         sortingDropdown: SortingDropdown,
 
         /** @property */
-        actionsPanel: ActionsPanel,
+        actionsPanel: ActionsPanelToolbar,
 
         /** @property */
         extraActionsPanel: ActionsPanel,
+
+        /** @property */
+        massActionsPanel: ActionsPanelMass,
 
         /** @property */
         selector: {
@@ -62,6 +69,7 @@ define([
             pagesize: '[data-grid-pagesize]',
             actionsPanel: '[data-grid-actions-panel]',
             extraActionsPanel: '[data-grid-extra-actions-panel]',
+            massActionsPanel: '[data-grid-mass-actions-panel]',
             sortingDropdown: '[data-grid-sorting]',
             paginationInfo: '[data-grid-pagination-info]'
         },
@@ -104,16 +112,23 @@ define([
             this.subviews = {
                 pagination: new this.pagination(_.defaults({collection: this.collection}, options.pagination)),
                 itemsCounter: new this.itemsCounter(optionsItemsCounter),
-                actionsPanel: new this.actionsPanel(_.extend({className: ''}, options.actionsPanel)),
-                extraActionsPanel: new this.extraActionsPanel(),
-                paginationInfo: new this.paginationInfo({
-                    collection: this.collection,
-                    container: this.$(this.selector.paginationInfo)
-                })
+                actionsPanel: new this.actionsPanel(
+                    _.extend({className: '', collection: this.collection}, options.actionsPanel)
+                ),
+                extraActionsPanel: new this.extraActionsPanel({collection: this.collection}),
+                massActionsPanel: new this.massActionsPanel({collection: this.collection})
             };
 
             if (_.result(options.pageSize, 'hide') !== true) {
                 this.subviews.pageSize = new this.pageSize(_.defaults({collection: this.collection}, options.pageSize));
+            }
+
+            if (_.result(options.paginationInfo, 'show')) {
+                this.subviews.paginationInfo = new this.paginationInfo({
+                    collection: this.collection,
+                    container: this.$(this.selector.paginationInfo),
+                    ...options.paginationInfo
+                });
             }
 
             if (options.addSorting) {
@@ -128,6 +143,9 @@ define([
             }
             if (options.extraActions) {
                 this.subviews.extraActionsPanel.setActions(options.extraActions);
+            }
+            if (options.massActionsPanel) {
+                this.subviews.massActionsPanel.setActions(options.massActionsPanel);
             }
 
             if (_.has(options, 'enable') && !options.enable) {
@@ -188,7 +206,7 @@ define([
             this.$el.append(this.template({toolbarPosition: this.$el.data('gridToolbar')}));
 
             const $pagination = this.subviews.pagination.render().$el;
-            $pagination.attr('class', this.$(this.selector.pagination).attr('class'));
+            $pagination.addClass(this.$(this.selector.pagination).attr('class'));
 
             this.$(this.selector.pagination).replaceWith($pagination);
             if (this.subviews.pageSize) {
@@ -218,6 +236,23 @@ define([
             } else {
                 this.$(this.selector.extraActionsPanel).hide();
             }
+
+            if (this.subviews.massActionsPanel.haveActions()) {
+                this.$(this.selector.massActionsPanel).replaceWith(this.subviews.massActionsPanel.render().$el);
+            }
+
+
+            return this;
+        },
+
+        toggleView() {
+            this.$el.removeClass('no-visible-children');
+
+            const noVisibleChildren = Object.values(this.subviews)
+                .filter(view => document.contains(view.el))
+                .every(view => view.$el.hasClass('hide'));
+
+            this.$el.toggleClass('no-visible-children', noVisibleChildren);
 
             return this;
         }

@@ -17,18 +17,15 @@ use Oro\Bundle\ApiBundle\Tests\Unit\Processor\TestConfigExtra;
 use Oro\Bundle\ApiBundle\Tests\Unit\Processor\TestConfigSection;
 use Oro\Component\ChainProcessor\ActionProcessorInterface;
 use Oro\Component\ChainProcessor\ParameterBag;
+use PHPUnit\Framework\MockObject\MockObject;
 
 class LoadNormalizedEntityTest extends CreateProcessorTestCase
 {
-    /** @var ActionProcessorBagInterface|\PHPUnit\Framework\MockObject\MockObject */
-    private $processorBag;
+    private ActionProcessorBagInterface&MockObject $processorBag;
+    private ParameterBag $sharedData;
+    private LoadNormalizedEntity $processor;
 
-    /** @var ParameterBag */
-    private $sharedData;
-
-    /** @var LoadNormalizedEntity */
-    private $processor;
-
+    #[\Override]
     protected function setUp(): void
     {
         parent::setUp();
@@ -138,7 +135,7 @@ class LoadNormalizedEntityTest extends CreateProcessorTestCase
 
         $this->context->setClassName('Test\Entity');
         $this->context->setId(123);
-        $this->context->setMasterRequest(true);
+        $this->context->setMainRequest(true);
         $this->context->setCorsRequest(true);
         $this->context->setHateoas(true);
         $this->context->getRequestHeaders()->set('test-header', 'some value');
@@ -147,7 +144,7 @@ class LoadNormalizedEntityTest extends CreateProcessorTestCase
         $expectedGetContext = new GetContext($this->configProvider, $this->metadataProvider);
         $expectedGetContext->setVersion($this->context->getVersion());
         $expectedGetContext->getRequestType()->set($this->context->getRequestType());
-        $expectedGetContext->setMasterRequest(false);
+        $expectedGetContext->setMainRequest(false);
         $expectedGetContext->setCorsRequest(false);
         $expectedGetContext->setHateoas(true);
         $expectedGetContext->setRequestHeaders($this->context->getRequestHeaders());
@@ -201,7 +198,7 @@ class LoadNormalizedEntityTest extends CreateProcessorTestCase
         $expectedContext->setAction(ApiAction::UPDATE);
         $expectedContext->setVersion($this->context->getVersion());
         $expectedContext->getRequestType()->set($this->context->getRequestType());
-        $expectedContext->setMasterRequest(true);
+        $expectedContext->setMainRequest(true);
         $expectedContext->setCorsRequest(true);
         $expectedContext->setHateoas(true);
         $expectedContext->setRequestHeaders($this->context->getRequestHeaders());
@@ -216,10 +213,12 @@ class LoadNormalizedEntityTest extends CreateProcessorTestCase
             $expectedContext->addConfigExtra($extra);
         }
         $expectedContext->setConfig($getConfig);
+        $expectedContext->setNormalizedConfig($expectedContext->getConfig());
         foreach ($getConfigSections as $key => $value) {
             $expectedContext->setConfigOf($key, $value);
         }
         $expectedContext->setMetadata($getMetadata);
+        $expectedContext->setNormalizedMetadata($expectedContext->getMetadata());
         foreach ($getResponseHeaders as $key => $value) {
             $expectedContext->getResponseHeaders()->set($key, $value);
         }
@@ -228,6 +227,33 @@ class LoadNormalizedEntityTest extends CreateProcessorTestCase
         $expectedContext->setProcessed(LoadNormalizedEntity::OPERATION_NAME);
 
         self::assertEquals($expectedContext, $this->context);
+    }
+
+    public function testProcessValidateOperation(): void
+    {
+        $getContext = new GetContext($this->configProvider, $this->metadataProvider);
+        $getProcessor = $this->createMock(ActionProcessorInterface::class);
+        $config = new EntityDefinitionConfig();
+        $config->enableValidation();
+
+        $this->processorBag->expects(self::once())
+            ->method('getProcessor')
+            ->with('get')
+            ->willReturn($getProcessor);
+        $getProcessor->expects(self::once())
+            ->method('createContext')
+            ->willReturn($getContext);
+
+        $this->context->setId(123);
+        $this->context->setClassName('Test\Entity');
+        $this->context->setResult(['key' => 'value']);
+
+        $this->context->setConfig($config);
+
+        $this->processor->process($this->context);
+
+        self::assertEquals(['key' => 'value'], $getContext->getResult());
+        self::assertTrue($this->context->isProcessed(LoadNormalizedEntity::OPERATION_NAME));
     }
 
     public function testProcessWhenGetActionHasErrors(): void

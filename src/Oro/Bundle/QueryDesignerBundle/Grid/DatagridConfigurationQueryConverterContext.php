@@ -28,9 +28,7 @@ class DatagridConfigurationQueryConverterContext extends GroupingOrmQueryConvert
     /** @var array[] [['join' => join, 'alias' => alias, 'conditionType' => optional, 'condition' => optional], ...] */
     private $leftJoins = [];
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function reset(): void
     {
         parent::reset();
@@ -102,8 +100,8 @@ class DatagridConfigurationQueryConverterContext extends GroupingOrmQueryConvert
     public function addInnerJoin(
         string $join,
         string $alias,
-        string $conditionType = null,
-        string $condition = null
+        ?string $conditionType = null,
+        ?string $condition = null
     ): void {
         $this->innerJoins[] = $this->buildJoin($join, $alias, $conditionType, $condition);
     }
@@ -119,8 +117,8 @@ class DatagridConfigurationQueryConverterContext extends GroupingOrmQueryConvert
     public function addLeftJoin(
         string $join,
         string $alias,
-        string $conditionType = null,
-        string $condition = null
+        ?string $conditionType = null,
+        ?string $condition = null
     ): void {
         $this->leftJoins[] = $this->buildJoin($join, $alias, $conditionType, $condition);
     }

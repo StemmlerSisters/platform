@@ -39,7 +39,7 @@ class AutoResponseRuleController extends AbstractController
         class: AutoResponseRule::class,
         permission: 'CREATE'
     )]
-    public function createAction(Request $request, Mailbox $mailbox = null)
+    public function createAction(Request $request, ?Mailbox $mailbox = null)
     {
         $rule = new AutoResponseRule();
         if ($mailbox) {
@@ -156,9 +156,7 @@ class AutoResponseRuleController extends AbstractController
         return $this->container->get('doctrine')->getManagerForClass(AutoResponseRule::class);
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public static function getSubscribedServices(): array
     {
         return array_merge(

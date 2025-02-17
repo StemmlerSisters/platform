@@ -16,6 +16,7 @@ use Oro\Bundle\WorkflowBundle\Tests\Functional\DataFixtures\LoadWorkflowDefiniti
 
 class WorkflowItemRepositoryTest extends WebTestCase
 {
+    #[\Override]
     protected function setUp(): void
     {
         $this->initClient();
@@ -88,7 +89,7 @@ class WorkflowItemRepositoryTest extends WebTestCase
         array $entities,
         array $workflows,
         bool $withWorkflowName = true,
-        array $workflowNames = null
+        ?array $workflowNames = null
     ) {
         $entities = array_map(function ($reference) {
             return $this->getReference($reference);
@@ -332,9 +333,9 @@ class WorkflowItemRepositoryTest extends WebTestCase
         int $noneEntitiesCount,
         int $noStartStepEntitiesCount,
         int $withStartStepEntitiesCount,
-        array $noneEntityIds = null,
-        array $noStartStepEntityIds = null,
-        array $withStartStepEntityIds = null
+        ?array $noneEntityIds = null,
+        ?array $noStartStepEntityIds = null,
+        ?array $withStartStepEntityIds = null
     ) {
         if ($noneEntitiesCount > 0) {
             $actualAllEntities = $allEntityIds['none'];

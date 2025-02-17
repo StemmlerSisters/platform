@@ -74,10 +74,15 @@ define(function(require) {
          * @protected
          */
         _setDropdownWidth: function() {
+            if (!this.selectWidget) {
+                return;
+            }
+
             if (!this.cachedMinimumWidth) {
                 this.cachedMinimumWidth = Math.max(this.minimumDropdownWidth,
                     this.selectWidget.getMinimumDropdownWidth()) + 24;
             }
+
             const widget = this.selectWidget.getWidget();
             const requiredWidth = this.cachedMinimumWidth;
             // fix width
@@ -182,7 +187,7 @@ define(function(require) {
             const thisDOMValue = this._readDOMValue();
             return (
                 !_.isUndefined(thisDOMValue.value) &&
-                _.isArray(thisDOMValue.value) &&
+                Array.isArray(thisDOMValue.value) &&
                 !_.isEqual(this.value, thisDOMValue)
             );
         }

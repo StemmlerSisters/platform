@@ -31,10 +31,8 @@ class MetadataObject extends ConfigObject
         ];
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public static function createNamed($name, array $params, PropertyAccessorInterface $propertyAccessor = null)
+    #[\Override]
+    public static function createNamed($name, array $params, ?PropertyAccessorInterface $propertyAccessor = null)
     {
         $params = array_merge(self::getDefaultMetadata(), $params);
         $params[self::OPTIONS_KEY][self::GRID_NAME_KEY] = $name;
@@ -45,9 +43,7 @@ class MetadataObject extends ConfigObject
         );
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function getName()
     {
         if (!isset($this[self::OPTIONS_KEY][self::GRID_NAME_KEY])) {

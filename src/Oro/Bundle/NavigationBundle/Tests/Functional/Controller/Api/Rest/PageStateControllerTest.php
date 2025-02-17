@@ -9,6 +9,7 @@ class PageStateControllerTest extends WebTestCase
 {
     private static array $entity = [];
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->initClient();
@@ -33,7 +34,7 @@ class PageStateControllerTest extends WebTestCase
             'POST',
             $this->getUrl('oro_api_post_pagestate'),
             self::$entity,
-            $this->generateWsseAuthHeader()
+            self::generateApiAuthHeader()
         );
 
         $result = $this->client->getResponse();
@@ -62,7 +63,7 @@ class PageStateControllerTest extends WebTestCase
             'PUT',
             $this->getUrl('oro_api_put_pagestate', ['id' => self::$entity['id']]),
             self::$entity,
-            $this->generateWsseAuthHeader()
+            self::generateApiAuthHeader()
         );
 
         $result = $this->client->getResponse();
@@ -81,7 +82,7 @@ class PageStateControllerTest extends WebTestCase
             'GET',
             $this->getUrl('oro_api_get_pagestate', ['id' => self::$entity['id']]),
             [],
-            $this->generateWsseAuthHeader()
+            self::generateApiAuthHeader()
         );
 
         $result = $this->client->getResponse();
@@ -112,7 +113,7 @@ class PageStateControllerTest extends WebTestCase
             'GET',
             $this->getUrl('oro_api_get_pagestate', ['id' => $entity->getId()]),
             [],
-            $this->generateWsseAuthHeader()
+            self::generateApiAuthHeader()
         );
 
         $result = $this->client->getResponse();
@@ -131,7 +132,7 @@ class PageStateControllerTest extends WebTestCase
             'DELETE',
             $this->getUrl('oro_api_delete_pagestate', ['id' => self::$entity['id']]),
             [],
-            $this->generateWsseAuthHeader()
+            self::generateApiAuthHeader()
         );
 
         $result = $this->client->getResponse();

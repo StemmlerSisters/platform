@@ -19,10 +19,8 @@ class TranslationNormalizer implements ContextAwareDenormalizerInterface
         $this->translationManager = $translationManager;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function denormalize($data, string $type, string $format = null, array $context = [])
+    #[\Override]
+    public function denormalize($data, string $type, ?string $format = null, array $context = [])
     {
         if (!is_array($data) || !isset($data['domain'], $data['key'], $data['value'])) {
             throw new UnexpectedValueException('Incorrect record format');
@@ -40,10 +38,8 @@ class TranslationNormalizer implements ContextAwareDenormalizerInterface
         return $translation;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function supportsDenormalization($data, string $type, string $format = null, array $context = []): bool
+    #[\Override]
+    public function supportsDenormalization($data, string $type, ?string $format = null, array $context = []): bool
     {
         return $type === Translation::class && !empty($context['language_code']);
     }

@@ -14,10 +14,12 @@ services:
         tags:
             - { name: container.service_subscriber }
             - { name: container.service_subscriber, id: oro_entity.entity_field_provider }
+            - { name: container.service_subscriber, id: oro_featuretoggle.checker.feature_checker }
 
     Oro\Bundle\EntityConfigBundle\Controller\AttributeController:
         calls:
             - [setContainer, ['@Psr\Container\ContainerInterface']]
+            - [setNameGenerator, ['@oro_migration.db_id_name_generator']]
         tags:
             - { name: container.service_subscriber }
 

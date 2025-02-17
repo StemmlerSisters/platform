@@ -11,6 +11,7 @@ class DefaultAccessorTest extends \PHPUnit\Framework\TestCase
     /** @var DefaultAccessor */
     private $accessor;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->accessor = new DefaultAccessor();
@@ -83,7 +84,7 @@ class DefaultAccessorTest extends \PHPUnit\Framework\TestCase
         ];
     }
 
-    private function getFieldMetadata(string $fieldName = null, array $options = []): FieldMetadata
+    private function getFieldMetadata(?string $fieldName = null, array $options = []): FieldMetadata
     {
         $result = $this->createMock(FieldMetadata::class);
         $result->expects($this->any())

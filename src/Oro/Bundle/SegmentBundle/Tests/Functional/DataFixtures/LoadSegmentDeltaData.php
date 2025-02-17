@@ -31,7 +31,7 @@ class LoadSegmentDeltaData extends AbstractFixture implements DependentFixtureIn
                 'sorting' => '',
             ],
         ],
-        'filters' =>[
+        'filters' => [
             [
                 'columnName' => 'name',
                 'criterion' => [
@@ -45,9 +45,7 @@ class LoadSegmentDeltaData extends AbstractFixture implements DependentFixtureIn
         ]
     ];
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getDependencies()
     {
         return [
@@ -55,9 +53,7 @@ class LoadSegmentDeltaData extends AbstractFixture implements DependentFixtureIn
         ];
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function load(ObjectManager $manager)
     {
         $segmentType = $manager->getRepository(SegmentType::class)->find(SegmentType::TYPE_STATIC);

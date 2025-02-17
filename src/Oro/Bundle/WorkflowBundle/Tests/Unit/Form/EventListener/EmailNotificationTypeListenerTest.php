@@ -32,6 +32,7 @@ class EmailNotificationTypeListenerTest extends TestCase
     /** @var EmailNotificationTypeListener */
     private $listener;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->workflowRegistry = $this->createMock(WorkflowRegistry::class);
@@ -116,7 +117,7 @@ class EmailNotificationTypeListenerTest extends TestCase
 
     private function assertEventFieldUpdated()
     {
-        $choices =['test_1', 'test2'];
+        $choices = ['test_1', 'test2'];
         $config = $this->createMock(FormConfigInterface::class);
         $config->expects($this->once())
             ->method('getOption')

@@ -28,7 +28,7 @@ define(['jquery', 'underscore', 'orotranslation/js/translator', 'oroui/js/tools'
         // fixes submit by enter key press on select element
         $(document).on('keydown', 'form select', function(e) {
             if (e.keyCode === 13) {
-                $(e.target.form).submit();
+                $(e.target.form).trigger('submit');
             }
         });
 
@@ -37,12 +37,12 @@ define(['jquery', 'underscore', 'orotranslation/js/translator', 'oroui/js/tools'
                 (e.keyCode === 32 || e.keyCode === 13) &&
                 !e.isDefaultPrevented()
             ) {
-                $(e.target).click();
+                $(e.target).trigger('click');
                 e.preventDefault();
             }
         });
 
-        $(document).on('keydown click', 'textarea[data-autoresize]', e => {
+        $(document).on('keydown click focus', 'textarea[data-autoresize]', e => {
             const el = e.target;
             setTimeout(() => {
                 if (el.scrollHeight > el.offsetHeight) {
@@ -67,7 +67,7 @@ define(['jquery', 'underscore', 'orotranslation/js/translator', 'oroui/js/tools'
             }
         });
 
-        mainMenu.mouseover(function() {
+        mainMenu.on('mouseover', function() {
             $(document).trigger('clearMenus'); // hides all opened dropdown menus
         });
 
@@ -107,7 +107,7 @@ define(['jquery', 'underscore', 'orotranslation/js/translator', 'oroui/js/tools'
         });
         $(document).on('shown.collapse.data-api hidden.collapse.data-api', '.accordion-body', function(e) {
             if (e.target === e.currentTarget) { // prevent processing if an event comes from child element
-                const $toggle = $(e.target).closest('.accordion-group').find('[data-toggle=collapse]:first');
+                const $toggle = $(e.target).closest('.accordion-group').find('[data-toggle=collapse]').first();
                 $toggle.toggleClass('collapsed', e.type !== 'shown');
             }
         });
@@ -144,6 +144,19 @@ define(['jquery', 'underscore', 'orotranslation/js/translator', 'oroui/js/tools'
         layout.onPageRendered(adjustHeight);
 
         $(window).on('resize', _.debounce(adjustHeight, 40));
+
+        if (window.visualViewport) {
+            const onVisualViewportResize = event => {
+                mediator.trigger('visualViewport:resize', event);
+                document.querySelector(':root').style.setProperty(
+                    '--visual-viewport-height',
+                    `${window.visualViewport.height}px`
+                );
+            };
+
+            $(window.visualViewport).on('resize', onVisualViewportResize);
+            onVisualViewportResize();
+        }
 
         mediator.on('page:afterChange', adjustHeight);
 
@@ -272,7 +285,7 @@ define(['jquery', 'underscore', 'orotranslation/js/translator', 'oroui/js/tools'
     };
 
     const validateContainer = function($container) {
-        const $validationField = $container.find('[data-name="collection-validation"]:first');
+        const $validationField = $container.find('[data-name="collection-validation"]').first();
         const $form = $validationField.closest('form');
         if ($form.data('validator')) {
             $form.validate().element($validationField.get(0));
@@ -342,10 +355,18 @@ define(['jquery', 'underscore', 'orotranslation/js/translator', 'oroui/js/tools'
      */
     $(document).on('click', 'label[for]', function(e) {
         const forAttribute = $(e.target).attr('for');
-        const labelForElement = $('#' + forAttribute + ':first');
+        const labelForElement = $(`#${forAttribute}`).first();
         if (labelForElement.is('[data-focusable]')) {
             e.preventDefault();
             labelForElement.trigger('set-focus');
         }
+    });
+
+    $(document).on( 'change', '[data-dynamic-mark]', e => {
+        const mark = $(e.currentTarget).data('dynamicMark');
+        const id = e.target.getAttribute('id');
+
+        $(e.currentTarget).find('[data-mark]').remove();
+        $(`[for="${id}"]`).prepend(mark.start).append(mark.end);
     });
 });

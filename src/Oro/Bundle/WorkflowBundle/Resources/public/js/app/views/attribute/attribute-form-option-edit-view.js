@@ -64,7 +64,8 @@ define(function(require) {
         onAdd: function() {
             const formData = helper.getFormData(this.form);
 
-            formData.property_path = this.options.entityFieldsProvider.getPropertyPathByPath(formData.property_path);
+            formData.property_path = this.options
+                .entityFieldsProvider.getRelativePropertyPathByPath(formData.property_path);
             formData.required = formData.hasOwnProperty('required');
 
             this.resetForm();
@@ -95,7 +96,7 @@ define(function(require) {
         editRow: function(data) {
             this.fieldSelectorEl.inputWidget(
                 'val',
-                this.options.entityFieldsProvider.getPathByPropertyPathSafely(data.property_path)
+                this.options.entityFieldsProvider.getPathByRelativePropertyPathSafely(data.property_path)
             );
             this.form.find('[name=itemId]').val(data.itemId || '');
             this.labelEl.val(data.isSystemLabel ? '' : data.label);
@@ -121,7 +122,7 @@ define(function(require) {
             this.labelEl = this.form.find('[name=label]');
             this.requiredEl = this.form.find('[name=required]');
 
-            this.resetBtn.click(this.resetForm.bind(this));
+            this.resetBtn.on('click', this.resetForm.bind(this));
 
             this.$el.append(this.form);
             // since we have no async operation right here but there is one in subview `deferredRender` promise

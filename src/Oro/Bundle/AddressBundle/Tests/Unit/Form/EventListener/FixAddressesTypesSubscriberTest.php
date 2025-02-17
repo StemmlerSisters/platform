@@ -15,12 +15,13 @@ class FixAddressesTypesSubscriberTest extends \PHPUnit\Framework\TestCase
     /** @var FixAddressesTypesSubscriber */
     private $subscriber;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->subscriber = new FixAddressesTypesSubscriber('owner.addresses');
     }
 
-    private function createAddress(AddressType $type = null): TypedAddress
+    private function createAddress(?AddressType $type = null): TypedAddress
     {
         $address = new TypedAddress();
         if (null !== $type) {

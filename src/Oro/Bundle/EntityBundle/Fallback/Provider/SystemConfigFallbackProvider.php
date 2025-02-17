@@ -11,20 +11,19 @@ use Oro\Bundle\EntityBundle\Exception\Fallback\FallbackFieldConfigurationMissing
  */
 class SystemConfigFallbackProvider extends AbstractEntityFallbackProvider
 {
-    const CONFIG_NAME_KEY = 'configName';
-    const FALLBACK_ID = 'systemConfig';
+    public const CONFIG_NAME_KEY = 'configName';
+    public const FALLBACK_ID = 'systemConfig';
 
-    protected ConfigManager $configManager;
-
-    public function __construct(ConfigManager $configManager)
-    {
-        $this->configManager = $configManager;
+    public function __construct(
+        protected ConfigManager $configManager
+    ) {
     }
 
     /**
-     * {@inheritdoc}
+     * @throws FallbackFieldConfigurationMissingException
      */
-    public function getFallbackHolderEntity($object, $objectFieldName)
+    #[\Override]
+    public function getFallbackHolderEntity($object, $objectFieldName): mixed
     {
         $fallbackConfig = $this->getEntityConfig($object, $objectFieldName);
 
@@ -67,18 +66,14 @@ class SystemConfigFallbackProvider extends AbstractEntityFallbackProvider
         return $this->configManager->get($systemConfig[self::CONFIG_NAME_KEY]);
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getFallbackLabel()
+    #[\Override]
+    public function getFallbackLabel(): string
     {
         return 'oro.entity.fallback.system_config.label';
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getFallbackEntityClass()
+    #[\Override]
+    public function getFallbackEntityClass(): ?string
     {
         return null;
     }

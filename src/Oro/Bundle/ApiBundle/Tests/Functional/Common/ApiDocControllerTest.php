@@ -15,12 +15,13 @@ class ApiDocControllerTest extends WebTestCase
 {
     use ApiFeatureTrait;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->initClient([], $this->generateBasicAuthHeader());
     }
 
-    private function sendApiDocRequest(string $view = null): Response
+    private function sendApiDocRequest(?string $view = null): Response
     {
         $parameters = [];
         if (null !== $view) {

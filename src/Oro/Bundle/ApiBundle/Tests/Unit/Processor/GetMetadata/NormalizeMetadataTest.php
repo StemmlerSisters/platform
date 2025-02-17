@@ -32,6 +32,7 @@ class NormalizeMetadataTest extends MetadataProcessorTestCase
     /** @var NormalizeMetadata */
     private $processor;
 
+    #[\Override]
     protected function setUp(): void
     {
         parent::setUp();
@@ -53,7 +54,7 @@ class NormalizeMetadataTest extends MetadataProcessorTestCase
         );
     }
 
-    protected function createFieldMetadata(string $fieldName, string $dataType = null): FieldMetadata
+    protected function createFieldMetadata(string $fieldName, ?string $dataType = null): FieldMetadata
     {
         $fieldMetadata = new FieldMetadata();
         $fieldMetadata->setName($fieldName);
@@ -68,10 +69,10 @@ class NormalizeMetadataTest extends MetadataProcessorTestCase
     protected function createAssociationMetadata(
         string $associationName,
         string $targetClass,
-        string $associationType = null,
-        bool $isCollection = null,
-        string $dataType = null,
-        array $acceptableTargetClasses = null,
+        ?string $associationType = null,
+        ?bool $isCollection = null,
+        ?string $dataType = null,
+        ?array $acceptableTargetClasses = null,
         bool $collapsed = false
     ): AssociationMetadata {
         $associationMetadata = new AssociationMetadata();

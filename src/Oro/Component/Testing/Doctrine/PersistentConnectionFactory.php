@@ -11,14 +11,12 @@ use Doctrine\DBAL\Configuration;
  */
 class PersistentConnectionFactory extends ConnectionFactory
 {
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function createConnection(
         array $params,
-        Configuration $config = null,
-        EventManager $eventManager = null,
-        array $mappingTypes = array()
+        ?Configuration $config = null,
+        ?EventManager $eventManager = null,
+        array $mappingTypes = []
     ) {
         $wrapperClass = PersistentConnection::class;
         if (isset($params['wrapperClass'])) {

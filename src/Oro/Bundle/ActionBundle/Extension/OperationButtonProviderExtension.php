@@ -46,9 +46,7 @@ class OperationButtonProviderExtension implements ButtonProviderExtensionInterfa
         $this->routeProvider = $routeProvider;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function find(ButtonSearchContext $buttonSearchContext)
     {
         $operations = $this->getOperations($buttonSearchContext);
@@ -70,13 +68,13 @@ class OperationButtonProviderExtension implements ButtonProviderExtensionInterfa
     }
 
     /**
-     * {@inheritdoc}
      * @param OperationButton $button
      */
+    #[\Override]
     public function isAvailable(
         ButtonInterface $button,
         ButtonSearchContext $buttonSearchContext,
-        Collection $errors = null
+        ?Collection $errors = null
     ) {
         if (!$this->supports($button)) {
             throw new UnsupportedButtonException(
@@ -113,9 +111,7 @@ class OperationButtonProviderExtension implements ButtonProviderExtensionInterfa
         return $result;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function supports(ButtonInterface $button)
     {
         return $button instanceof OperationButton;

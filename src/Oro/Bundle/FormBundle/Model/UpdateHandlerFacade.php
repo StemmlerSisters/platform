@@ -66,7 +66,7 @@ class UpdateHandlerFacade
         string|object $data,
         string|FormInterface $form,
         ?string $saveMessage,
-        Request $request = null,
+        ?Request $request = null,
         FormHandlerInterface|string|callable|null $formHandler = null,
         FormTemplateDataProviderInterface|string|callable|null $resultProvider = null
     ): array|RedirectResponse {

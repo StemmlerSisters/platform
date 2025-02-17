@@ -24,7 +24,7 @@ class ConfigObject implements \ArrayAccess, \IteratorAggregate
     /** @var array */
     protected $params;
 
-    protected function __construct(array $params, PropertyAccessorInterface $propertyAccessor = null)
+    protected function __construct(array $params, ?PropertyAccessorInterface $propertyAccessor = null)
     {
         $this->accessor = $propertyAccessor ?? new PropertyAccessor();
         $this->params = $params;
@@ -37,7 +37,7 @@ class ConfigObject implements \ArrayAccess, \IteratorAggregate
      *
      * @return $this
      */
-    public static function create(array $params, PropertyAccessorInterface $propertyAccessor = null)
+    public static function create(array $params, ?PropertyAccessorInterface $propertyAccessor = null)
     {
         return new static($params, $propertyAccessor);
     }
@@ -50,7 +50,7 @@ class ConfigObject implements \ArrayAccess, \IteratorAggregate
      *
      * @return $this
      */
-    public static function createNamed($name, array $params, PropertyAccessorInterface $propertyAccessor = null)
+    public static function createNamed($name, array $params, ?PropertyAccessorInterface $propertyAccessor = null)
     {
         $params[self::NAME_KEY] = $name;
 
@@ -111,25 +111,19 @@ class ConfigObject implements \ArrayAccess, \IteratorAggregate
         return $params;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function getIterator(): \Traversable
     {
         return new \ArrayIterator($this->params);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function offsetExists($offset): bool
     {
         return isset($this->params[$offset]);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function offsetGet($offset): mixed
     {
         return $this->params[$offset];
@@ -186,9 +180,7 @@ class ConfigObject implements \ArrayAccess, \IteratorAggregate
         return $value !== null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function offsetSet($offset, $value): void
     {
         $this->params[$offset] = $value;
@@ -209,9 +201,7 @@ class ConfigObject implements \ArrayAccess, \IteratorAggregate
         return $this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function offsetUnset($offset): void
     {
         unset($this->params[$offset]);

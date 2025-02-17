@@ -16,9 +16,7 @@ class MenuBuilderPass implements CompilerPassInterface
 {
     use TaggedServiceTrait;
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function process(ContainerBuilder $container): void
     {
         $this->processMenu($container);
@@ -64,7 +62,7 @@ class MenuBuilderPass implements CompilerPassInterface
     private function findAndInverseSortTaggedServices(
         string $tagName,
         ContainerBuilder $container,
-        string $defaultAlias = null
+        ?string $defaultAlias = null
     ): array {
         $items = [];
         $taggedServices = $container->findTaggedServiceIds($tagName);

@@ -305,7 +305,7 @@ class ActivityList implements
      *
      * @return self
      */
-    public function setOrganization(Organization $organization = null)
+    public function setOrganization(?Organization $organization = null)
     {
         $this->organization = $organization;
 
@@ -317,7 +317,7 @@ class ActivityList implements
      *
      * @return self
      */
-    public function setOwner(User $owner = null)
+    public function setOwner(?User $owner = null)
     {
         $this->owner = $owner;
 
@@ -345,7 +345,8 @@ class ActivityList implements
      *
      * @return self
      */
-    public function setUpdatedBy(User $updatedBy = null)
+    #[\Override]
+    public function setUpdatedBy(?User $updatedBy = null)
     {
         $this->updatedBySet = false;
         if ($updatedBy !== null) {
@@ -360,6 +361,7 @@ class ActivityList implements
     /**
      * @return User
      */
+    #[\Override]
     public function getUpdatedBy()
     {
         return $this->editor;
@@ -368,6 +370,7 @@ class ActivityList implements
     /**
      * @return bool
      */
+    #[\Override]
     public function isUpdatedBySet()
     {
         return $this->updatedBySet;
@@ -408,6 +411,7 @@ class ActivityList implements
     /**
      * @return \DateTimeInterface
      */
+    #[\Override]
     public function getCreatedAt()
     {
         return $this->createdAt;
@@ -417,7 +421,8 @@ class ActivityList implements
      * @param \DateTimeInterface|null $createdAt
      * @return $this
      */
-    public function setCreatedAt(\DateTimeInterface $createdAt = null)
+    #[\Override]
+    public function setCreatedAt(?\DateTimeInterface $createdAt = null)
     {
         $this->createdAt = $createdAt;
 
@@ -427,6 +432,7 @@ class ActivityList implements
     /**
      * @return \DateTimeInterface
      */
+    #[\Override]
     public function getUpdatedAt()
     {
         return $this->updatedAt;
@@ -437,7 +443,8 @@ class ActivityList implements
      *
      * @return $this
      */
-    public function setUpdatedAt(\DateTimeInterface $updatedAt = null)
+    #[\Override]
+    public function setUpdatedAt(?\DateTimeInterface $updatedAt = null)
     {
         $this->updatedAtSet = false;
         if ($updatedAt !== null) {
@@ -452,6 +459,7 @@ class ActivityList implements
     /**
      * @return bool
      */
+    #[\Override]
     public function isUpdatedAtSet()
     {
         return $this->updatedAtSet;
@@ -460,6 +468,7 @@ class ActivityList implements
     /**
      * @return string
      */
+    #[\Override]
     public function __toString()
     {
         return (string)$this->subject;

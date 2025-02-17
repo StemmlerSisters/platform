@@ -15,6 +15,7 @@ use Oro\Bundle\WorkflowBundle\Tests\Functional\DataFixtures\LoadProcessEntities;
 
 class ProcessJobRepositoryTest extends WebTestCase
 {
+    #[\Override]
     protected function setUp(): void
     {
         $this->initClient();
@@ -52,7 +53,7 @@ class ProcessJobRepositoryTest extends WebTestCase
 
         $actualJobs = $this->getRepository()->findByIds($ids);
 
-        $this->assertEquals($expectedJobs, $actualJobs);
+        $this->assertEqualsCanonicalizing($expectedJobs, $actualJobs);
 
         array_shift($ids);
 

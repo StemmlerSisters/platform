@@ -20,12 +20,14 @@ class EmailAddress extends OriginalEmailAddress
         }
     }
 
+    #[\Override]
     public function getOwner()
     {
         return $this->owner;
     }
 
-    public function setOwner(EmailOwnerInterface $owner = null)
+    #[\Override]
+    public function setOwner(?EmailOwnerInterface $owner = null)
     {
         $this->owner = $owner;
 

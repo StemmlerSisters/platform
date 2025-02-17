@@ -8,13 +8,11 @@ use Doctrine\Persistence\ObjectManager;
 use Oro\Bundle\LocaleBundle\Tests\Functional\DataFixtures\LoadLocalizationData;
 use Oro\Bundle\NavigationBundle\Entity\MenuUpdate;
 use Oro\Bundle\ScopeBundle\Tests\Functional\DataFixtures\LoadScopeData;
-use Oro\Bundle\UserBundle\DataFixtures\UserUtilityTrait;
 use Oro\Bundle\UserBundle\Tests\Functional\DataFixtures\LoadScopeUserData;
 use Oro\Bundle\UserBundle\Tests\Functional\DataFixtures\LoadUserData;
 
 class MenuUpdateData extends AbstractFixture implements DependentFixtureInterface
 {
-    use UserUtilityTrait;
     use MenuUpdateTrait;
 
     const MENU_UPDATE_1 = 'menu_update.1';
@@ -168,9 +166,7 @@ class MenuUpdateData extends AbstractFixture implements DependentFixtureInterfac
         ]
     ];
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getDependencies()
     {
         return [
@@ -181,9 +177,7 @@ class MenuUpdateData extends AbstractFixture implements DependentFixtureInterfac
         ];
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function load(ObjectManager $manager)
     {
         foreach (self::$menuUpdates as $menuUpdateReference => $data) {

@@ -7,9 +7,7 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
 
 class Configuration implements ConfigurationInterface
 {
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getConfigTreeBuilder(): TreeBuilder
     {
         $treeBuilder = new TreeBuilder('oro_entity');
@@ -37,6 +35,12 @@ class Configuration implements ConfigurationInterface
                         ->end()
                     ->end()
                 ->end()
+            ->end()
+            ->arrayNode('do_not_lowercase_noun_locales')
+                ->info('Determines which locales text should not be in lowercase.')
+                ->example(['lb-LU', 'de_DE'])
+                ->treatNullLike([])
+                ->prototype('scalar')->end()
             ->end()
             ->integerNode('default_query_cache_lifetime')
                 ->info('Default doctrine`s query cache lifetime')

@@ -24,16 +24,14 @@ class MetaAttributeMetadata implements ToArrayInterface
      *                                  The "__id__" property can be used to get an entity identifier.
      *                                  See {@see \Oro\Bundle\ApiBundle\Metadata\DataAccessorInterface}.
      */
-    public function __construct(string $name, string $dataType = null, string $propertyPath = null)
+    public function __construct(string $name, ?string $dataType = null, ?string $propertyPath = null)
     {
         $this->name = $name;
         $this->dataType = $dataType;
         $this->propertyPath = $propertyPath;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function toArray(): array
     {
         $result = ['name' => $this->name];

@@ -33,9 +33,7 @@ class AstVisitor extends Visitor
         $this->queryComponents = $queryComponents;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function walkComparison(Expr\Comparison $comparison): mixed
     {
         $operator = $comparison->getOperator();
@@ -52,6 +50,9 @@ class AstVisitor extends Visitor
             case Expr\Comparison::CONTAINS:
                 $resultExpression = $this->walkContainsComparison($comparison);
                 break;
+            case Expr\Comparison::MEMBEROF:
+                $resultExpression = $this->walkMemberOfComparison($comparison);
+                break;
             default:
                 $resultExpression = new AST\ComparisonExpression(
                     $this->walkOperand($comparison->getLeftOperand()),
@@ -66,9 +67,7 @@ class AstVisitor extends Visitor
         return $primaryConditional;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function walkValue(Expr\Value $value): mixed
     {
         // unfortunately we have to use literals
@@ -91,9 +90,7 @@ class AstVisitor extends Visitor
         return $this->getValueLiteral($value->getValue());
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function walkCompositeExpression(Expr\CompositeExpression $expr): mixed
     {
         $factors = [];
@@ -119,9 +116,7 @@ class AstVisitor extends Visitor
         return new AST\ConditionalExpression($terms);
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function walkAccessDenied(Expr\AccessDenied $accessDenied): mixed
     {
         $leftExpression = new AST\ArithmeticExpression();
@@ -138,9 +133,7 @@ class AstVisitor extends Visitor
         return $primaryConditional;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function walkAssociation(Expr\Association $association): mixed
     {
         $alias = $this->alias;
@@ -156,38 +149,46 @@ class AstVisitor extends Visitor
             ));
         }
         $associationMapping = $sourceMetadata->associationMappings[$associationName];
-        if (!($associationMapping['type'] & ClassMetadataInfo::TO_ONE)) {
-            throw new \RuntimeException(\sprintf(
-                'Parameter of Association expression should be to-one association. Given name: \'%s\'.',
-                $associationName
-            ));
-        }
+
         $targetEntityAlias = \sprintf('_%s__%s_', $alias, $associationName);
         $targetEntityClass = $associationMapping['targetEntity'];
-
         /** @var ClassMetadataInfo $targetEntityMetadata */
         $targetMetadata = $this->em->getClassMetadata($targetEntityClass);
 
         $queryComponentRelation = $associationMapping;
-        if ($associationMapping['isOwningSide']) {
-            $leftPathExpression = new Expr\Path($targetMetadata->getSingleIdentifierFieldName(), $targetEntityAlias);
-            $rightPathExpression = new Expr\Path($associationName, $alias);
+        if (($associationMapping['type'] & ClassMetadataInfo::TO_ONE)) {
+            if ($associationMapping['isOwningSide']) {
+                $leftPathExpression = new Expr\Path(
+                    $targetMetadata->getSingleIdentifierFieldName(),
+                    $targetEntityAlias
+                );
+                $rightPathExpression = new Expr\Path($associationName, $alias);
+            } else {
+                $mappedBy = $associationMapping['mappedBy'];
+                $queryComponentRelation = $targetMetadata->associationMappings[$mappedBy];
+                $leftPathExpression = new Expr\Path($targetMetadata->getSingleIdentifierFieldName(), $alias);
+                $rightPathExpression = new Expr\Path($mappedBy, $targetEntityAlias);
+            }
+
+            $expression = new Expr\Comparison($leftPathExpression, Expr\Comparison::EQ, $rightPathExpression);
+        } elseif (($associationMapping['type'] & ClassMetadataInfo::MANY_TO_MANY)) {
+            $sourceMetadata = $this->em->getClassMetadata($associationMapping['sourceEntity']);
+            $leftExpression = new Expr\Path($sourceMetadata->getSingleIdentifierFieldName(), $alias);
+
+            $queryComponentRelation = $targetMetadata->associationMappings[$associationMapping['inversedBy']];
+            $rightPathExpression = new Expr\Path($associationMapping['inversedBy'], $targetEntityAlias);
+
+            $expression = new Expr\Comparison($leftExpression, Expr\Comparison::MEMBEROF, $rightPathExpression);
         } else {
-            $mappedBy = $associationMapping['mappedBy'];
-            $queryComponentRelation = $targetMetadata->associationMappings[$mappedBy];
-            $leftPathExpression = new Expr\Path($targetMetadata->getSingleIdentifierFieldName(), $alias);
-            $rightPathExpression = new Expr\Path($mappedBy, $targetEntityAlias);
+            throw new \RuntimeException(\sprintf(
+                'Parameter of Association expression should be to-one or many-to-many association. Given name: \'%s\'.',
+                $associationName
+            ));
         }
 
-        $this->queryComponents->add(
-            $targetEntityAlias,
-            new QueryComponent($targetMetadata, $queryComponentRelation)
-        );
-
+        $this->queryComponents->add($targetEntityAlias, new QueryComponent($targetMetadata, $queryComponentRelation));
         $subqueryCriteria = new Criteria(AccessRuleWalker::ORM_RULES_TYPE, $targetEntityClass, $targetEntityAlias);
-        $subqueryCriteria->andExpression(
-            new Expr\Comparison($leftPathExpression, Expr\Comparison::EQ, $rightPathExpression)
-        );
+        $subqueryCriteria->andExpression($expression);
 
         $existExpression = new Expr\Exists(
             new Expr\Subquery(
@@ -200,9 +201,7 @@ class AstVisitor extends Visitor
         return $existExpression->visit($this);
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function walkPath(Expr\Path $path): mixed
     {
         $alias = $path->getAlias() ?: $this->alias;
@@ -227,9 +226,7 @@ class AstVisitor extends Visitor
         return $expression;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function walkSubquery(Expr\Subquery $subquery): mixed
     {
         $from = $subquery->getFrom();
@@ -260,9 +257,7 @@ class AstVisitor extends Visitor
         return $subSelect;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function walkExists(Expr\Exists $existsExpr): mixed
     {
         $exist = new AST\ExistsExpression($existsExpr->getExpression()->visit($this));
@@ -274,9 +269,7 @@ class AstVisitor extends Visitor
         return $primaryConditional;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function walkNullComparison(Expr\NullComparison $comparison): mixed
     {
         $expression = new AST\NullComparisonExpression($comparison->getExpression()->visit($this));
@@ -304,7 +297,7 @@ class AstVisitor extends Visitor
         }
         $rightOperand = $comparison->getRightOperand();
         if (!$rightOperand instanceof Expr\Value) {
-            throw new \RuntimeException('The left operand for CONTAINS comparison must be a value.');
+            throw new \RuntimeException('The right operand for CONTAINS comparison must be a value.');
         }
 
         $fieldType = $this->getMetadata($leftOperand->getAlias() ?: $this->alias)
@@ -322,6 +315,20 @@ class AstVisitor extends Visitor
             $this->walkOperand($leftOperand),
             self::LIKE,
             $this->getValueLiteral('%' . $rightOperand->getValue() . '%')
+        );
+    }
+
+    private function walkMemberOfComparison(Expr\Comparison $comparison): AST\Node
+    {
+        $leftOperand = $comparison->getLeftOperand();
+        $rightOperand = $comparison->getRightOperand();
+        if (!$rightOperand instanceof Expr\Path) {
+            throw new \RuntimeException('The right operand for CONTAINS comparison must be a path.');
+        }
+
+        return new AST\CollectionMemberExpression(
+            $leftOperand->visit($this),
+            $this->walkPath($rightOperand)
         );
     }
 

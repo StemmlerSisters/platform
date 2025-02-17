@@ -16,6 +16,7 @@ class RequestListenerTest extends \PHPUnit\Framework\TestCase
     /** @var RequestListener */
     private $listener;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->featureChecker = $this->createMock(FeatureChecker::class);
@@ -69,7 +70,7 @@ class RequestListenerTest extends \PHPUnit\Framework\TestCase
         $this->listener->onRequest($event);
     }
 
-    public function testForNonMasterRequest(): void
+    public function testForNonMainRequest(): void
     {
         $this->featureChecker->expects(self::once())
             ->method('isResourceEnabled')

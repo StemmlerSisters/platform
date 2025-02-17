@@ -27,9 +27,6 @@ class MenuUpdateStub implements MenuUpdateInterface
         $this->descriptions = new ArrayCollection();
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getExtras(): array
     {
         return $this->extras;
@@ -62,11 +59,12 @@ class MenuUpdateStub implements MenuUpdateInterface
      * @param Localization|null $localization
      * @return LocalizedFallbackValue|null
      */
-    public function getTitle(Localization $localization = null)
+    public function getTitle(?Localization $localization = null)
     {
         return $this->getFallbackValue($this->titles, $localization);
     }
 
+    #[\Override]
     public function getTitles(): Collection
     {
         return $this->titles;
@@ -83,7 +81,7 @@ class MenuUpdateStub implements MenuUpdateInterface
      * @param Localization|null $localization
      * @return LocalizedFallbackValue|null
      */
-    public function getDescription(Localization $localization = null)
+    public function getDescription(?Localization $localization = null)
     {
         return $this->getFallbackValue($this->descriptions, $localization);
     }
@@ -111,9 +109,7 @@ class MenuUpdateStub implements MenuUpdateInterface
         return $this;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getLinkAttributes(): array
     {
         return $this->linkAttributes;

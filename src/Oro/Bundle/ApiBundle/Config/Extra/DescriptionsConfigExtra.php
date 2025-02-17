@@ -12,35 +12,47 @@ class DescriptionsConfigExtra implements ConfigExtraInterface
 {
     public const NAME = 'descriptions';
 
+    private ?string $documentationAction;
+
+    public function __construct(?string $documentationAction = null)
+    {
+        $this->documentationAction = $documentationAction;
+    }
+
     /**
-     * {@inheritdoc}
+     * Gets an action name for which fields' descriptions are requested.
      */
+    public function getDocumentationAction(): ?string
+    {
+        return $this->documentationAction;
+    }
+
+    #[\Override]
     public function getName(): string
     {
         return self::NAME;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function configureContext(ConfigContext $context): void
     {
         // no any modifications of the ConfigContext is required
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function isPropagable(): bool
     {
         return false;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getCacheKeyPart(): ?string
     {
-        return self::NAME;
+        $result = self::NAME;
+        if ($this->documentationAction) {
+            $result .= ':' . $this->documentationAction;
+        }
+
+        return $result;
     }
 }

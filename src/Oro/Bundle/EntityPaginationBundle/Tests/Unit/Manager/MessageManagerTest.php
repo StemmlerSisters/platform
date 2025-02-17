@@ -28,6 +28,7 @@ class MessageManagerTest extends \PHPUnit\Framework\TestCase
     /** @var MessageManager */
     private $manager;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->session = new Session(new MockArraySessionStorage());
@@ -60,7 +61,7 @@ class MessageManagerTest extends \PHPUnit\Framework\TestCase
     /**
      * @dataProvider getNotAvailableMessageDataProvider
      */
-    public function testGetNotAvailableMessage(string $expected, string $scope, int $count = null)
+    public function testGetNotAvailableMessage(string $expected, string $scope, ?int $count = null)
     {
         $entity = new \stdClass();
 
@@ -115,7 +116,7 @@ class MessageManagerTest extends \PHPUnit\Framework\TestCase
     /**
      * @dataProvider getNotAccessibleMessageDataProvider
      */
-    public function testGetNotAccessibleMessage(string $expected, string $scope, int $count = null)
+    public function testGetNotAccessibleMessage(string $expected, string $scope, ?int $count = null)
     {
         $entity = new \stdClass();
 
@@ -158,8 +159,8 @@ class MessageManagerTest extends \PHPUnit\Framework\TestCase
         ?string $expected,
         string $scope,
         bool $shown,
-        int $viewCount = null,
-        int $editCount = null
+        ?int $viewCount = null,
+        ?int $editCount = null
     ) {
         $entity = new \stdClass();
         $entityName = get_class($entity);

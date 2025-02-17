@@ -20,10 +20,8 @@ class ActionProcessorDataCollector extends DataCollector
         $this->reset();
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function collect(Request $request, Response $response, \Throwable $exception = null): void
+    #[\Override]
+    public function collect(Request $request, Response $response, ?\Throwable $exception = null): void
     {
         $this->data['name'] = $this->logger->getSectionName();
         $this->data['actions'] = $this->logger->getActions();
@@ -143,9 +141,7 @@ class ActionProcessorDataCollector extends DataCollector
         return $this->totalTime;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function getName(): string
     {
         return \array_key_exists('name', $this->data)
@@ -153,9 +149,7 @@ class ActionProcessorDataCollector extends DataCollector
             : $this->logger->getSectionName();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function reset(): void
     {
         $this->data = [

@@ -27,13 +27,14 @@ class LocalFileManagerTest extends \PHPUnit\Framework\TestCase
     /** @var SymfonyFilesystem */
     private $fileSystem;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->rootDirectory = $this->getTempDir('LocalFileManager');
         $this->fileSystem = new SymfonyFilesystem();
     }
 
-    private function getFileManager(bool $useSubDir, string $subDir = null): FileManager
+    private function getFileManager(bool $useSubDir, ?string $subDir = null): FileManager
     {
         $fileManager = new FileManager(self::TEST_FILE_SYSTEM_NAME, $subDir);
         $fileManager->setProtocol(self::TEST_PROTOCOL);

@@ -22,6 +22,7 @@ class ExceptionTextExtractorDebugModeTest extends \PHPUnit\Framework\TestCase
 {
     private ExceptionTextExtractor $exceptionTextExtractor;
 
+    #[\Override]
     protected function setUp(): void
     {
         $translator = $this->createMock(TranslatorInterface::class);
@@ -46,7 +47,7 @@ class ExceptionTextExtractorDebugModeTest extends \PHPUnit\Framework\TestCase
     }
 
     private function createExecutionFailedException(
-        \Exception $innerException = null,
+        ?\Exception $innerException = null,
         string $processorId = 'processor1'
     ): ExecutionFailedException {
         return new ExecutionFailedException(

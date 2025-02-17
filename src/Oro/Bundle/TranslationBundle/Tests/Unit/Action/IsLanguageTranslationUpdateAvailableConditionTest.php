@@ -26,6 +26,7 @@ class IsLanguageTranslationUpdateAvailableConditionTest extends \PHPUnit\Framewo
     private IsLanguageTranslationUpdateAvailableCondition $condition2;
     private IsLanguageTranslationUpdateAvailableCondition $condition3;
 
+    #[\Override]
     protected function setUp(): void
     {
         $tomorrow = new \DateTime('tomorrow');
@@ -35,7 +36,7 @@ class IsLanguageTranslationUpdateAvailableConditionTest extends \PHPUnit\Framewo
         $this->codeWithout = 'fr_FR';
         $this->codeNew = 'de_DE';
         $this->codeOld = 'es_ES';
-        $this->codedFilesBased= 'ua_UA';
+        $this->codedFilesBased = 'ua_UA';
 
         $this->languageWithoutTranslations = (new Language())->setCode($this->codeWithout)->setInstalledBuildDate($now);
         $this->languageWithNewTranslations = (new Language())->setCode($this->codeNew)->setInstalledBuildDate($now);

@@ -34,7 +34,7 @@ class IncludedData
         ItemKeyBuilder $itemKeyBuilder,
         IncludeAccessorInterface $includeAccessor,
         FileLockManager $fileLockManager,
-        array $lockFileNames = null,
+        ?array $lockFileNames = null,
         array $items = [],
         array $processedItems = []
     ) {

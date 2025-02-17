@@ -32,6 +32,7 @@ class SearchResultProviderTest extends \PHPUnit\Framework\TestCase
     /** @var SearchResultProvider */
     private $provider;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->indexer = $this->createMock(Indexer::class);
@@ -372,7 +373,7 @@ class SearchResultProviderTest extends \PHPUnit\Framework\TestCase
         ];
     }
 
-    private function getConfigEntity(string $fqcn, string $label = null, string $icon = null): ConfigInterface
+    private function getConfigEntity(string $fqcn, ?string $label = null, ?string $icon = null): ConfigInterface
     {
         $values = [];
         if ($label) {

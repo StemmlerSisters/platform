@@ -14,6 +14,7 @@ class WidgetContextProviderTest extends \PHPUnit\Framework\TestCase
     /** @var WidgetContextProvider */
     private $provider;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->requestStack = new RequestStack();
@@ -24,7 +25,7 @@ class WidgetContextProviderTest extends \PHPUnit\Framework\TestCase
     /**
      * @dataProvider isActiveProvider
      */
-    public function testIsActive(bool $expectedValue, Request $request = null)
+    public function testIsActive(bool $expectedValue, ?Request $request = null)
     {
         if ($request) {
             $this->requestStack->push($request);
@@ -54,7 +55,7 @@ class WidgetContextProviderTest extends \PHPUnit\Framework\TestCase
     /**
      * @dataProvider widgetIdentifierProvider
      */
-    public function testGetWid(string|bool $expectedValue, Request $request = null)
+    public function testGetWid(string|bool $expectedValue, ?Request $request = null)
     {
         if ($request) {
             $this->requestStack->push($request);

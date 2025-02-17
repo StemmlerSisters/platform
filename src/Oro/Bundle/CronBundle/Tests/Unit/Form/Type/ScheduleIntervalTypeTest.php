@@ -11,9 +11,7 @@ use Oro\Component\Testing\Unit\PreloadedExtension;
 
 class ScheduleIntervalTypeTest extends FormIntegrationTestCase
 {
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     protected function getExtensions(): array
     {
         return [
@@ -27,7 +25,7 @@ class ScheduleIntervalTypeTest extends FormIntegrationTestCase
     public function testSubmit(
         array $submittedData,
         ScheduleIntervalInterface $expected,
-        ScheduleIntervalInterface $data = null
+        ?ScheduleIntervalInterface $data = null
     ) {
         if (!$data) {
             $data = new ScheduleIntervalStub();

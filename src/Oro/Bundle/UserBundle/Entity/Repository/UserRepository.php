@@ -14,11 +14,14 @@ use Oro\Bundle\UserBundle\Entity\User;
  */
 class UserRepository extends AbstractUserRepository implements EmailAwareRepository
 {
-    /**
-     * @param bool|null $enabled
-     * @return int
-     */
-    public function getUsersCount($enabled = null)
+    public function getUsersCount(?bool $enabled = null): int
+    {
+        $queryBuilder = $this->getUsersCountQueryBuilder($enabled);
+
+        return (int)$queryBuilder->getQuery()->getSingleScalarResult();
+    }
+
+    public function getUsersCountQueryBuilder(?bool $enabled = null): QueryBuilder
     {
         $queryBuilder = $this->createQueryBuilder('user')
             ->select('COUNT(user.id) as usersCount');
@@ -28,7 +31,7 @@ class UserRepository extends AbstractUserRepository implements EmailAwareReposit
                 ->setParameter('enabled', $enabled);
         }
 
-        return (int)$queryBuilder->getQuery()->getSingleScalarResult();
+        return $queryBuilder;
     }
 
     /**
@@ -49,9 +52,7 @@ class UserRepository extends AbstractUserRepository implements EmailAwareReposit
         return $qb->getQuery()->getOneOrNullResult();
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getPrimaryEmailsQb($fullNameQueryPart, array $excludedEmailNames = [], $query = null)
     {
         $qb = $this->createQueryBuilder('u');
@@ -86,9 +87,7 @@ class UserRepository extends AbstractUserRepository implements EmailAwareReposit
         return $qb;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function getSecondaryEmailsQb($fullNameQueryPart, array $excludedEmailNames = [], $query = null)
     {
         $qb = $this->createQueryBuilder('u');
@@ -151,7 +150,7 @@ class UserRepository extends AbstractUserRepository implements EmailAwareReposit
      *
      * @return User[]
      */
-    public function findUsersByEmailsAndOrganization(array $emails, Organization $organization = null)
+    public function findUsersByEmailsAndOrganization(array $emails, ?Organization $organization = null)
     {
         if (!$emails) {
             return [];

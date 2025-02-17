@@ -1,3 +1,4 @@
+@regression
 @ticket-BAP-12097
 
 Feature: Create Report with grouping by date
@@ -25,5 +26,23 @@ Feature: Create Report with grouping by date
     And I save and close form
     Then I should see "Specify a field on which date grouping filter can be applied." error message
     When I select "Created At" from date grouping field
+    And I save and close form
+    Then I should see "Report saved" flash message
+
+  Scenario: Created report with grouping by Created date function
+    When I go to Reports & Segments / Manage Custom Reports
+    And I click "Create Report"
+    And I fill "Report Form" with:
+      | Name        | Test Report |
+      | Entity      | User        |
+      | Report Type | Table       |
+    And I add the following columns:
+      | Id         |       |
+      | Created At | Year  |
+      | Created At | Month |
+    And I add the following grouping columns:
+      | Id  |
+      | Created At (Function "Year")  |
+      | Created At (Function "Month") |
     And I save and close form
     Then I should see "Report saved" flash message

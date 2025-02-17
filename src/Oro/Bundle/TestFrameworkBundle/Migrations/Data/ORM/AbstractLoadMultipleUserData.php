@@ -7,7 +7,6 @@ use Doctrine\Persistence\ObjectManager;
 use Oro\Bundle\SecurityBundle\Acl\Persistence\AclManager;
 use Oro\Bundle\UserBundle\Entity\Role;
 use Oro\Bundle\UserBundle\Entity\User;
-use Oro\Bundle\UserBundle\Entity\UserApi;
 use Oro\Bundle\UserBundle\Entity\UserManager;
 use Oro\Bundle\UserBundle\Migrations\Data\ORM\LoadAdminUserData;
 use Symfony\Component\DependencyInjection\ContainerAwareInterface;
@@ -23,17 +22,12 @@ abstract class AbstractLoadMultipleUserData extends AbstractFixture implements C
     const ACL_PERMISSION = 'permission';
     const ACL_LEVEL = 'level';
 
-    /**
-     * {@inheritdoc}
-     */
     public function getDependencies()
     {
         return [LoadAdminUserData::class];
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     public function load(ObjectManager $manager)
     {
         $this->loadRoles($manager);
@@ -77,13 +71,6 @@ abstract class AbstractLoadMultipleUserData extends AbstractFixture implements C
 
         foreach ($this->getUsersData() as $item) {
             $user = $userManager->createUser();
-
-            $apiKey = new UserApi();
-            $apiKey
-                ->setApiKey($item['password'])
-                ->setUser($user)
-                ->setOrganization($organization);
-
             $user
                 ->setEmail($item['email'])
                 ->setFirstName($item['firstname'])
@@ -94,8 +81,7 @@ abstract class AbstractLoadMultipleUserData extends AbstractFixture implements C
                 ->addOrganization($organization)
                 ->setUsername($item['username'])
                 ->setPlainPassword($item['password'])
-                ->setEnabled(true)
-                ->addApiKey($apiKey);
+                ->setEnabled(true);
 
             foreach ($item['userRoles'] as $role) {
                 /** @var Role $roleEntity */

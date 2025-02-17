@@ -104,3 +104,32 @@ services:
         class: Oro\Bundle\FormBundle\Provider\FormFieldsMapProvider
         arguments:
             - '@doctrine'
+
+    oro_form.validator_constraints.unique_entity:
+        class: Oro\Bundle\FormBundle\Validator\Constraints\UniqueEntityValidator
+        arguments:
+            - '@doctrine'
+            - '@service_container'
+            - '@oro_entity_config.config_manager'
+            - '@translator'
+        tags:
+            - { name: validator.constraint_validator, alias: oro_form.validator_constraints.unique_entity }
+
+    oro_form.form.event_listener.disable_fields:
+        class: Oro\Bundle\FormBundle\Form\EventListener\DisableFieldsEventSubscriber
+        arguments:
+            - !service
+                class: Oro\Component\ExpressionLanguage\ExpressionLanguage
+            - '@property_accessor'
+
+    oro_form.validator_constraints.unique_collection_item:
+        class: Oro\Bundle\FormBundle\Validator\Constraints\UniqueCollectionItemValidator
+        arguments:
+            - '@property_accessor'
+        tags:
+            - { name: validator.constraint_validator }
+
+    oro_form.entity_form_resolver:
+        class: Oro\Bundle\FormBundle\Resolver\EntityFormResolver
+        arguments:
+            - '@form.factory'

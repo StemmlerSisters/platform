@@ -60,18 +60,14 @@ class OwnershipMetadataProviderStub extends OwnershipMetadataProvider
         );
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function getMetadata(?string $className): OwnershipMetadataInterface
     {
         return $this->metadata[$className] ?? parent::getMetadata($className);
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function getMaxAccessLevel(int $accessLevel, string $className = null): int
+    #[\Override]
+    public function getMaxAccessLevel(int $accessLevel, ?string $className = null): int
     {
         return $accessLevel;
     }

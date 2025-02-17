@@ -268,6 +268,7 @@ abstract class EmailOrigin
      *
      * @return string
      */
+    #[\Override]
     public function __toString()
     {
         return (string)$this->id;
@@ -286,7 +287,7 @@ abstract class EmailOrigin
      *
      * @return $this
      */
-    public function setOrganization(OrganizationInterface $organization = null)
+    public function setOrganization(?OrganizationInterface $organization = null)
     {
         $this->organization = $organization;
 
@@ -348,7 +349,7 @@ abstract class EmailOrigin
      *
      * @return $this
      */
-    public function setMailbox(Mailbox $mailbox = null)
+    public function setMailbox(?Mailbox $mailbox = null)
     {
         $this->mailbox = $mailbox;
 

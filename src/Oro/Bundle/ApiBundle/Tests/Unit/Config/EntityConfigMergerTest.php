@@ -14,6 +14,7 @@ class EntityConfigMergerTest extends \PHPUnit\Framework\TestCase
     /** @var EntityConfigMerger */
     private $entityConfigMerger;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->configExtensionRegistry = $this->createMock(ConfigExtensionRegistry::class);
@@ -79,14 +80,14 @@ class EntityConfigMergerTest extends \PHPUnit\Framework\TestCase
                 ],
                 'config'       => [
                     'fields' => [
-                        'field2' => ['data_type' => 'int', 'form_options' => ['k' => 'v']],
+                        'field2' => ['data_type' => 'integer', 'form_options' => ['k' => 'v']],
                         'field3' => ['data_type' => 'string']
                     ]
                 ],
                 'mergedConfig' => [
                     'fields' => [
                         'field1' => ['data_type' => 'string'],
-                        'field2' => ['data_type' => 'int', 'form_type' => 'Form1', 'form_options' => ['k' => 'v']],
+                        'field2' => ['data_type' => 'integer', 'form_type' => 'Form1', 'form_options' => ['k' => 'v']],
                         'field3' => ['data_type' => 'string']
                     ]
                 ]

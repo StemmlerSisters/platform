@@ -14,29 +14,19 @@ use Symfony\Component\Validator\Constraint;
  */
 class GenericConstraintConverter implements ConstraintConverterInterface
 {
-    private ConstraintFactory $constraintFactory;
-
-    private ConstraintConverterInterface $constraintConverter;
-
     public function __construct(
-        ConstraintFactory $constraintFactory,
-        ConstraintConverterInterface $constraintConverter,
+        private readonly ConstraintFactory $constraintFactory,
+        private readonly ConstraintConverterInterface $constraintConverter,
     ) {
-        $this->constraintFactory = $constraintFactory;
-        $this->constraintConverter = $constraintConverter;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function supports(Constraint $constraint, ?FormInterface $form = null): bool
     {
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function convertConstraint(Constraint $constraint, ?FormInterface $form = null): ?Constraint
     {
         if (isset($constraint->payload['jsValidation']['type'])) {

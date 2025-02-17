@@ -66,7 +66,11 @@ class FormContext extends OroFeatureContext implements OroPageObjectAware
         /** @var Form $form */
         $this->waitForAjax();
         $form = $this->createElement($formName);
-        $form->fill($table);
+        $this->spin(function () use ($form, $table) {
+            $form->fill($table);
+
+            return true;
+        }, 3);
     }
 
     //@codingStandardsIgnoreStart
@@ -395,10 +399,12 @@ class FormContext extends OroFeatureContext implements OroPageObjectAware
      *            | Last Name         | Sheen             |
      *            | Primary Email     | charlie@sheen.com |
      *
+     * @Then /^form must contain values:$/
+     * @Then /^form must contains values:$/
      * @Then /^"(?P<formName>(?:[^"]|\\")*)" must contains values:$/
      * @Then /^"(?P<formName>(?:[^"]|\\")*)" must contain values:$/
      */
-    public function formMustContainsValues($formName, TableNode $table)
+    public function formMustContainsValues(TableNode $table, $formName = "OroForm")
     {
         /** @var Form $form */
         $form = $this->createElement($formName);
@@ -449,6 +455,24 @@ class FormContext extends OroFeatureContext implements OroPageObjectAware
         $form = $this->createElement($formName);
 
         $form->typeInField($locator, $value);
+    }
+
+    /**
+     * Example: I clear text in "Price Calculation Quantity Expression Editor Content"
+     *
+     * @When /^(?:|I )clear text in "(?P<field>(?:[^"]|\\")*)"$/
+     * @When /^(?:|I )clear text in "(?P<field>(?:[^"]|\\")*)" from "(?P<formName>(?:[^"]|\\")*)"$/
+     * @throws ElementNotFoundException
+     */
+    public function iClearTextInBlock($locator, $formName = 'OroForm'): void
+    {
+        $locator = $this->fixStepArgument($locator);
+        $formName = $this->fixStepArgument($formName);
+
+        /** @var OroForm $form */
+        $form = $this->createElement($formName);
+
+        $form->setInnerHtmlForElement($locator, '');
     }
 
     //@codingStandardsIgnoreStart
@@ -503,7 +527,7 @@ class FormContext extends OroFeatureContext implements OroPageObjectAware
      * Go to System/Configuration and see the fields with default checkboxes
      * Example: And uncheck "Use default" for "Position" field
      *
-     * @Given uncheck :checkbox for :label field
+     * @Given /^(?:|I )uncheck "(?P<checkbox>[^"]*)" for "(?P<label>[^"]*)" field$/
      */
     public function uncheckUseDefaultForField($label, $checkbox)
     {

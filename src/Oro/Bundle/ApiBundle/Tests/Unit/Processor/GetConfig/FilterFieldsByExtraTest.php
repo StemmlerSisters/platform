@@ -26,6 +26,7 @@ class FilterFieldsByExtraTest extends ConfigProcessorTestCase
     /** @var FilterFieldsByExtra */
     private $processor;
 
+    #[\Override]
     protected function setUp(): void
     {
         parent::setUp();
@@ -1035,6 +1036,131 @@ class FilterFieldsByExtraTest extends ConfigProcessorTestCase
     /**
      * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      */
+    public function testProcessWhenNullValueForManageableEntity()
+    {
+        $config = [
+            'exclusion_policy' => 'all',
+            'fields'           => [
+                'id'           => null,
+                'field1'       => null,
+                'field2'       => null,
+                'association1' => [
+                    'exclusion_policy' => 'all',
+                    'fields'           => [
+                        'id'        => null,
+                        'field1'    => null,
+                        'field2'    => null,
+                        '__class__' => [
+                            'meta_property' => true
+                        ]
+                    ]
+                ],
+                'association2' => [
+                    'exclusion_policy' => 'all',
+                    'fields'           => [
+                        'id'     => null,
+                        'field1' => null
+                    ]
+                ]
+            ]
+        ];
+
+        $this->context->setExtras([
+            new FilterFieldsConfigExtra([
+                'primary_entity'       => null,
+                'association_1_entity' => null
+            ])
+        ]);
+
+        $rootEntityMetadata = $this->getClassMetadataMock(self::TEST_CLASS_NAME);
+        $rootEntityMetadata->expects(self::never())
+            ->method('getIdentifierFieldNames');
+        $rootEntityMetadata->expects(self::exactly(2))
+            ->method('hasAssociation')
+            ->willReturnMap([
+                ['association1', true],
+                ['association2', true]
+            ]);
+        $rootEntityMetadata->expects(self::exactly(2))
+            ->method('getAssociationTargetClass')
+            ->willReturnMap([
+                ['association1', 'Test\Association1Target'],
+                ['association2', 'Test\Association2Target']
+            ]);
+
+        $association1Metadata = $this->getClassMetadataMock('Test\Association1Target');
+        $association1Metadata->expects(self::never())
+            ->method('getIdentifierFieldNames');
+
+        $association2Metadata = $this->getClassMetadataMock('Test\Association2Target');
+        $association2Metadata->expects(self::never())
+            ->method('getIdentifierFieldNames');
+
+        $this->doctrineHelper->expects(self::once())
+            ->method('isManageableEntityClass')
+            ->with(self::TEST_CLASS_NAME)
+            ->willReturn(true);
+        $this->doctrineHelper->expects(self::exactly(3))
+            ->method('getEntityMetadataForClass')
+            ->willReturnMap([
+                [self::TEST_CLASS_NAME, true, $rootEntityMetadata],
+                ['Test\Association1Target', true, $association1Metadata],
+                ['Test\Association2Target', true, $association2Metadata]
+            ]);
+
+        $requestType = $this->context->getRequestType();
+        $this->valueNormalizer->expects(self::exactly(2))
+            ->method('normalizeValue')
+            ->willReturnMap([
+                ['primary_entity', DataType::ENTITY_CLASS, $requestType, false, false, [], self::TEST_CLASS_NAME],
+                [
+                    'association_1_entity',
+                    DataType::ENTITY_CLASS,
+                    $requestType,
+                    false,
+                    false,
+                    [],
+                    'Test\Association1Target'
+                ]
+            ]);
+
+        $this->context->setResult($this->createConfigObject($config));
+        $this->processor->process($this->context);
+
+        $this->assertConfig(
+            [
+                'exclusion_policy' => 'all',
+                'fields'           => [
+                    'id'           => null,
+                    'field1'       => null,
+                    'field2'       => null,
+                    'association1' => [
+                        'exclusion_policy' => 'all',
+                        'fields'           => [
+                            'id'        => null,
+                            'field1'    => null,
+                            'field2'    => null,
+                            '__class__' => [
+                                'meta_property' => true
+                            ]
+                        ]
+                    ],
+                    'association2' => [
+                        'exclusion_policy' => 'all',
+                        'fields'           => [
+                            'id'     => null,
+                            'field1' => null
+                        ]
+                    ]
+                ]
+            ],
+            $this->context->getResult()
+        );
+    }
+
+    /**
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
+     */
     public function testProcessWhenEmptyValueWhenTargetEntityUsesTableInheritance()
     {
         $config = [
@@ -1123,6 +1249,450 @@ class FilterFieldsByExtraTest extends ConfigProcessorTestCase
                                 'exclude' => true
                             ]
                         ]
+                    ]
+                ]
+            ],
+            $this->context->getResult()
+        );
+    }
+
+    /**
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
+     */
+    public function testProcessWhenNullValueWhenTargetEntityUsesTableInheritance()
+    {
+        $config = [
+            'exclusion_policy' => 'all',
+            'fields'           => [
+                'association1' => [
+                    'exclusion_policy' => 'all',
+                    'fields'           => [
+                        'id'     => null,
+                        'field1' => null,
+                        'field2' => null
+                    ]
+                ]
+            ]
+        ];
+
+        $this->context->setExtras([
+            new FilterFieldsConfigExtra([
+                'primary_entity'         => ['field1', 'association1'],
+                'association_1_1_entity' => null
+            ])
+        ]);
+
+        $rootEntityMetadata = $this->getClassMetadataMock(self::TEST_CLASS_NAME);
+        $rootEntityMetadata->expects(self::once())
+            ->method('getIdentifierFieldNames')
+            ->willReturn(['id']);
+        $rootEntityMetadata->expects(self::once())
+            ->method('hasAssociation')
+            ->with('association1')
+            ->willReturn(true);
+        $rootEntityMetadata->expects(self::once())
+            ->method('getAssociationTargetClass')
+            ->with('association1')
+            ->willReturn('Test\Association1Target');
+
+        $association1Metadata = $this->getClassMetadataMock('Test\Association1Target');
+        $association1Metadata->inheritanceType = ClassMetadata::INHERITANCE_TYPE_SINGLE_TABLE;
+        $association1Metadata->subClasses = ['Test\Association1Target1', 'Test\Association1Target2'];
+        $association1Metadata->expects(self::never())
+            ->method('getIdentifierFieldNames');
+
+        $this->doctrineHelper->expects(self::once())
+            ->method('isManageableEntityClass')
+            ->with(self::TEST_CLASS_NAME)
+            ->willReturn(true);
+        $this->doctrineHelper->expects(self::exactly(2))
+            ->method('getEntityMetadataForClass')
+            ->willReturnMap([
+                [self::TEST_CLASS_NAME, true, $rootEntityMetadata],
+                ['Test\Association1Target', true, $association1Metadata]
+            ]);
+
+        $requestType = $this->context->getRequestType();
+        $this->valueNormalizer->expects(self::exactly(2))
+            ->method('normalizeValue')
+            ->willReturnMap([
+                ['primary_entity', DataType::ENTITY_CLASS, $requestType, false, false, [], self::TEST_CLASS_NAME],
+                [
+                    'association_1_1_entity',
+                    DataType::ENTITY_CLASS,
+                    $requestType,
+                    false,
+                    false,
+                    [],
+                    'Test\Association1Target'
+                ]
+            ]);
+
+        $this->context->setResult($this->createConfigObject($config));
+        $this->processor->process($this->context);
+
+        $this->assertConfig(
+            [
+                'exclusion_policy' => 'all',
+                'fields'           => [
+                    'association1' => [
+                        'exclusion_policy' => 'all',
+                        'fields'           => [
+                            'id'     => null,
+                            'field1' => null,
+                            'field2' => null
+                        ]
+                    ]
+                ]
+            ],
+            $this->context->getResult()
+        );
+    }
+
+    public function testProcessForNotManageableEntityWhenThereIsFieldsFilterWithNullValue()
+    {
+        $config = [
+            'identifier_field_names' => ['id'],
+            'exclusion_policy' => 'all',
+            'fields' => [
+                'id' => null,
+                'field1' => null,
+                'association1' => [
+                    'identifier_field_names' => ['id'],
+                    'target_class' => 'Test\Association1Target',
+                    'exclusion_policy' => 'all',
+                    'fields' => [
+                        'id' => null,
+                        'field1' => null,
+                        'field2' => null
+                    ]
+                ]
+            ]
+        ];
+
+        $this->context->setExtras([
+            new FilterFieldsConfigExtra([
+                'primary_entity' => null,
+                'association_1_entity' => ['id', 'field1']
+            ])
+        ]);
+
+        $requestType = $this->context->getRequestType();
+        $this->valueNormalizer->expects(self::exactly(2))
+            ->method('normalizeValue')
+            ->willReturnMap([
+                ['primary_entity', DataType::ENTITY_CLASS, $requestType, false, false, [], self::TEST_CLASS_NAME],
+                [
+                    'association_1_entity',
+                    DataType::ENTITY_CLASS,
+                    $requestType,
+                    false,
+                    false,
+                    [],
+                    'Test\Association1Target'
+                ]
+            ]);
+
+        $this->context->setResult($this->createConfigObject($config));
+        $this->processor->process($this->context);
+
+        $this->assertConfig(
+            [
+                'identifier_field_names' => ['id'],
+                'exclusion_policy' => 'all',
+                'fields' => [
+                    'id' => null,
+                    'field1' => null,
+                    'association1' => [
+                        'identifier_field_names' => ['id'],
+                        'target_class' => 'Test\Association1Target',
+                        'exclusion_policy' => 'all',
+                        'fields' => [
+                            'id' => null,
+                            'field1' => null,
+                            'field2' => [
+                                'exclude' => true
+                            ]
+                        ]
+                    ]
+                ]
+            ],
+            $this->context->getResult()
+        );
+    }
+
+    public function testProcessForManageableEntityWhenThereIsFieldsFilterWithNullValue()
+    {
+        $config = [
+            'exclusion_policy' => 'all',
+            'fields' => [
+                'id' => null,
+                'field1' => null,
+                'association1' => [
+                    'exclusion_policy' => 'all',
+                    'fields' => [
+                        'id' => null,
+                        'field1' => null,
+                        'field2' => null,
+                        '__class__' => [
+                            'meta_property' => true
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+        $this->context->setExtras([
+            new FilterFieldsConfigExtra([
+                'primary_entity' => null,
+                'association_1_entity' => ['id', 'field1']
+            ])
+        ]);
+
+        $rootEntityMetadata = $this->getClassMetadataMock(self::TEST_CLASS_NAME);
+        $rootEntityMetadata->expects(self::never())
+            ->method('getIdentifierFieldNames');
+        $rootEntityMetadata->expects(self::once())
+            ->method('hasAssociation')
+            ->with('association1')
+            ->willReturn(true);
+        $rootEntityMetadata->expects(self::once())
+            ->method('getAssociationTargetClass')
+            ->with('association1')
+            ->willReturn('Test\Association1Target');
+
+        $association1Metadata = $this->getClassMetadataMock('Test\Association1Target');
+        $association1Metadata->expects(self::once())
+            ->method('getIdentifierFieldNames')
+            ->willReturn(['id']);
+
+        $this->doctrineHelper->expects(self::once())
+            ->method('isManageableEntityClass')
+            ->with(self::TEST_CLASS_NAME)
+            ->willReturn(true);
+        $this->doctrineHelper->expects(self::exactly(2))
+            ->method('getEntityMetadataForClass')
+            ->willReturnMap([
+                [self::TEST_CLASS_NAME, true, $rootEntityMetadata],
+                ['Test\Association1Target', true, $association1Metadata]
+            ]);
+
+        $requestType = $this->context->getRequestType();
+        $this->valueNormalizer->expects(self::exactly(2))
+            ->method('normalizeValue')
+            ->willReturnMap([
+                ['primary_entity', DataType::ENTITY_CLASS, $requestType, false, false, [], self::TEST_CLASS_NAME],
+                [
+                    'association_1_entity',
+                    DataType::ENTITY_CLASS,
+                    $requestType,
+                    false,
+                    false,
+                    [],
+                    'Test\Association1Target'
+                ]
+            ]);
+
+        $this->context->setResult($this->createConfigObject($config));
+        $this->processor->process($this->context);
+
+        $this->assertConfig(
+            [
+                'exclusion_policy' => 'all',
+                'fields' => [
+                    'id' => null,
+                    'field1' => null,
+                    'association1' => [
+                        'exclusion_policy' => 'all',
+                        'fields' => [
+                            'id' => null,
+                            'field1' => null,
+                            'field2' => [
+                                'exclude' => true
+                            ],
+                            '__class__' => [
+                                'meta_property' => true
+                            ]
+                        ]
+                    ]
+                ]
+            ],
+            $this->context->getResult()
+        );
+    }
+
+    public function testProcessWhenThereIsFieldsFilterForBothEntityTypeAndEntityClass()
+    {
+        $config = [
+            'exclusion_policy' => 'all',
+            'fields' => [
+                'id' => null,
+                'field1' => null,
+                'field2' => null,
+                'field3' => null
+            ]
+        ];
+
+        $this->context->setExtras([
+            new FilterFieldsConfigExtra([
+                'primary_entity' => ['field1'],
+                self::TEST_CLASS_NAME => ['field2']
+            ])
+        ]);
+
+        $rootEntityMetadata = $this->getClassMetadataMock(self::TEST_CLASS_NAME);
+        $rootEntityMetadata->expects(self::once())
+            ->method('getIdentifierFieldNames')
+            ->willReturn(['id']);
+
+        $this->doctrineHelper->expects(self::once())
+            ->method('isManageableEntityClass')
+            ->with(self::TEST_CLASS_NAME)
+            ->willReturn(true);
+        $this->doctrineHelper->expects(self::once())
+            ->method('getEntityMetadataForClass')
+            ->with(self::TEST_CLASS_NAME, true)
+            ->willReturn($rootEntityMetadata);
+
+        $requestType = $this->context->getRequestType();
+        $this->valueNormalizer->expects(self::once())
+            ->method('normalizeValue')
+            ->with('primary_entity', DataType::ENTITY_CLASS, $requestType, false, false, [])
+            ->willReturn(self::TEST_CLASS_NAME);
+
+        $this->context->setResult($this->createConfigObject($config));
+        $this->processor->process($this->context);
+
+        $this->assertConfig(
+            [
+                'exclusion_policy' => 'all',
+                'fields' => [
+                    'id' => null,
+                    'field1' => null,
+                    'field2' => null,
+                    'field3' => [
+                        'exclude' => true
+                    ]
+                ]
+            ],
+            $this->context->getResult()
+        );
+    }
+
+    public function testProcessWhenThereIsFieldsFilterForBothEntityTypeAndEntityClassAndFirstOneIsNull()
+    {
+        $config = [
+            'exclusion_policy' => 'all',
+            'fields' => [
+                'id' => null,
+                'field1' => null,
+                'field2' => null,
+                'field3' => null
+            ]
+        ];
+
+        $this->context->setExtras([
+            new FilterFieldsConfigExtra([
+                'primary_entity' => null,
+                self::TEST_CLASS_NAME => ['field2']
+            ])
+        ]);
+
+        $rootEntityMetadata = $this->getClassMetadataMock(self::TEST_CLASS_NAME);
+        $rootEntityMetadata->expects(self::once())
+            ->method('getIdentifierFieldNames')
+            ->willReturn(['id']);
+
+        $this->doctrineHelper->expects(self::once())
+            ->method('isManageableEntityClass')
+            ->with(self::TEST_CLASS_NAME)
+            ->willReturn(true);
+        $this->doctrineHelper->expects(self::once())
+            ->method('getEntityMetadataForClass')
+            ->with(self::TEST_CLASS_NAME, true)
+            ->willReturn($rootEntityMetadata);
+
+        $requestType = $this->context->getRequestType();
+        $this->valueNormalizer->expects(self::once())
+            ->method('normalizeValue')
+            ->with('primary_entity', DataType::ENTITY_CLASS, $requestType, false, false, [])
+            ->willReturn(self::TEST_CLASS_NAME);
+
+        $this->context->setResult($this->createConfigObject($config));
+        $this->processor->process($this->context);
+
+        $this->assertConfig(
+            [
+                'exclusion_policy' => 'all',
+                'fields' => [
+                    'id' => null,
+                    'field1' => [
+                        'exclude' => true
+                    ],
+                    'field2' => null,
+                    'field3' => [
+                        'exclude' => true
+                    ]
+                ]
+            ],
+            $this->context->getResult()
+        );
+    }
+
+
+    public function testProcessWhenThereIsFieldsFilterForBothEntityTypeAndEntityClassAndSecondOneIsNull()
+    {
+        $config = [
+            'exclusion_policy' => 'all',
+            'fields' => [
+                'id' => null,
+                'field1' => null,
+                'field2' => null,
+                'field3' => null
+            ]
+        ];
+
+        $this->context->setExtras([
+            new FilterFieldsConfigExtra([
+                'primary_entity' => ['field1'],
+                self::TEST_CLASS_NAME => null
+            ])
+        ]);
+
+        $rootEntityMetadata = $this->getClassMetadataMock(self::TEST_CLASS_NAME);
+        $rootEntityMetadata->expects(self::once())
+            ->method('getIdentifierFieldNames')
+            ->willReturn(['id']);
+
+        $this->doctrineHelper->expects(self::once())
+            ->method('isManageableEntityClass')
+            ->with(self::TEST_CLASS_NAME)
+            ->willReturn(true);
+        $this->doctrineHelper->expects(self::once())
+            ->method('getEntityMetadataForClass')
+            ->with(self::TEST_CLASS_NAME, true)
+            ->willReturn($rootEntityMetadata);
+
+        $requestType = $this->context->getRequestType();
+        $this->valueNormalizer->expects(self::once())
+            ->method('normalizeValue')
+            ->with('primary_entity', DataType::ENTITY_CLASS, $requestType, false, false, [])
+            ->willReturn(self::TEST_CLASS_NAME);
+
+        $this->context->setResult($this->createConfigObject($config));
+        $this->processor->process($this->context);
+
+        $this->assertConfig(
+            [
+                'exclusion_policy' => 'all',
+                'fields' => [
+                    'id' => null,
+                    'field1' => null,
+                    'field2' => [
+                        'exclude' => true
+                    ],
+                    'field3' => [
+                        'exclude' => true
                     ]
                 ]
             ],

@@ -24,17 +24,13 @@ class HashNavExtension extends AbstractExtension implements ServiceSubscriberInt
         $this->container = $container;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public static function getSubscribedServices(): array
     {
         return [RequestStack::class];
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[\Override]
     public function getFunctions(): array
     {
         return [
@@ -51,13 +47,13 @@ class HashNavExtension extends AbstractExtension implements ServiceSubscriberInt
 
     public function checkIsHashNavigation(): bool
     {
-        $masterRequest = $this->getMasterRequest();
+        $mainRequest = $this->getMainRequest();
 
         return
-            null !== $masterRequest
+            null !== $mainRequest
             && (
-                $masterRequest->headers->get(ResponseHashnavListener::HASH_NAVIGATION_HEADER)
-                || $masterRequest->get(ResponseHashnavListener::HASH_NAVIGATION_HEADER)
+                $mainRequest->headers->get(ResponseHashnavListener::HASH_NAVIGATION_HEADER)
+                || $mainRequest->get(ResponseHashnavListener::HASH_NAVIGATION_HEADER)
             );
     }
 
@@ -66,7 +62,7 @@ class HashNavExtension extends AbstractExtension implements ServiceSubscriberInt
         return ResponseHashnavListener::HASH_NAVIGATION_HEADER;
     }
 
-    private function getMasterRequest(): ?Request
+    private function getMainRequest(): ?Request
     {
         return $this->container->get(RequestStack::class)->getMainRequest();
     }

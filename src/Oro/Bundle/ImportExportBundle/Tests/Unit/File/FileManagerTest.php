@@ -3,7 +3,10 @@
 namespace Oro\Bundle\ImportExportBundle\Tests\Unit\File;
 
 use Gaufrette\File;
+use Gaufrette\Filesystem;
+use Oro\Bundle\GaufretteBundle\Adapter\LocalAdapter;
 use Oro\Bundle\GaufretteBundle\FileManager as GaufretteFileManager;
+use Oro\Bundle\GaufretteBundle\FilesystemMap;
 use Oro\Bundle\ImportExportBundle\File\FileManager;
 use Oro\Component\Testing\TempDirExtension;
 
@@ -20,6 +23,7 @@ class FileManagerTest extends \PHPUnit\Framework\TestCase
     /** @var FileManager */
     private $fileManager;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->gaufretteFileManager = $this->createMock(GaufretteFileManager::class);
@@ -136,6 +140,26 @@ class FileManagerTest extends \PHPUnit\Framework\TestCase
             ->with($expectedContent, 'fileNameForSave');
 
         $this->fileManager->writeFileToStorage($tmpFileName, 'fileNameForSave');
+    }
+
+    public function testCopyFileToStorage(): void
+    {
+        $bom = pack('H*', 'EFBBBF');
+        $tmpFileName = $this->getTempFile('import_export_file');
+        $tmpDirectory = $this->getTempDir('import_export_files');
+        file_put_contents($tmpFileName, sprintf('%s%s', $bom, 'Some content'));
+
+        $this->gaufretteFileManager = new GaufretteFileManager('import_export_files');
+        $this->gaufretteFileManager->setProtocol('gaufrette');
+        $this->gaufretteFileManager->setFilesystemMap(new FilesystemMap([
+            'import_export_files' => new Filesystem(new LocalAdapter($tmpDirectory)),
+        ]));
+
+        $this->fileManager = new FileManager($this->gaufretteFileManager);
+        $this->fileManager->copyFileToStorage($tmpFileName, 'import_export_file_without_bom');
+
+        $result = $this->gaufretteFileManager->getFile('import_export_file_without_bom');
+        self::assertFalse(str_starts_with($result->getContent(), $bom));
     }
 
     public function fileContentDataProvider(): array
@@ -354,5 +378,55 @@ class FileManagerTest extends \PHPUnit\Framework\TestCase
             ->willReturn(false);
 
         self::assertFalse($this->fileManager->isFileExist($fileName));
+    }
+
+    public function testFileSizeWhichNotExist(): void
+    {
+        $fileName = 'test.txt';
+        $filePath = '/tmp/test.txt';
+
+        $this->gaufretteFileManager->expects(self::once())
+            ->method('getFilePath')
+            ->with($fileName)
+            ->willReturn($filePath);
+
+        $this->gaufretteFileManager->expects(self::once())
+            ->method('hasFile')
+            ->with($filePath)
+            ->willReturn(false);
+
+        self::assertEquals(0, $this->fileManager->getFileSize($fileName));
+    }
+
+    /**
+     * @dataProvider filesDataProvider
+     */
+    public function testFileSizeWhichExist(string $content, int $expectedSize): void
+    {
+        $fileName = 'test.txt';
+        $filePath = '/tmp/test.txt';
+
+        file_put_contents($filePath, $content);
+
+        $this->gaufretteFileManager->expects(self::once())
+            ->method('getFilePath')
+            ->with($fileName)
+            ->willReturn($filePath);
+
+        $this->gaufretteFileManager->expects(self::once())
+            ->method('hasFile')
+            ->with($filePath)
+            ->willReturn(true);
+
+        self::assertFileExists($filePath);
+        self::assertEquals($expectedSize, $this->fileManager->getFileSize($fileName));
+    }
+
+    public function filesDataProvider(): array
+    {
+        return [
+            ['Some Content', 12],
+            ['', 0]
+        ];
     }
 }

@@ -17,6 +17,7 @@ class JsValidationExtensionTest extends \PHPUnit\Framework\TestCase
     /** @var JsValidationExtension */
     private $extension;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->constraintsProvider = $this->createMock(ConstraintsProviderInterface::class);
@@ -295,7 +296,7 @@ class JsValidationExtensionTest extends \PHPUnit\Framework\TestCase
         ];
     }
 
-    private function createView(array $vars = [], array $children = [], FormView $parent = null): FormView
+    private function createView(array $vars = [], array $children = [], ?FormView $parent = null): FormView
     {
         $result = new FormView();
         $result->vars = array_merge_recursive($result->vars, $vars);

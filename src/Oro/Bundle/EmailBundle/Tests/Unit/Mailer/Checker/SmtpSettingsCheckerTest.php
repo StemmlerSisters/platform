@@ -17,6 +17,7 @@ class SmtpSettingsCheckerTest extends \PHPUnit\Framework\TestCase
 
     private SmtpSettingsChecker $smtpSettingsChecker;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->dsnFromSmtpSettingsFactory = $this->createMock(DsnFromSmtpSettingsFactory::class);
@@ -72,7 +73,7 @@ class SmtpSettingsCheckerTest extends \PHPUnit\Framework\TestCase
         $this->connectionChecker->expects(self::once())
             ->method('checkConnection')
             ->with($dsn)
-            ->willReturnCallback(static function (Dsn $dsn, string &$error = null) {
+            ->willReturnCallback(static function (Dsn $dsn, ?string &$error = null) {
                 $error = 'Test exception message';
 
                 return false;

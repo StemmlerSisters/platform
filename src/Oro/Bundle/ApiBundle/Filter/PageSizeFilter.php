@@ -11,10 +11,8 @@ use Oro\Bundle\ApiBundle\Exception\InvalidFilterValueException;
  */
 class PageSizeFilter extends StandaloneFilterWithDefaultValue
 {
-    /**
-     * {@inheritDoc}
-     */
-    public function apply(Criteria $criteria, FilterValue $value = null): void
+    #[\Override]
+    public function apply(Criteria $criteria, ?FilterValue $value = null): void
     {
         $val = null !== $value
             ? $value->getValue()

@@ -17,9 +17,7 @@ class DbalMessageProducerTest extends \PHPUnit\Framework\TestCase
 
     private DbalMessageProducer $messageProducer;
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\Override]
     protected function setUp(): void
     {
         $this->connection = $this->createMock(DbalConnection::class);
@@ -138,7 +136,7 @@ class DbalMessageProducerTest extends \PHPUnit\Framework\TestCase
         $this->messageProducer->send($queue, $message);
     }
 
-    private function getMessage(string $messageBody, array $properties, int $delay = null): DbalMessage
+    private function getMessage(string $messageBody, array $properties, ?int $delay = null): DbalMessage
     {
         $message = new DbalMessage();
         $message->setBody($messageBody);
