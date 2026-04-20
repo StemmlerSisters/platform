@@ -553,9 +553,6 @@ class Email implements ActivityInterface, ExtendEntityInterface
         return $this;
     }
 
-    /**
-     * Pre persist event listener
-     */
     #[ORM\PrePersist]
     public function beforeSave()
     {

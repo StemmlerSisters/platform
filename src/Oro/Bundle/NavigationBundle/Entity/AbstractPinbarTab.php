@@ -85,9 +85,6 @@ class AbstractPinbarTab implements NavigationItemInterface
         return $this->item;
     }
 
-    /**
-     * Pre persist event handler
-     */
     #[ORM\PrePersist]
     public function doPrePersist()
     {

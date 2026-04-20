@@ -28,9 +28,6 @@ class EmailOwnerManager
      */
     protected $emailAddressManager;
 
-    /**
-     * Constructor.
-     */
     public function __construct(
         EmailOwnerProviderStorage $emailOwnerProviderStorage,
         EmailAddressManager $emailAddressManager
@@ -152,7 +149,7 @@ class EmailOwnerManager
         }
 
         $values = $changeSet[$emailField];
-        list($oldValue, $newValue) = $values;
+        [$oldValue, $newValue] = $values;
         if ($newValue === $oldValue) {
             return;
         }

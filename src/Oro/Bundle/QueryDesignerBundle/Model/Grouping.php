@@ -19,9 +19,6 @@ class Grouping
      */
     protected $columnNames;
 
-    /**
-     * Constructor
-     */
     public function __construct()
     {
         $this->columnNames = new ArrayCollection();

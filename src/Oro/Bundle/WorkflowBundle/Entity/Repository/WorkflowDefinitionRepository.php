@@ -119,9 +119,6 @@ class WorkflowDefinitionRepository extends EntityRepository
         return array_column($data, 'class_name');
     }
 
-    /**
-     * @return void
-     */
     public function invalidateCache()
     {
         $cache = $this->_em->getConfiguration()->getResultCache();

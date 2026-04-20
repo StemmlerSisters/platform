@@ -115,9 +115,6 @@ abstract class AbstractAudit
      */
     abstract public function getUser();
 
-    /**
-     * Constructor
-     */
     public function __construct()
     {
         $this->fields = new ArrayCollection();

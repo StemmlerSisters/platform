@@ -94,9 +94,6 @@ abstract class AbstractGridView implements ViewInterface
      */
     protected ?Collection $users = null;
 
-    /**
-     * GridView constructor.
-     */
     public function __construct()
     {
         $this->users = new ArrayCollection();

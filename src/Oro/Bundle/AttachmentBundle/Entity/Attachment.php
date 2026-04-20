@@ -192,9 +192,6 @@ class Attachment implements ExtendEntityInterface
         return $this->updatedAt;
     }
 
-    /**
-     * Pre persist event handler
-     */
     #[ORM\PrePersist]
     public function prePersist()
     {
@@ -202,9 +199,6 @@ class Attachment implements ExtendEntityInterface
         $this->updatedAt = clone $this->createdAt;
     }
 
-    /**
-     * Pre update event handler
-     */
     #[ORM\PreUpdate]
     public function preUpdate()
     {

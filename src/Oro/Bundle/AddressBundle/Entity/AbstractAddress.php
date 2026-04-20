@@ -560,9 +560,6 @@ abstract class AbstractAddress implements EmptyItem, FullNameInterface, AddressI
         return $this;
     }
 
-    /**
-     * Pre persist event listener
-     */
     #[ORM\PrePersist]
     public function beforeSave()
     {
@@ -570,9 +567,6 @@ abstract class AbstractAddress implements EmptyItem, FullNameInterface, AddressI
         $this->updated = clone $this->created;
     }
 
-    /**
-     * Pre update event listener
-     */
     #[ORM\PreUpdate]
     public function beforeUpdate()
     {

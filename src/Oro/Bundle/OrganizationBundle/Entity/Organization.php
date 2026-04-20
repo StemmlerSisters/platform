@@ -265,9 +265,6 @@ class Organization implements OrganizationInterface, ExtendEntityInterface
         return $this->enabled;
     }
 
-    /**
-     * Pre persist event handler
-     */
     #[ORM\PrePersist]
     public function prePersist()
     {
@@ -275,9 +272,6 @@ class Organization implements OrganizationInterface, ExtendEntityInterface
         $this->updatedAt = clone $this->createdAt;
     }
 
-    /**
-     * Pre update event handler
-     */
     #[ORM\PreUpdate]
     public function preUpdate()
     {

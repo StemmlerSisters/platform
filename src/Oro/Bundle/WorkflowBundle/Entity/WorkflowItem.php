@@ -646,9 +646,6 @@ class WorkflowItem implements EntityAwareInterface, ExtendEntityInterface, Actio
         return $this->updated;
     }
 
-    /**
-     * Pre persist event listener
-     */
     #[ORM\PrePersist]
     public function prePersist()
     {
@@ -656,9 +653,6 @@ class WorkflowItem implements EntityAwareInterface, ExtendEntityInterface, Actio
         $this->setUpdated();
     }
 
-    /**
-     * Invoked before the entity is updated.
-     */
     #[ORM\PreUpdate]
     public function preUpdate()
     {

@@ -267,9 +267,6 @@ class BusinessUnit implements
         return $this->updatedAt;
     }
 
-    /**
-     * Pre persist event handler
-     */
     #[ORM\PrePersist]
     public function prePersist()
     {
@@ -277,9 +274,6 @@ class BusinessUnit implements
         $this->updatedAt = $this->createdAt;
     }
 
-    /**
-     * Pre update event handler
-     */
     #[ORM\PreUpdate]
     public function preUpdate()
     {

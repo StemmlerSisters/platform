@@ -196,9 +196,6 @@ abstract class BaseComment
         return $this;
     }
 
-    /**
-     * Sets the date on which the comment is created
-     */
     #[ORM\PrePersist]
     public function prePersist()
     {
@@ -206,9 +203,6 @@ abstract class BaseComment
         $this->updatedAt = clone $this->createdAt;
     }
 
-    /**
-     * Update the updatedAt when the updated comment
-     */
     #[ORM\PreUpdate]
     public function preUpdate()
     {

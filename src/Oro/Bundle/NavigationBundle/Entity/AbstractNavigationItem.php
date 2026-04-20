@@ -158,9 +158,6 @@ abstract class AbstractNavigationItem implements
         }
     }
 
-    /**
-     * Pre persist event handler
-     */
     #[ORM\PrePersist]
     public function doPrePersist()
     {
@@ -168,9 +165,6 @@ abstract class AbstractNavigationItem implements
         $this->updatedAt = $this->createdAt;
     }
 
-    /**
-     * Pre update event handler
-     */
     #[ORM\PreUpdate]
     public function doPreUpdate()
     {

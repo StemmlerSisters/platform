@@ -116,9 +116,6 @@ class Mailbox implements EmailOwnerInterface, EmailHolderInterface
      */
     protected $imapAccountType;
 
-    /**
-     * Mailbox constructor.
-     */
     public function __construct()
     {
         $this->emailUsers = new ArrayCollection();
@@ -473,9 +470,6 @@ class Mailbox implements EmailOwnerInterface, EmailHolderInterface
         $this->updatedAt = new \DateTime('now', new \DateTimeZone('UTC'));
     }
 
-    /**
-     * Deactivate email origin if mailbox is deleted.
-     */
     #[ORM\PreRemove]
     public function preRemove()
     {

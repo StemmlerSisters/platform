@@ -109,9 +109,6 @@ class Query
         return $this->resultCount;
     }
 
-    /**
-     * Pre persist event listener
-     */
     #[ORM\PrePersist]
     public function beforeSave()
     {

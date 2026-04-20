@@ -242,18 +242,12 @@ abstract class AbstractNavigationHistoryItem implements
         }
     }
 
-    /**
-     * Pre persist event handler
-     */
     #[ORM\PrePersist]
     public function doPrePersist()
     {
         $this->visitedAt = new \DateTime('now', new \DateTimeZone('UTC'));
     }
 
-    /**
-     * Pre update event handler
-     */
     public function doUpdate()
     {
         $this->visitedAt = new \DateTime('now', new \DateTimeZone('UTC'));

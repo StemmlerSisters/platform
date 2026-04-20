@@ -42,9 +42,6 @@ class SegmentSnapshot
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     protected ?\DateTimeInterface $createdAt = null;
 
-    /**
-     * Constructor
-     */
     public function __construct(Segment $segment)
     {
         $this->segment = $segment;
@@ -95,9 +92,6 @@ class SegmentSnapshot
         return $this->createdAt;
     }
 
-    /**
-     * Pre persist event listener
-     */
     #[ORM\PrePersist]
     public function prePersist()
     {

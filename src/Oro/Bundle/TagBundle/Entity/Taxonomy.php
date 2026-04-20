@@ -85,8 +85,6 @@ class Taxonomy implements ExtendEntityInterface
     protected ?string $backgroundColor = null;
 
     /**
-     * Constructor
-     *
      * @param string $name Tag's name
      */
     public function __construct($name = null)
@@ -183,9 +181,6 @@ class Taxonomy implements ExtendEntityInterface
         return (string) $this->getName();
     }
 
-    /**
-     * Pre persist event listener
-     */
     #[ORM\PrePersist]
     public function beforeSave()
     {
@@ -193,9 +188,6 @@ class Taxonomy implements ExtendEntityInterface
         $this->updated = new \DateTime('now', new \DateTimeZone('UTC'));
     }
 
-    /**
-     * Pre update event handler
-     */
     #[ORM\PreUpdate]
     public function doUpdate()
     {
