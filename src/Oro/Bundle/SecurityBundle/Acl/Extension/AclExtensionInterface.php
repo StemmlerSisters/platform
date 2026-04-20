@@ -26,7 +26,7 @@ interface AclExtensionInterface
     /**
      * Gets a string which is identifies this ACL extension.
      * The key must correspond the following criteria:
-     *     - each ACL extension must have an unique key
+     *     - each ACL extension must have a unique key
      *     - all characters in the key must be lowercase.
      *
      * @return string

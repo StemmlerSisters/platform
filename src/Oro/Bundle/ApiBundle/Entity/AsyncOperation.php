@@ -84,7 +84,7 @@ class AsyncOperation
     private ?array $affectedEntities = null;
 
     /**
-     * Gets an unique identifier of the entity.
+     * Gets a unique identifier of the entity.
      */
     public function getId(): int
     {

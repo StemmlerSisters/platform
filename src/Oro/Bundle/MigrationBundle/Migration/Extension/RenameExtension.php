@@ -108,7 +108,7 @@ class RenameExtension implements DatabasePlatformAwareInterface, NameGeneratorAw
     }
 
     /**
-     * Creates an unique index without check of table and columns existence.
+     * Creates a unique index without check of table and columns existence.
      * This method can be helpful when you need to create an index for renamed table or column.
      *
      * @param Schema      $schema
