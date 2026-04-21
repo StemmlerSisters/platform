@@ -61,7 +61,7 @@ interface FilterDatasourceAdapterInterface
     public function setParameter($key, $value, $type = null);
 
     /**
-     * Generates an unique parameter name.
+     * Generates a unique parameter name.
      *
      * @param string $filterName
      *

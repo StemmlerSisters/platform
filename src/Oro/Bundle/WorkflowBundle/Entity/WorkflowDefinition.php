@@ -149,9 +149,6 @@ class WorkflowDefinition implements DomainObjectInterface
     #[ORM\Column(name: 'applications', type: Types::SIMPLE_ARRAY, nullable: false)]
     protected $applications = [CurrentApplicationProviderInterface::DEFAULT_APPLICATION];
 
-    /**
-     * Constructor
-     */
     public function __construct()
     {
         $this->scopes = new ArrayCollection();
@@ -740,9 +737,6 @@ class WorkflowDefinition implements DomainObjectInterface
         return $this;
     }
 
-    /**
-     * Pre persist event listener
-     */
     #[ORM\PrePersist]
     public function beforeSave()
     {
@@ -750,9 +744,6 @@ class WorkflowDefinition implements DomainObjectInterface
         $this->updatedAt = new \DateTime('now', new \DateTimeZone('UTC'));
     }
 
-    /**
-     * Pre update event handler
-     */
     #[ORM\PreUpdate]
     public function beforeUpdate()
     {

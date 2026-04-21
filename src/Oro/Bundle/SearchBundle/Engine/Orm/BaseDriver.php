@@ -374,7 +374,7 @@ abstract class BaseDriver implements DBALPersisterInterface
     }
 
     /**
-     * Returns an unique (in terms of single query) alias & index, used for SQL aliases for joins
+     * Returns a unique (in terms of single query) alias & index, used for SQL aliases for joins
      *
      * @param string|array $fieldName
      * @param string $type

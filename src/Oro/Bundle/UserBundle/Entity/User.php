@@ -397,9 +397,6 @@ class User extends AbstractUser implements
         return $this;
     }
 
-    /**
-     * Pre persist event listener
-     */
     #[ORM\PrePersist]
     public function beforeSave()
     {
@@ -408,9 +405,6 @@ class User extends AbstractUser implements
         $this->loginCount = 0;
     }
 
-    /**
-     * Invoked before the entity is updated.
-     */
     #[ORM\PreUpdate]
     public function preUpdate(PreUpdateEventArgs $event)
     {

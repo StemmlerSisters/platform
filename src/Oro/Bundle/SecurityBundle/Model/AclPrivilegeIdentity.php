@@ -22,8 +22,6 @@ class AclPrivilegeIdentity
     private $name;
 
     /**
-     * Constructor
-     *
      * @param string|null $id
      * @param string|null $name
      */

@@ -90,7 +90,7 @@ class OpenApiSpecification
     private ?\DateTimeInterface $specificationCreatedAt = null;
 
     /**
-     * Gets an unique identifier of the entity.
+     * Gets a unique identifier of the entity.
      */
     public function getId(): ?int
     {

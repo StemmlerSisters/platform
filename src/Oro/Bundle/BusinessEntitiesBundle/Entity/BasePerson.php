@@ -62,9 +62,6 @@ class BasePerson implements FullNameInterface, EmailHolderInterface
     #[ConfigField(defaultValues: ['entity' => ['label' => 'oro.ui.updated_at']])]
     protected ?\DateTimeInterface $updatedAt = null;
 
-    /**
-     * init addresses with empty collection
-     */
     public function __construct()
     {
         $this->addresses = new ArrayCollection();

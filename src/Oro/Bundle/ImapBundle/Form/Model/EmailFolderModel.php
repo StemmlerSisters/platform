@@ -36,9 +36,6 @@ class EmailFolderModel
      */
     protected $subFolderModels;
 
-    /**
-     * Constructor
-     */
     public function __construct()
     {
         $this->subFolderModels = new ArrayCollection();

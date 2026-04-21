@@ -229,9 +229,6 @@ class ConfigValue
         return $this;
     }
 
-    /**
-     * Pre persist event listener
-     */
     #[ORM\PrePersist]
     public function beforeSave()
     {
@@ -239,9 +236,6 @@ class ConfigValue
         $this->updatedAt = clone $this->createdAt;
     }
 
-    /**
-     * Pre update event handler
-     */
     #[ORM\PreUpdate]
     public function doPreUpdate()
     {
@@ -259,8 +253,6 @@ class ConfigValue
 
     /**
      * Clear all value types
-     *
-     * @return void
      */
     public function clearValue()
     {

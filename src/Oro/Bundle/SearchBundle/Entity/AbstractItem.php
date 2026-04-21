@@ -77,9 +77,6 @@ abstract class AbstractItem
     #[ORM\OneToMany(mappedBy: 'item', targetEntity: 'IndexDatetime', cascade: ['all'], orphanRemoval: true)]
     protected ?Collection $datetimeFields = null;
 
-    /**
-     * Constructor
-     */
     public function __construct()
     {
         $this->textFields = new ArrayCollection();
@@ -282,9 +279,6 @@ abstract class AbstractItem
         return $this;
     }
 
-    /**
-     * Pre persist event listener
-     */
     #[ORM\PrePersist]
     public function beforeSave()
     {
@@ -292,9 +286,6 @@ abstract class AbstractItem
         $this->updatedAt = clone $this->createdAt;
     }
 
-    /**
-     * Pre update event listener
-     */
     #[ORM\PreUpdate]
     public function beforeUpdate()
     {

@@ -115,9 +115,6 @@ abstract class BaseTransitionTrigger
         return $this->getWorkflowDefinition() ? $this->getWorkflowDefinition()->getName() : null;
     }
 
-    /**
-     * Pre persist event handler
-     */
     #[ORM\PrePersist]
     public function prePersist()
     {
@@ -125,9 +122,6 @@ abstract class BaseTransitionTrigger
         $this->preUpdate();
     }
 
-    /**
-     * Pre update event handler
-     */
     #[ORM\PreUpdate]
     public function preUpdate()
     {

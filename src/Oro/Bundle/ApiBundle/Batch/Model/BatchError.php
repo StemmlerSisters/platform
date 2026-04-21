@@ -13,7 +13,7 @@ final class BatchError extends Error
     private ?int $itemIndex = null;
 
     /**
-     * Gets an unique identifier of this error.
+     * Gets a unique identifier of this error.
      */
     public function getId(): ?string
     {
@@ -21,7 +21,7 @@ final class BatchError extends Error
     }
 
     /**
-     * Sets an unique identifier of this error.
+     * Sets a unique identifier of this error.
      */
     public function setId(?string $id): self
     {

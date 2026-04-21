@@ -22,8 +22,6 @@ class AclPermission
     private $accessLevel;
 
     /**
-     * Constructor
-     *
      * @param string|null $name
      * @param int|null    $accessLevel Can be any AccessLevel::*_LEVEL
      */

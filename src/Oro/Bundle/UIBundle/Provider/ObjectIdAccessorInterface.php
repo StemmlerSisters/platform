@@ -3,12 +3,12 @@
 namespace Oro\Bundle\UIBundle\Provider;
 
 /**
- * Provides an interface to the service that can be used to get an unique identifier of an object.
+ * Provides an interface to the service that can be used to get a unique identifier of an object.
  */
 interface ObjectIdAccessorInterface
 {
     /**
-     * Returns an unique identifier of the given object
+     * Returns a unique identifier of the given object
      *
      * @param object $object The entity object
      *

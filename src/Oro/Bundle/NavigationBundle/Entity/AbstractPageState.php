@@ -188,9 +188,6 @@ class AbstractPageState
         return $this->updatedAt;
     }
 
-    /**
-     * Pre persist event handler
-     */
     #[ORM\PrePersist]
     public function doPrePersist()
     {
@@ -199,9 +196,6 @@ class AbstractPageState
         $this->updatedAt = clone $this->createdAt;
     }
 
-    /**
-     * Pre update event handler
-     */
     #[ORM\PreUpdate]
     public function doPreUpdate()
     {

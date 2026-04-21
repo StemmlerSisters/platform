@@ -339,9 +339,6 @@ class Segment extends AbstractQueryDesigner implements GridQueryDesignerInterfac
         return $this->lastRun;
     }
 
-    /**
-     * Pre persist event listener
-     */
     #[ORM\PrePersist]
     public function beforeSave()
     {
@@ -349,9 +346,6 @@ class Segment extends AbstractQueryDesigner implements GridQueryDesignerInterfac
         $this->updatedAt = clone $this->createdAt;
     }
 
-    /**
-     * Pre update event handler
-     */
     #[ORM\PreUpdate]
     public function doUpdate()
     {

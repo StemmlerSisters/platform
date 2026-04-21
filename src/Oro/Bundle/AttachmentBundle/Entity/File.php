@@ -325,9 +325,6 @@ class File implements FileExtensionInterface, ExtendEntityInterface
         return $this->fileSize;
     }
 
-    /**
-     * Pre persist event handler
-     */
     #[ORM\PrePersist]
     public function prePersist()
     {
@@ -339,9 +336,6 @@ class File implements FileExtensionInterface, ExtendEntityInterface
         }
     }
 
-    /**
-     * Pre update event handler
-     */
     #[ORM\PreUpdate]
     public function preUpdate()
     {

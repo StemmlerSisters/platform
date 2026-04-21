@@ -293,9 +293,6 @@ class Report extends AbstractQueryDesigner implements GridQueryDesignerInterface
         return $this;
     }
 
-    /**
-     * Pre persist event listener
-     */
     #[ORM\PrePersist]
     public function beforeSave()
     {
@@ -303,9 +300,6 @@ class Report extends AbstractQueryDesigner implements GridQueryDesignerInterface
         $this->updatedAt = clone $this->createdAt;
     }
 
-    /**
-     * Pre update event listener
-     */
     #[ORM\PreUpdate]
     public function beforeUpdate()
     {

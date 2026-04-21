@@ -100,9 +100,6 @@ class BaseOrder
     #[ORM\OneToMany(mappedBy: 'order', targetEntity: BaseOrderItem::class, cascade: ['all'])]
     protected ?Collection $items = null;
 
-    /**
-     * init addresses with empty collection
-     */
     public function __construct()
     {
         $this->addresses = new ArrayCollection();

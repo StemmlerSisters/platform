@@ -74,9 +74,7 @@ class Category
     {
         return $this->name;
     }
-    /**
-     * Constructor
-     */
+
     public function __construct()
     {
         $this->products = new ArrayCollection();

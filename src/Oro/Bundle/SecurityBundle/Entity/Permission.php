@@ -70,9 +70,6 @@ class Permission
     #[ORM\Column(name: 'description', type: Types::STRING, length: 255, nullable: true)]
     protected ?string $description = null;
 
-    /**
-     * Constructor
-     */
     public function __construct()
     {
         $this->applyToEntities = new ArrayCollection();

@@ -115,7 +115,7 @@ class OrmFilterDatasourceAdapter implements FilterDatasourceAdapterInterface
     }
 
     /**
-     * Generates an unique parameter name for a query.
+     * Generates a unique parameter name for a query.
      *
      * @param string $filterName
      * @param array $usedParameterNames

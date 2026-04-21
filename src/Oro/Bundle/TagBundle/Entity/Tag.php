@@ -85,8 +85,6 @@ class Tag implements ExtendEntityInterface
     protected ?OrganizationInterface $organization = null;
 
     /**
-     * Constructor
-     *
      * @param string $name Tag's name
      */
     public function __construct($name = null)
@@ -202,9 +200,6 @@ class Tag implements ExtendEntityInterface
         return (string) $this->getName();
     }
 
-    /**
-     * Pre persist event listener
-     */
     #[ORM\PrePersist]
     public function beforeSave()
     {
@@ -212,9 +207,6 @@ class Tag implements ExtendEntityInterface
         $this->updated = new \DateTime('now', new \DateTimeZone('UTC'));
     }
 
-    /**
-     * Pre update event handler
-     */
     #[ORM\PreUpdate]
     public function doUpdate()
     {
