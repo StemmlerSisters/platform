@@ -4,7 +4,10 @@ namespace Oro\Component\MessageQueue\Consumption;
 
 use Oro\Component\MessageQueue\Client\MessageProcessorRegistryInterface;
 use Oro\Component\MessageQueue\Consumption\Exception\ConsumptionInterruptedException;
+use Oro\Component\MessageQueue\Consumption\Exception\LogicException;
 use Oro\Component\MessageQueue\Consumption\Exception\RejectMessageExceptionInterface;
+use Oro\Component\MessageQueue\Consumption\QueueIterator\DefaultQueueIterator;
+use Oro\Component\MessageQueue\Consumption\QueueIterator\QueueIteratorFactoryInterface;
 use Oro\Component\MessageQueue\Log\ConsumerState;
 use Oro\Component\MessageQueue\Transport\ConnectionInterface;
 use Oro\Component\MessageQueue\Transport\MessageConsumerInterface;
@@ -18,6 +21,8 @@ use Psr\Log\NullLogger;
  */
 class QueueConsumer
 {
+    public const string PROCESSOR = 'processor';
+
     private ConnectionInterface $connection;
 
     private ExtensionInterface $extension;
@@ -28,20 +33,24 @@ class QueueConsumer
 
     private int $idleMicroseconds;
 
-    private array $boundMessageProcessors;
+    private QueueIteratorFactoryInterface $queueIteratorFactory;
+
+    /** @var array<string, array{processor?: string, ...array<string, string>}> */
+    private array $boundQueues;
 
     /**
-     * @param ConnectionInterface $connection
-     * @param ExtensionInterface $extension
-     * @param ConsumerState $consumerState
-     * @param MessageProcessorRegistryInterface $messageProcessorRegistry
-     * @param int $idleMicroseconds 100ms by default
+     * Defines the consumption mode used to determine the queue iteration strategy.
+     *
+     * @see QueueIteratorFactoryInterface
      */
+    private string $consumptionMode = DefaultQueueIterator::NAME;
+
     public function __construct(
         ConnectionInterface $connection,
         ExtensionInterface $extension,
         ConsumerState $consumerState,
         MessageProcessorRegistryInterface $messageProcessorRegistry,
+        QueueIteratorFactoryInterface $queueIteratorFactory,
         int $idleMicroseconds = 100000
     ) {
         $this->connection = $connection;
@@ -49,8 +58,9 @@ class QueueConsumer
         $this->consumerState = $consumerState;
         $this->messageProcessorRegistry = $messageProcessorRegistry;
         $this->idleMicroseconds = $idleMicroseconds;
+        $this->queueIteratorFactory = $queueIteratorFactory;
 
-        $this->boundMessageProcessors = [];
+        $this->boundQueues = [];
     }
 
     /**
@@ -62,23 +72,50 @@ class QueueConsumer
     }
 
     /**
-     * Binds consumer to the specified queue and message processor.
+     * Defines the consumption mode used to determine the queue iteration strategy.
+     *
+     * @see QueueIteratorFactoryInterface
+     */
+    public function setConsumptionMode(string $consumptionMode): void
+    {
+        $this->consumptionMode = $consumptionMode;
+    }
+
+    /**
+     * Unbinds one or more queues from the consumer.
+     * Queues that are not currently bound are silently ignored.
+     *
+     * @param string ...$queueNames One or more queue names to unbind.
+     */
+    public function unbindQueues(string ...$queueNames): void
+    {
+        foreach ($this->boundQueues as $boundQueue => $queueSettings) {
+            if (empty($queueNames) || in_array($boundQueue, $queueNames, true)) {
+                unset($this->boundQueues[$boundQueue]);
+            }
+        }
+    }
+
+    /**
+     * Binds consumer to the specified queue.
      *
      * @param string $queueName
-     * @param string $messageProcessorName
+     * @param array{processor?: string, ...} $queueSettings Arbitrary queue settings.
+     *                                                      The only required setting is "processor" which defines
+     *                                                      the message processor service name.
      *
      * @return self
      */
-    public function bind(string $queueName, string $messageProcessorName = '')
+    public function bindQueue(string $queueName, array $queueSettings = []): self
     {
         if (empty($queueName)) {
-            throw new \LogicException('The queue name must be not empty.');
+            throw new \LogicException('The queue name must not be empty.');
         }
-        if (array_key_exists($queueName, $this->boundMessageProcessors)) {
+        if (array_key_exists($queueName, $this->boundQueues)) {
             throw new \LogicException(sprintf('The queue was already bound. Queue: %s', $queueName));
         }
 
-        $this->boundMessageProcessors[$queueName] = $messageProcessorName;
+        $this->boundQueues[$queueName] = $queueSettings;
 
         return $this;
     }
@@ -92,11 +129,15 @@ class QueueConsumer
      */
     public function consume(?ExtensionInterface $runtimeExtension = null)
     {
+        if (!$this->boundQueues) {
+            throw new LogicException('No queues have been bound to consume.');
+        }
+
         $session = $this->connection->createSession();
 
         /** @var MessageConsumerInterface[] $messageConsumers */
         $messageConsumers = [];
-        foreach ($this->boundMessageProcessors as $queueName => $messageProcessorName) {
+        foreach ($this->boundQueues as $queueName => $queueSettings) {
             $queue = $session->createQueue($queueName);
             $messageConsumers[$queueName] = $session->createConsumer($queue);
         }
@@ -112,16 +153,18 @@ class QueueConsumer
         $logger = $context->getLogger() ?: new NullLogger();
         $logger->info('Start consuming');
 
+        $queuesIterator = $this->queueIteratorFactory->createQueueIterator($this->boundQueues, $this->consumptionMode);
+
         while (true) {
-            foreach ($this->boundMessageProcessors as $queueName => $messageProcessorName) {
+            foreach ($queuesIterator as $queueName => $queueSettings) {
                 try {
-                    $logger->debug(sprintf('Switch to a queue %s', $queueName));
+                    $logger->debug('Consuming from queue {queue}', ['queue' => $queueName]);
 
                     $context = new Context($session);
                     $context->setLogger($logger);
                     $context->setQueueName($queueName);
                     $context->setMessageConsumer($messageConsumers[$queueName]);
-                    $context->setMessageProcessorName($messageProcessorName);
+                    $context->setMessageProcessorName($queueSettings[self::PROCESSOR] ?? '');
 
                     $this->doConsume($extension, $context);
                 } catch (ConsumptionInterruptedException $e) {
@@ -172,7 +215,7 @@ class QueueConsumer
         if ($context->isExecutionInterrupted()) {
             throw new ConsumptionInterruptedException($context->getInterruptedReason() ?? '');
         }
-        $logger->debug('Pre receive Message');
+        $logger->debug('Pre receive message');
         $message = $messageConsumer->receive(1);
         if (null !== $message) {
             $context->setMessage($message);
@@ -221,7 +264,7 @@ class QueueConsumer
 
             $extension->onPostReceived($context);
         } else {
-            $logger->info('Idle');
+            $logger->info('Idle', ['queue' => $context->getQueueName()]);
 
             usleep($this->idleMicroseconds);
             $extension->onIdle($context);

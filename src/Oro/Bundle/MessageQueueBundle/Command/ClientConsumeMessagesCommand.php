@@ -11,6 +11,8 @@ use Oro\Component\MessageQueue\Client\Meta\DestinationMetaRegistry;
 use Oro\Component\MessageQueue\Consumption\Extension\LoggerExtension;
 use Oro\Component\MessageQueue\Consumption\ExtensionInterface;
 use Oro\Component\MessageQueue\Consumption\QueueConsumer;
+use Oro\Component\MessageQueue\Consumption\QueueIterator\QueueIteratorFactoryRegistry;
+use Oro\Component\MessageQueue\Consumption\QueueOptionValueParser;
 use Oro\Component\MessageQueue\Log\ConsumerState;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -18,27 +20,36 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
- * Processes messages from the message-queue.
+ * Processes messages from the specified client-level queue(s), e.g. "default".
  */
-#[AsCommand(name: 'oro:message-queue:consume')]
+#[AsCommand(
+    name: 'oro:message-queue:consume',
+    description: 'Processes messages from the specified client-level queue(s), e.g. "default".'
+)]
 class ClientConsumeMessagesCommand extends ConsumeMessagesCommand
 {
     private ConsumerState $consumerState;
     private LoggerInterface $logger;
-    protected JobManager $jobManager;
 
     public function __construct(
         QueueConsumer $queueConsumer,
         DestinationMetaRegistry $destinationMetaRegistry,
         ConsumerState $consumerState,
         LoggerInterface $logger,
-        JobManager $jobManager
+        JobManager $jobManager,
+        QueueIteratorFactoryRegistry $queueIteratorFactoryRegistry,
+        QueueOptionValueParser $queueOptionValueParser,
     ) {
-        parent::__construct($queueConsumer, $destinationMetaRegistry);
+        parent::__construct(
+            $queueConsumer,
+            $destinationMetaRegistry,
+            $jobManager,
+            $queueIteratorFactoryRegistry,
+            $queueOptionValueParser
+        );
 
         $this->consumerState = $consumerState;
         $this->logger = $logger;
-        $this->jobManager = $jobManager;
     }
 
     #[\Override]
